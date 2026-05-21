@@ -270,9 +270,9 @@ export const SHOP_ITEMS = [
 
 export const CURRENT_USER: User = {
   id: 'me',
-  name: 'Wesley',
+  name: '迪儿6317B6SG',
   avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=128&h=128&fit=crop',
-  bio: '探索未知的城市角落。',
+  bio: '用一句话介绍一下自己',
   streak: 7,
   followers: 1200,
   following: 86,

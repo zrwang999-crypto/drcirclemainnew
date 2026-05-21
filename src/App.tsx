@@ -41,7 +41,8 @@ import {
   ArrowRight,
   Hash,
   Copy,
-  MessageSquare
+  MessageSquare,
+  Pencil
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TOPICS, CURRENT_USER, GIFTS, SHOP_ITEMS, SHARE_FRIENDS, MOCK_GIFT_RECORDS } from './constants';
@@ -759,9 +760,10 @@ const GiftDonorDetailModal = ({
   );
 };
 
-const TopicDetail = ({ topic, setScreen, toggleFavorite, isFavorite, toggleLike, isLiked, setSelectedTopic, setSelectedUserName, showToast, isSpotlighted, spotlightTopic, userVlogs, deleteVlog, setCircleInitialTopicInfo }: { 
+const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite, toggleLike, isLiked, setSelectedTopic, setSelectedUserName, showToast, isSpotlighted, spotlightTopic, userVlogs, deleteVlog, setCircleInitialTopicInfo }: { 
   topic: Topic, 
   setScreen: (s: Screen) => void,
+  prevScreen: Screen,
   toggleFavorite: (id: string) => void,
   isFavorite: boolean,
   toggleLike: (id: string) => void,
@@ -947,7 +949,7 @@ const TopicDetail = ({ topic, setScreen, toggleFavorite, isFavorite, toggleLike,
 
             <div className="relative z-10 flex items-start justify-between gap-3">
               <button
-                onClick={() => setScreen('home')}
+                onClick={() => setScreen(prevScreen || 'home')}
                 className="w-10 h-10 rounded-2xl bg-black/25 border border-white/10 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-transform"
                 aria-label="关闭详情"
               >
@@ -1316,7 +1318,7 @@ const TopicDetail = ({ topic, setScreen, toggleFavorite, isFavorite, toggleLike,
   return (
     <div className="flex flex-col h-full bg-dark pt-8">
       <header className="p-6 flex items-center justify-between sticky top-0 bg-dark/80 backdrop-blur-xl z-20 border-b border-white/[0.03]">
-        <button onClick={() => setScreen('home')} className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center">
+        <button onClick={() => setScreen(prevScreen || 'home')} className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center">
           <X size={14} className="text-white" />
         </button>
           <div className="flex-1 flex items-center justify-between px-4">
@@ -1803,171 +1805,272 @@ const NetworkListScreen = ({
   );
 };
 
-const MeScreen = ({ setScreen, diamondBalance, energyBalance, likedCount, savedCount, worksCount, setInitialNetworkTab }: { 
+const MeScreen = ({ setScreen, diamondBalance, energyBalance, likedCount, savedCount, worksCount, setInitialNetworkTab, setSelectedTopic, setCircleIsMyWorkMode, setCircleInitialTopicId }: { 
   setScreen: (s: Screen) => void,
   diamondBalance: number,
   energyBalance: number,
   likedCount: number,
   savedCount: number,
   worksCount: number,
-  setInitialNetworkTab: (t: 'friends' | 'followers' | 'following') => void
+  setInitialNetworkTab: (t: 'friends' | 'followers' | 'following') => void,
+  setSelectedTopic: (t: Topic) => void,
+  setCircleIsMyWorkMode: (b: boolean) => void,
+  setCircleInitialTopicId: (id: string | undefined) => void
 }) => {
-  const lightCard = 'rounded-[32px] border border-[#ece3d7] bg-white/80 shadow-[0_18px_40px_rgba(103,81,58,0.06)] backdrop-blur-xl';
+  const lightCard = '';
+  const [activeGallery, setActiveGallery] = useState<'works' | 'likes' | 'saved'>('works');
+  const myStartedTopicIds = new Set(['1', '4', '6']);
+
+  const getWorkBadge = (topic: Topic) => {
+    if (topic.creator === CURRENT_USER.name || myStartedTopicIds.has(topic.id)) return '我发起的';
+    if (topic.status !== 'completed') return '待成圈';
+    return '参与共创';
+  };
+
+  const isPendingWork = (topic: Topic) => topic.status !== 'completed';
+
+  const openWork = (topic: Topic) => {
+    setSelectedTopic(topic);
+    if (topic.status === 'completed') {
+      setCircleIsMyWorkMode(true);
+      setCircleInitialTopicId(topic.id);
+      setScreen('circle');
+      return;
+    }
+    setCircleIsMyWorkMode(false);
+    setCircleInitialTopicId(undefined);
+    setScreen('topic-detail');
+  };
+
+  const galleryWorks = [
+    ...TOPICS.slice(0, 6).map((topic, index) => ({
+      id: `topic-${topic.id}`,
+      title: topic.title,
+      image: topic.image || `https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=900&h=1200&fit=crop&sig=${index}`,
+      metric: topic.likes,
+      badge: getWorkBadge(topic),
+      tone: topic.tone,
+      targetScreen: topic.status === 'completed' ? 'circle' : 'topic-detail',
+      topic,
+    })),
+  ];
+
+  const likedWorks = TOPICS.slice(2, 8).map((topic, index) => ({
+    id: `liked-${topic.id}`,
+    title: topic.title,
+    image: topic.image || `https://images.unsplash.com/photo-1495195134817-aeb325a55b65?w=900&h=1200&fit=crop&sig=${index + 12}`,
+    metric: topic.likes,
+    badge: getWorkBadge(topic),
+    tone: topic.tone,
+    targetScreen: 'topic-detail' as Screen,
+    topic,
+  }));
+
+  const savedWorks = TOPICS.slice(4, 10).map((topic, index) => ({
+    id: `saved-${topic.id}`,
+    title: topic.title,
+    image: topic.image || `https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=900&h=1200&fit=crop&sig=${index + 24}`,
+    metric: topic.bookmarks || topic.likes,
+    badge: getWorkBadge(topic),
+    tone: topic.tone,
+    targetScreen: 'topic-detail' as Screen,
+    topic,
+  }));
+
+  const activeWorks = activeGallery === 'works' ? galleryWorks : activeGallery === 'likes' ? likedWorks : savedWorks;
 
   return (
     <div className="flex flex-col h-full bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_42%,#f2ebe1_100%)] pt-8 text-[#2f261d]">
-      <header className="p-6 flex items-center justify-between sticky top-0 bg-[#f9f5ef]/90 backdrop-blur-xl z-20 border-b border-[#e8dfd2]">
-        <button onClick={() => { setInitialNetworkTab('friends'); setScreen('network-list'); }} className="w-10 h-10 rounded-2xl flex items-center justify-center border border-[#e9dfd3] bg-white/80 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
+      <header className="p-6 flex items-center justify-between sticky top-0 bg-[#f9f5ef]/90 backdrop-blur-xl z-20">
+        <button onClick={() => { setInitialNetworkTab('friends'); setScreen('network-list'); }} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
           <Users size={20} />
         </button>
         <h2 className="font-bold text-[#2f261d] text-lg tracking-tight">我的</h2>
-        <button onClick={() => setScreen('settings')} className="w-10 h-10 rounded-2xl flex items-center justify-center border border-[#e9dfd3] bg-white/80 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
+        <button onClick={() => setScreen('settings')} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
           <Settings size={20} />
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto no-scrollbar px-5 pb-32">
+      <main className="flex-1 overflow-y-auto no-scrollbar px-4 pb-32">
         <section 
           onClick={() => setScreen('personal-profile')}
-          className={`${lightCard} mt-4 px-6 py-8 text-center cursor-pointer group active:scale-[0.99] transition-all relative overflow-hidden`}
+          className={`${lightCard} mt-2 px-2 py-4 cursor-pointer group active:scale-[0.99] transition-all relative`}
         >
-          <div className="absolute inset-x-10 top-0 h-24 bg-gradient-to-b from-[#f7e6c8]/50 to-transparent blur-3xl pointer-events-none"></div>
-          <div className="relative inline-block">
-             <div className="w-24 h-24 rounded-[32px] bg-[#fbf6ef] border-4 border-white shadow-xl flex items-center justify-center overflow-hidden group-hover:border-[#f2e4d2] transition-all">
-                <UserIcon size={40} className="text-[#d7c6b2]" />
-             </div>
-             <div className="absolute -bottom-2 -right-2 px-3 py-1.5 flex items-center gap-1 rounded-full text-xs font-black text-[#b4834a] shadow-sm border border-[#f0dfc0] bg-[#fff6e9]">
-                <Flame size={12} fill="currentColor" /> 7
-             </div>
+          <div className="absolute inset-x-12 top-0 h-20 bg-gradient-to-b from-[#f7e6c8]/50 to-transparent blur-3xl pointer-events-none"></div>
+          <div className="relative flex items-center gap-4">
+            <div className="relative shrink-0">
+              <img
+                src={CURRENT_USER.avatar}
+                alt={CURRENT_USER.name}
+                className="w-[78px] h-[78px] rounded-full object-cover shadow-[0_10px_22px_rgba(73,55,39,0.12)]"
+              />
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-1 flex items-center gap-1 rounded-full text-[11px] font-black text-[#b4834a] shadow-sm bg-[#fff6e9]">
+                <Flame size={11} fill="currentColor" /> {CURRENT_USER.streak}
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0 text-left">
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="min-w-0 text-[24px] font-black text-[#2f261d] tracking-tight leading-tight">{CURRENT_USER.name}</h1>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setScreen('personal-profile');
+                  }}
+                  aria-label="编辑个人资料"
+                  className="mt-0.5 w-9 h-9 rounded-full bg-white/88 text-[#4f3d2d] shadow-sm flex items-center justify-center active:scale-95 transition-transform shrink-0"
+                >
+                  <Pencil size={16} />
+                </button>
+              </div>
+              <p className="mt-1.5 text-[#7d6f61] text-sm">@Dear6317B6SG</p>
+              <p className="mt-2.5 text-[#8f7f6d] text-sm leading-relaxed">{CURRENT_USER.bio}</p>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold mt-6 text-[#2f261d]">{CURRENT_USER.name}</h1>
-          <p className="text-[#7d6f61] text-sm mt-1">@wesleyyy1</p>
-          <p className="text-[#b0a08e] text-[10px] font-bold mt-1 uppercase">IP：广东</p>
-          
-          <div className="flex justify-center space-x-8 mt-8">
-            <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('friends'); setScreen('network-list'); }} className="text-center group">
-              <p className="text-lg font-bold group-active:scale-95 transition-transform text-[#2f261d]">3</p>
-              <p className="text-[10px] font-black uppercase text-[#b0a08e] tracking-widest">好友</p>
+
+          <div className="grid grid-cols-4 gap-2 mt-6">
+            <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('friends'); setScreen('network-list'); }} className="text-center">
+              <p className="text-[20px] font-black text-[#2f261d]">3</p>
+              <p className="text-[10px] text-[#a79584] font-bold">好友</p>
             </button>
-            <div className="h-8 w-[1px] bg-[#eadfce] self-center"></div>
-            <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('followers'); setScreen('network-list'); }} className="text-center group">
-              <p className="text-lg font-bold group-active:scale-95 transition-transform text-[#2f261d]">5</p>
-              <p className="text-[10px] font-black uppercase text-[#b0a08e] tracking-widest">粉丝</p>
+            <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('following'); setScreen('network-list'); }} className="text-center">
+              <p className="text-[20px] font-black text-[#2f261d]">{CURRENT_USER.following}</p>
+              <p className="text-[10px] text-[#a79584] font-bold">关注</p>
             </button>
-            <div className="h-8 w-[1px] bg-[#eadfce] self-center"></div>
-            <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('following'); setScreen('network-list'); }} className="text-center group">
-              <p className="text-lg font-bold group-active:scale-95 transition-transform text-[#2f261d]">4</p>
-              <p className="text-[10px] font-black uppercase text-[#b0a08e] tracking-widest">关注</p>
+            <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('followers'); setScreen('network-list'); }} className="text-center">
+              <p className="text-[20px] font-black text-[#2f261d]">{CURRENT_USER.followers}</p>
+              <p className="text-[10px] text-[#a79584] font-bold">粉丝</p>
             </button>
+            <button onClick={(e) => { e.stopPropagation(); setScreen('energy-detail'); }} className="text-center">
+              <p className="text-[20px] font-black text-[#2f261d]">1.2w</p>
+              <p className="text-[10px] text-[#a79584] font-bold">获赞</p>
+            </button>
+          </div>
+
+          <div className="mt-5 space-y-2.5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setScreen('recharge');
+              }}
+              className="w-full rounded-[18px] bg-gradient-to-r from-[#eef3fb] via-white to-[#eef8f1] px-4 py-3 text-left shadow-sm active:scale-95 transition-transform"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-[#2f261d] shadow-sm shrink-0">
+                  <Gem size={17} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-black text-[#8f7f6d] tracking-wide whitespace-nowrap">我的钻石</p>
+                </div>
+                <div className="ml-auto min-w-[88px] px-3 py-1.5 text-right">
+                  <p className="text-[16px] font-black text-[#2f261d] leading-none">{diamondBalance.toLocaleString()}</p>
+                </div>
+              </div>
+            </button>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { label: '智能戒指', value: '86', icon: ShieldCheck, action: () => setScreen('smart-ring'), tone: 'from-[#fff7eb] to-white' },
+                { label: 'DR商城', value: energyBalance.toLocaleString(), icon: Star, action: () => setScreen('shop'), tone: 'from-[#fff1f4] to-white' },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    item.action();
+                  }}
+                  className={`rounded-[18px] bg-gradient-to-br ${item.tone} px-3.5 py-3 text-left shadow-sm active:scale-95 transition-transform min-h-[72px]`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-2xl bg-white flex items-center justify-center text-[#2f261d] shadow-sm shrink-0">
+                      <item.icon size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black text-[#8f7f6d] tracking-wide leading-tight">{item.label}</p>
+                      <p className="mt-0.5 text-[17px] font-black text-[#2f261d] truncate">{item.value}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section className="space-y-4">
-          <div 
-             onClick={() => setScreen('my-works')}
-             className={`${lightCard} p-6 bg-gradient-to-br from-white via-[#fdf8f1] to-[#f6ede0] flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden`}
-          >
-            <div className="absolute right-0 top-0 w-32 h-32 bg-[#f4dfbf]/35 blur-3xl -mr-12 -mt-12 pointer-events-none"></div>
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="w-12 h-12 bg-[#f6ede2] rounded-2xl flex items-center justify-center text-[#7a5c43] border border-[#efe3d3]">
-                <Camera size={23} />
-              </div>
-              <div>
-                <h4 className="font-bold text-[#2f261d]">我的作品</h4>
-                <p className="text-xs text-[#8a7a68]">{12 + worksCount} 个共创记录</p>
-              </div>
+        <section className="mt-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex bg-white/82 rounded-full p-1 shadow-sm">
+              {[
+                { id: 'works', label: '作品', count: 12 + worksCount },
+                { id: 'likes', label: '喜欢', count: likedCount },
+                { id: 'saved', label: '收藏', count: savedCount },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveGallery(tab.id as 'works' | 'likes' | 'saved')}
+                  className={`px-4 py-2 rounded-full text-xs font-black transition-all ${
+                    activeGallery === tab.id
+                      ? 'bg-[#2f261d] text-white shadow-sm'
+                      : 'text-[#8f7f6d]'
+                  }`}
+                >
+                  {tab.label} {tab.count}
+                </button>
+              ))}
             </div>
-            <ChevronRight className="text-[#aa9a86] relative z-10" />
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <button 
-               onClick={() => setScreen('liked-topics')}
-               className={`${lightCard} p-5 flex flex-col items-start gap-4 active:scale-[0.98] transition-all cursor-pointer text-left`}
+            <button
+              onClick={() => {
+                if (activeGallery === 'works') setScreen('my-works');
+                if (activeGallery === 'likes') setScreen('liked-topics');
+                if (activeGallery === 'saved') setScreen('saved-topics');
+              }}
+              className="text-[11px] font-black text-[#8f7f6d] tracking-wide"
             >
-              <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-500">
-                <Heart size={24} fill="currentColor" />
-              </div>
-              <div>
-                <h4 className="font-bold text-[#2f261d]">我的喜欢</h4>
-                <p className="text-xs text-[#8a7a68]">{likedCount} 个喜欢的作品</p>
-              </div>
-            </button>
-
-            <button 
-               onClick={() => setScreen('saved-topics')}
-               className={`${lightCard} p-5 flex flex-col items-start gap-4 active:scale-[0.98] transition-all cursor-pointer text-left`}
-            >
-              <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-[#c18b38]">
-                <Star size={24} fill="currentColor" />
-              </div>
-              <div>
-                <h4 className="font-bold text-[#2f261d]">我的收藏</h4>
-                <p className="text-xs text-[#8a7a68]">{savedCount} 个收藏的作品</p>
-              </div>
+              全部作品
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div onClick={() => setScreen('recharge')} className={`${lightCard} p-5 space-y-4 active:scale-95 transition-transform cursor-pointer`}>
-              <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-500">
-                <Gift size={20} />
-              </div>
-              <div>
-                 <p className="text-xl font-bold text-[#2f261d]">{diamondBalance}</p>
-                 <p className="text-[10px] text-[#aa9a86] font-black uppercase tracking-widest">钻石余额</p>
-              </div>
-            </div>
-            <div onClick={() => setScreen('energy-detail')} className={`${lightCard} p-5 space-y-4 active:scale-95 transition-transform cursor-pointer`}>
-              <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-500">
-                <Zap size={20} fill="currentColor" />
-              </div>
-              <div>
-                 <p className="text-xl font-bold text-[#2f261d]">{energyBalance}</p>
-                 <p className="text-[10px] text-[#aa9a86] font-black uppercase tracking-widest">获得点赞</p>
-              </div>
-            </div>
-          </div>
-
-          <div 
-             onClick={() => setScreen('shop')}
-             className={`${lightCard} p-6 flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden`}
-          >
-            <div className="absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-[#f2dfbf] to-transparent pointer-events-none"></div>
-            <div className="flex items-center gap-4 relative z-10 min-w-0">
-              <div className="w-12 h-12 bg-[#fff5e7] rounded-2xl flex items-center justify-center text-[#b4834a] border border-[#f0dfc0] shrink-0">
-                <Star size={22} fill="currentColor" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="font-bold text-[#2f261d]">DR商城</h4>
-                <p className="text-xs text-[#8a7a68] truncate">{energyBalance.toLocaleString()} 积分可兑换权益</p>
-              </div>
-            </div>
-            <ChevronRight className="text-[#c7a173] relative z-10 shrink-0" />
-          </div>
-
-          <div 
-             onClick={() => setScreen('smart-ring')}
-             className="rounded-[32px] bg-gradient-to-br from-[#fffaf3] via-white to-[#f7efe1] p-6 border border-[#ead7b7] hover:border-[#dfc49e] transition-all cursor-pointer shadow-[0_18px_40px_rgba(103,81,58,0.08)] relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#f4dfbf]/45 blur-3xl rounded-full -mr-16 -mt-16"></div>
-            <div className="flex justify-between items-start z-10 relative">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-[#b4834a]">
-                  <ShieldCheck size={16} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">DR Ring Pro 已连接</span>
+          <div className="grid grid-cols-3 gap-1.5 mt-3">
+            {activeWorks.map((work, index) => (
+              <button
+                key={work.id}
+                onClick={() => {
+                  openWork(work.topic);
+                }}
+                className="relative aspect-[3/4.4] overflow-hidden rounded-[22px] bg-[#f6ede3] group active:scale-[0.98] transition-transform"
+              >
+                <img
+                  src={work.image}
+                  alt={work.title}
+                  className={`absolute inset-0 w-full h-full object-cover transition-all ${
+                    isPendingWork(work.topic) ? 'scale-105 blur-[6px]' : ''
+                  }`}
+                />
+                <div className={`absolute inset-0 bg-gradient-to-t ${isPendingWork(work.topic) ? 'from-black/75 via-black/30 to-black/5' : 'from-black/65 via-black/15 to-transparent'}`} />
+                <div className="absolute left-2.5 top-2.5 px-2 py-1 rounded-full bg-white/90 text-[9px] font-black text-[#2f261d]">
+                  {work.badge}
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-[#2f261d]">86</span>
-                  <span className="text-sm font-medium text-[#8a7a68] font-black tracking-widest uppercase">分</span>
+                <div className="absolute bottom-0 inset-x-0 p-3 text-left">
+                  <p className="text-[11px] font-black text-white/70 uppercase tracking-wide">
+                    {work.badge}
+                  </p>
+                  <h4 className="mt-1 text-sm font-bold text-white leading-tight line-clamp-2">
+                    {work.title}
+                  </h4>
+                  <div className="mt-2 flex items-center justify-between text-white/85">
+                    <div className="flex items-center gap-1 text-[10px] font-black">
+                      <Play size={10} className="fill-white stroke-none" />
+                      <span>{work.metric}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] font-black">
+                      <Heart size={10} className="fill-white/80 stroke-none" />
+                      <span>{index + 12}</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-[#8a7a68] italic">心率稳定，今日状态极佳。</p>
-              </div>
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Wesley" alt="" className="w-16 h-16 rounded-full border-4 border-gold shadow-[0_0_20px_rgba(214,178,126,0.1)] object-cover" />
-            </div>
+              </button>
+            ))}
           </div>
-
-
         </section>
       </main>
     </div>
@@ -2468,7 +2571,7 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
   const [workVisibilities, setWorkVisibilities] = useState<Record<string, Visibility>>({});
   const [selectedFriendIds, setSelectedFriendIds] = useState<Set<string>>(new Set());
 
-  const filterOptions = ['全部', '发起', '参与', '已成圈', '待成圈'];
+  const filterOptions = ['全部', '我发起的', '参与共创', '待成圈'];
 
   const staticWorks = [
     { id: 'sw-1', type: '发起', status: '已成圈', title: '今天的城市声音', likes: '8.2k' },
@@ -2481,11 +2584,16 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
 
   const allWorks = [...userVlogs, ...staticWorks];
 
+  const getDisplayStatus = (work: { type: string; status: string }) => {
+    if (work.type === '发起') return '我发起的';
+    if (work.status === '待成圈') return '待成圈';
+    return '参与共创';
+  };
+
   const filteredWorks = allWorks.filter((work) => {
     if (filter === '全部') return true;
-    if (filter === '发起') return work.type === '发起';
-    if (filter === '参与') return work.type === '参与';
-    if (filter === '已成圈') return work.status === '已成圈';
+    if (filter === '我发起的') return work.type === '发起';
+    if (filter === '参与共创') return work.type === '参与' && work.status === '已成圈';
     if (filter === '待成圈') return work.status === '待成圈';
     return true;
   });
@@ -2499,37 +2607,26 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
   };
 
   return (
-    <div className="flex flex-col h-full bg-dark">
-      <header className="p-6 flex items-center justify-between z-20 sticky top-0 bg-dark/80 backdrop-blur-xl border-b border-white/[0.03]">
-        <button onClick={() => setScreen('me')} className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center">
+    <div className="flex flex-col h-full bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_42%,#f2ebe1_100%)] text-[#2f261d]">
+      <header className="p-6 flex items-center justify-between z-20 sticky top-0 bg-[#f9f5ef]/90 backdrop-blur-xl border-b border-[#e8dfd2]">
+        <button onClick={() => setScreen('me')} className="w-10 h-10 rounded-2xl flex items-center justify-center border border-[#e9dfd3] bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
           <ArrowLeft size={20} />
         </button>
-        <h2 className="font-bold text-white">我的作品</h2>
-        <button onClick={() => setScreen('saved-topics')} className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center text-white/40">
+        <h2 className="font-bold text-[#2f261d] text-lg tracking-tight">全部作品</h2>
+        <button onClick={() => setScreen('saved-topics')} className="w-10 h-10 rounded-2xl flex items-center justify-center border border-[#e9dfd3] bg-white/82 text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
           <Star size={18} />
         </button>
       </header>
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-32">
-        <section className="px-6 py-6">
-          <div className="p-6 bg-gradient-to-br from-gold/10 via-card to-card rounded-[32px] border border-gold/10 shadow-xl">
-            <p className="text-[10px] font-black text-gold tracking-widest uppercase">共创记录</p>
-            <div className="flex items-end gap-2 mt-3">
-              <h1 className="text-5xl font-bold text-white">{allWorks.length}</h1>
-              <span className="text-xs text-white/40 font-black uppercase tracking-widest mb-1">个作品</span>
-            </div>
-            <p className="text-xs text-white/40 leading-relaxed mt-3">在这里你可以随时调整共创作品的可见范围。</p>
-          </div>
-        </section>
-
-        <section className="px-6 space-y-4">
+        <section className="px-5 pt-5 space-y-4">
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
             {filterOptions.map(opt => (
               <button
                 key={opt}
                 onClick={() => setFilter(opt)}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${
-                  filter === opt ? 'bg-white text-dark shadow-lg' : 'bg-white/5 text-white/40 border border-white/5'
+                className={`px-4 py-2 rounded-full text-[10px] font-black transition-all whitespace-nowrap border ${
+                  filter === opt ? 'bg-[#2f261d] text-white border-[#2f261d] shadow-sm' : 'bg-white/82 text-[#8f7f6d] border-[#eadfce]'
                 }`}
               >
                 {opt}
@@ -2537,10 +2634,11 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-2">
+          <div className="grid grid-cols-2 gap-2.5 mt-2">
               {filteredWorks.map((work, i) => {
                 const topic = topics.find(t => t.id === (work as any).topicId) || topics[i % topics.length];
                 const visibility = getVisibility(work.id);
+                const isPending = work.status !== '已成圈';
                 
                 return (
                   <motion.div
@@ -2556,11 +2654,18 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
                         setScreen('topic-detail');
                       }
                     }}
-                    className="aspect-[4/3] bg-card bento-card border border-white/5 relative overflow-hidden group cursor-pointer"
+                    className="aspect-[3/4.1] rounded-[24px] bg-[#f6ede3] border border-[#eadfce] relative overflow-hidden group cursor-pointer shadow-[0_14px_28px_rgba(103,81,58,0.08)] active:scale-[0.98] transition-transform"
                   >
-                  <div className="absolute inset-0 bg-white/5 flex items-center justify-center opacity-40">
-                    <p className="text-2xl font-bold text-white/5">#{work.id}</p>
-                  </div>
+                  {topic.image ? (
+                    <img
+                      src={topic.image}
+                      alt={work.title}
+                      className={`absolute inset-0 h-full w-full object-cover transition-all ${isPending ? 'scale-105 blur-[6px]' : ''}`}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#eef3fb] via-[#fffaf4] to-[#eef8f1]" />
+                  )}
+                  <div className={`absolute inset-0 bg-gradient-to-t ${isPending ? 'from-black/75 via-black/30 to-black/5' : 'from-black/65 via-black/15 to-transparent'}`} />
 
                   <div className="absolute top-2 right-2 z-10 flex gap-1">
                      <button 
@@ -2569,7 +2674,7 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
                          setEditingWorkId(work.id);
                          setIsVisibilityDrawerOpen(true);
                        }}
-                       className="w-7 h-7 rounded-xl bg-black/40 backdrop-blur-md border border-white/5 flex items-center justify-center text-white/60 active:scale-90 transition-all hover:bg-black/60 hover:text-white"
+                       className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-md border border-white/70 flex items-center justify-center text-[#4f3d2d] active:scale-90 transition-all shadow-sm"
                      >
                        {visibility === 'public' && <Globe size={14} />}
                        {visibility === 'friends' && <Users2 size={14} />}
@@ -2578,16 +2683,18 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
                      </button>
                   </div>
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex flex-col justify-end p-3">
-                    <p className="text-[8px] font-black uppercase text-white/40 tracking-wider">话题 #{work.id + 102}</p>
+                  <div className="absolute inset-0 flex flex-col justify-end p-3">
+                    <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2 py-1 text-[9px] font-black text-[#2f261d] shadow-sm">
+                      {getDisplayStatus(work)}
+                    </span>
                     <div className="flex items-center justify-between mt-1">
                       <div className="flex items-center gap-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${work.status === '已成圈' ? 'bg-green-400' : 'bg-gold'}`}></span>
-                        <span className="text-[8px] font-black uppercase text-white/60 tracking-wider">{work.status}</span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${work.type === '发起' ? 'bg-[#FE2C55]' : work.status === '已成圈' ? 'bg-green-400' : 'bg-gold'}`}></span>
+                        <span className="text-[9px] font-black text-white/70">{getDisplayStatus(work)}</span>
                       </div>
                       <p className="text-[10px] font-bold text-white/70">{work.likes}</p>
                     </div>
-                    <p className="text-[10px] text-white/50 font-black mt-1 truncate">{work.title}</p>
+                    <p className="text-sm text-white font-black mt-1 leading-tight line-clamp-2">{work.title}</p>
                   </div>
                 </motion.div>
               );
@@ -3043,6 +3150,7 @@ const JoinSuccessScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) =>
 
 const CircleScreen = ({ 
   setScreen, 
+  prevScreen,
   topics, 
   setSelectedTopic, 
   setSelectedUserName, 
@@ -3063,6 +3171,7 @@ const CircleScreen = ({
   setIsGiftDonorDetailModalOpen
 }: { 
   setScreen: (s: Screen) => void, 
+  prevScreen: Screen,
   topics: Topic[],
   setSelectedTopic: (t: Topic) => void,
   setSelectedUserName: (name: string) => void,
@@ -3145,7 +3254,7 @@ const CircleScreen = ({
                   e.stopPropagation(); 
                   setCircleIsMyWorkMode(false);
                   setCircleInitialTopicId(undefined);
-                  setScreen('my-works'); 
+                  setScreen(prevScreen || 'me'); 
                 }}
                 className="w-10 h-10 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white pointer-events-auto active:scale-90 transition-transform"
               >
@@ -4359,6 +4468,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
           <TopicDetail 
             topic={selectedTopic} 
             setScreen={sS} 
+            prevScreen={prevScreen}
             toggleFavorite={toggleFavorite} 
             isFavorite={savedTopicIds.has(selectedTopic.id)} 
             toggleLike={toggleLike}
@@ -4397,6 +4507,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
         return (
           <CircleScreen 
             setScreen={sS} 
+            prevScreen={prevScreen}
             topics={topics}
             setSelectedTopic={setSelectedTopic} 
             setSelectedUserName={setSelectedUserName} 
@@ -4436,7 +4547,20 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
       case 'messages':
         return <MessagesScreen setScreen={sS} />;
       case 'me':
-        return <MeScreen setScreen={sS} diamondBalance={diamondBalance} energyBalance={energyBalance} likedCount={likedTopicIds.size} savedCount={savedTopicIds.size} worksCount={userVlogs.length} setInitialNetworkTab={setInitialNetworkTab} />;
+        return (
+          <MeScreen
+            setScreen={sS}
+            diamondBalance={diamondBalance}
+            energyBalance={energyBalance}
+            likedCount={likedTopicIds.size}
+            savedCount={savedTopicIds.size}
+            worksCount={userVlogs.length}
+            setInitialNetworkTab={setInitialNetworkTab}
+            setSelectedTopic={setSelectedTopic}
+            setCircleIsMyWorkMode={setCircleIsMyWorkMode}
+            setCircleInitialTopicId={setCircleInitialTopicId}
+          />
+        );
       case 'my-works':
         return <MyWorksScreen setScreen={sS} topics={topics} setSelectedTopic={setSelectedTopic} userVlogs={userVlogs} setCircleIsMyWorkMode={setCircleIsMyWorkMode} setCircleInitialTopicId={setCircleInitialTopicId} />;
       case 'smart-ring':
@@ -5189,7 +5313,7 @@ const UserProfileScreen = ({ setScreen, userName, prevScreen, showToast, setInit
   const [isFollowed, setIsFollowed] = useState(false);
   const [filter, setFilter] = useState('全部');
 
-  const filterOptions = ['全部', '发起', '参与', '已成圈', '待成圈'];
+  const filterOptions = ['全部', '我发起的', '参与共创', '待成圈'];
 
   const allWorks = [
     { id: 1, type: '发起', status: '已成圈' },
@@ -5200,11 +5324,16 @@ const UserProfileScreen = ({ setScreen, userName, prevScreen, showToast, setInit
     { id: 6, type: '发起', status: '已成圈' },
   ];
 
+  const getDisplayStatus = (work: { type: string; status: string }) => {
+    if (work.type === '发起') return '我发起的';
+    if (work.status === '待成圈') return '待成圈';
+    return '参与共创';
+  };
+
   const filteredWorks = allWorks.filter(w => {
     if (filter === '全部') return true;
-    if (filter === '发起') return w.type === '发起';
-    if (filter === '参与') return w.type === '参与';
-    if (filter === '已成圈') return w.status === '已成圈';
+    if (filter === '我发起的') return w.type === '发起';
+    if (filter === '参与共创') return w.type === '参与' && w.status === '已成圈';
     if (filter === '待成圈') return w.status === '待成圈';
     return true;
   });
@@ -5349,9 +5478,9 @@ const UserProfileScreen = ({ setScreen, userName, prevScreen, showToast, setInit
                           </p>
                           <div className="flex items-center justify-between mt-1">
                              <div className="flex items-center gap-1">
-                                <span className={`w-1.5 h-1.5 rounded-full ${work.status === '已成圈' ? 'bg-green-400' : 'bg-gold'}`}></span>
+                                <span className={`w-1.5 h-1.5 rounded-full ${work.type === '发起' ? 'bg-[#FE2C55]' : work.status === '已成圈' ? 'bg-green-400' : 'bg-gold'}`}></span>
                                 <span className="text-[8px] font-black uppercase text-white/60 tracking-wider">
-                                   {work.status}
+                                  {getDisplayStatus(work)}
                                 </span>
                              </div>
                              <p className="text-[10px] font-bold">2.4k</p>
@@ -5388,9 +5517,9 @@ const PersonalProfileScreen = ({ setScreen }: { setScreen: (s: Screen) => void }
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-32">
         <section className="text-center py-10">
-           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Wesley" alt="" className="w-32 h-32 rounded-[40px] border border-[#eadfce] bg-white mx-auto shadow-2xl object-cover" />
-           <h1 className="text-3xl font-bold mt-6 text-[#2f261d]">Wesley</h1>
-           <p className="text-[#8f7f6d] text-sm mt-1 uppercase tracking-widest font-black">@wesleyyy1</p>
+           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Dear6317B6SG" alt="" className="w-32 h-32 rounded-[40px] border border-[#eadfce] bg-white mx-auto shadow-2xl object-cover" />
+           <h1 className="text-3xl font-bold mt-6 text-[#2f261d]">迪儿6317B6SG</h1>
+           <p className="text-[#8f7f6d] text-sm mt-1 uppercase tracking-widest font-black">@Dear6317B6SG</p>
            <p className="text-[#b0a08e] text-[10px] font-bold mt-1">IP：广东</p>
            <p className="text-[#7d6f61] text-xs leading-relaxed mt-4 px-8">
              喜欢记录城市里转瞬即逝的真实片段，也愿意和陌生人一起完成一段共同记忆。
