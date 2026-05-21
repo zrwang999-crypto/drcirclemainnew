@@ -42,7 +42,10 @@ import {
   Hash,
   Copy,
   MessageSquare,
-  Pencil
+  Pencil,
+  Image as ImageIcon,
+  Mic,
+  Smile
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TOPICS, CURRENT_USER, GIFTS, SHOP_ITEMS, SHARE_FRIENDS, MOCK_GIFT_RECORDS } from './constants';
@@ -1805,8 +1808,9 @@ const NetworkListScreen = ({
   );
 };
 
-const MeScreen = ({ setScreen, diamondBalance, energyBalance, likedCount, savedCount, worksCount, setInitialNetworkTab, setSelectedTopic, setCircleIsMyWorkMode, setCircleInitialTopicId }: { 
+const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCount, savedCount, worksCount, setInitialNetworkTab, setSelectedTopic, setCircleIsMyWorkMode, setCircleInitialTopicId }: { 
   setScreen: (s: Screen) => void,
+  profile: EditableProfile,
   diamondBalance: number,
   energyBalance: number,
   likedCount: number,
@@ -1900,8 +1904,8 @@ const MeScreen = ({ setScreen, diamondBalance, energyBalance, likedCount, savedC
           <div className="relative flex items-center gap-4">
             <div className="relative shrink-0">
               <img
-                src={CURRENT_USER.avatar}
-                alt={CURRENT_USER.name}
+                src={profile.avatar}
+                alt={profile.name}
                 className="w-[78px] h-[78px] rounded-full object-cover shadow-[0_10px_22px_rgba(73,55,39,0.12)]"
               />
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-1 flex items-center gap-1 rounded-full text-[11px] font-black text-[#b4834a] shadow-sm bg-[#fff6e9]">
@@ -1911,7 +1915,7 @@ const MeScreen = ({ setScreen, diamondBalance, energyBalance, likedCount, savedC
 
             <div className="flex-1 min-w-0 text-left">
               <div className="flex items-start justify-between gap-3">
-                <h1 className="min-w-0 text-[24px] font-black text-[#2f261d] tracking-tight leading-tight">{CURRENT_USER.name}</h1>
+                <h1 className="min-w-0 text-[24px] font-black text-[#2f261d] tracking-tight leading-tight">{profile.name}</h1>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1923,8 +1927,8 @@ const MeScreen = ({ setScreen, diamondBalance, energyBalance, likedCount, savedC
                   <Pencil size={16} />
                 </button>
               </div>
-              <p className="mt-1.5 text-[#7d6f61] text-sm">@Dear6317B6SG</p>
-              <p className="mt-2.5 text-[#8f7f6d] text-sm leading-relaxed">{CURRENT_USER.bio}</p>
+              <p className="mt-1.5 text-[#7d6f61] text-sm">@{profile.userId}</p>
+              <p className="mt-2.5 text-[#8f7f6d] text-sm leading-relaxed">{profile.bio}</p>
             </div>
           </div>
 
@@ -3266,7 +3270,7 @@ const CircleScreen = ({
                     onClick={(e) => { e.stopPropagation(); setIsGiftDrawerOpen(true); }}
                     className="flex items-center gap-2 glass-pill px-3 py-1.5 rounded-full pointer-events-auto bg-black/20 active:scale-95 transition-transform"
                  >
-                    <Gem size={14} className="text-indigo-400" />
+                    <Gift size={14} className="text-indigo-400" />
                     <span className="text-[11px] font-black tracking-widest text-white shadow-sm">{diamondBalance.toLocaleString()}</span>
                  </button>
                  <GiftDonorStack gifts={MOCK_GIFT_RECORDS.slice(0, 5)} onClick={() => setIsGiftDonorDetailModalOpen(true)} />
@@ -4233,6 +4237,15 @@ interface UserVlog {
   likes: string;
 }
 
+interface EditableProfile {
+  name: string;
+  userId: string;
+  avatar: string;
+  bio: string;
+  gender: string;
+  birthday: string;
+}
+
 // --- Feedback Screen ---
 
 const FeedbackScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
@@ -4298,6 +4311,14 @@ export default function App() {
   const [diamondBalance, setDiamondBalance] = useState(1260);
   const [energyBalance] = useState(8420);
   const [userVlogs, setUserVlogs] = useState<UserVlog[]>([]);
+  const [profile, setProfile] = useState<EditableProfile>({
+    name: CURRENT_USER.name,
+    userId: 'Dear6317B6SG',
+    avatar: CURRENT_USER.avatar,
+    bio: CURRENT_USER.bio,
+    gender: CURRENT_USER.gender || '',
+    birthday: '',
+  });
   const [toast, setToast] = useState<string | null>(null);
   const [initialNetworkTab, setInitialNetworkTab] = useState<'friends' | 'followers' | 'following'>('friends');
   const [circleInitialTopicId, setCircleInitialTopicId] = useState<string | undefined>(undefined);
@@ -4550,6 +4571,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
         return (
           <MeScreen
             setScreen={sS}
+            profile={profile}
             diamondBalance={diamondBalance}
             energyBalance={energyBalance}
             likedCount={likedTopicIds.size}
@@ -4590,7 +4612,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
       case 'user-profile':
         return <UserProfileScreen setScreen={sS} userName={selectedUserName} prevScreen={prevScreen} showToast={showToast} setInitialNetworkTab={setInitialNetworkTab} />;
       case 'personal-profile':
-        return <PersonalProfileScreen setScreen={sS} />;
+        return <PersonalProfileScreen setScreen={sS} profile={profile} setProfile={setProfile} showToast={showToast} />;
       case 'gift':
         return <GiftScreen setScreen={sS} prevScreen={prevScreen} showToast={showToast} />;
       case 'energy-detail':
@@ -4813,6 +4835,10 @@ const SmartRingScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
 const DMScreen = ({ setScreen, setSelectedUserName }: { setScreen: (s: Screen) => void, setSelectedUserName: (name: string) => void }) => {
   const userName = "林野";
   const [msg, setMsg] = useState('');
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const emojis = ['😀', '😂', '😍', '🥰', '👍', '🔥', '🎁', '💎', '❤️', '👏', '😎', '😭'];
   const [messages, setMessages] = useState([
     { id: 1, text: '我刚拍了一段 3 秒片段，顺手把声音也录进去了。', sender: 'other', time: '09:41' },
     { id: 2, text: '我这边也补好了，今天的城市声音很完整。', sender: 'me', time: '09:42' },
@@ -4828,86 +4854,172 @@ const DMScreen = ({ setScreen, setSelectedUserName }: { setScreen: (s: Screen) =
     };
     setMessages([...messages, newMsg]);
     setMsg('');
+    setIsEmojiOpen(false);
+  };
+
+  const handleImageSend = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        text: '图片',
+        image: event.target?.result as string,
+        sender: 'me',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const sendVoiceMessage = () => {
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      text: '语音 0:08',
+      voice: true,
+      sender: 'me',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }]);
+  };
+
+  const finishRecording = () => {
+    if (!isRecording) return;
+    setIsRecording(false);
+    sendVoiceMessage();
+  };
+
+  const addEmoji = (emoji: string) => {
+    setIsVoiceMode(false);
+    setMsg(prev => `${prev}${emoji}`);
   };
 
   return (
-    <div className={`${lightPageRootPadded} relative overflow-hidden`}>
-      <header className={lightHeaderShell}>
-        <button onClick={() => setScreen('messages')} className={lightIconButton}>
+    <div className="flex flex-col h-full bg-[#f7f7f7] pt-8 text-[#161616] relative overflow-hidden">
+      <header className="px-5 py-4 flex items-center justify-between sticky top-0 bg-[#f7f7f7]/96 backdrop-blur-xl z-20">
+        <button onClick={() => setScreen('messages')} className="w-10 h-10 rounded-full flex items-center justify-center bg-white text-[#161616] shadow-sm active:scale-95 transition-transform">
           <ArrowLeft size={20} />
         </button>
         <div className="text-center group active:scale-95 transition-transform cursor-pointer" onClick={() => {
             setSelectedUserName(userName);
             setScreen('user-profile');
         }}>
-           <h2 className="font-bold text-[#2f261d]">{userName}</h2>
-           <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">在线 · 共创进行中</p>
+           <h2 className="font-black text-[#161616] text-base">{userName}</h2>
         </div>
-        <button onClick={() => setScreen('gift')} className={lightIconButton}>
-          <Gift size={20} />
+        <button onClick={() => setScreen('user-profile')} className="w-10 h-10 rounded-full flex items-center justify-center bg-white text-[#161616] shadow-sm active:scale-95 transition-transform">
+          <MoreHorizontal size={20} />
         </button>
       </header>
 
-      <main className="flex-1 p-6 space-y-6 overflow-y-auto no-scrollbar pb-32 bg-[linear-gradient(180deg,#fbf7f1_0%,#f4ede4_100%)]">
+      <main className="flex-1 px-4 pt-3 space-y-5 overflow-y-auto no-scrollbar pb-28 bg-[#f7f7f7]">
          <div className="flex justify-center">
-            <span className="bg-white/82 border border-[#eadfce] px-3 py-1 rounded-full text-[10px] font-black text-[#9a8a78] uppercase tracking-widest">09:41</span>
+            <span className="px-3 py-1 rounded-full text-[11px] font-bold text-[#a1a1a1]">09:41</span>
          </div>
 
          {messages.map((m) => (
-           <div key={m.id} className={`flex gap-4 ${m.sender === 'me' ? 'flex-row-reverse' : 'flex-row'} max-w-full animate-in fade-in slide-in-from-bottom-2`}>
-              <div className="w-10 h-10 rounded-2xl bg-[#f1e8dc] flex-shrink-0 border border-[#eadfce]"></div>
-              <div className={`p-4 shadow-lg space-y-2 border ${
+           <div key={m.id} className={`flex gap-2.5 ${m.sender === 'me' ? 'flex-row-reverse' : 'flex-row'} max-w-full animate-in fade-in slide-in-from-bottom-2`}>
+              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${m.sender === 'me' ? 'Dear6317B6SG' : userName}`} alt="" className="w-9 h-9 rounded-full bg-white shrink-0 object-cover" />
+              <div className={`max-w-[72%] px-3.5 py-2.5 shadow-sm space-y-1.5 ${
                 m.sender === 'me' 
-                ? 'bg-[#fff2f5] rounded-[24px] rounded-tr-none text-[#2f261d] border-[#ffd3dd]' 
-                : 'bg-white rounded-[24px] rounded-tl-none text-[#5f5348] border-[#eadfce]'
+                ? 'bg-[#FE2C55] rounded-[18px] rounded-tr-[4px] text-white' 
+                : 'bg-white rounded-[18px] rounded-tl-[4px] text-[#161616]'
               }`}>
-                 <p className="text-xs leading-relaxed font-medium">{m.text}</p>
-                 <span className={`text-[8px] font-black block text-right uppercase tracking-widest ${m.sender === 'me' ? 'text-[#a78d92]' : 'text-[#b0a08e]'}`}>
+                 {(m as any).image ? (
+                   <img src={(m as any).image} alt="发送的图片" className="max-w-[180px] rounded-2xl object-cover" />
+                 ) : (m as any).voice ? (
+                   <div className="flex items-center gap-2 min-w-[120px]">
+                     <Mic size={15} />
+                     <span className="text-xs font-black">{m.text}</span>
+                   </div>
+                 ) : (
+                   <p className="text-[14px] leading-relaxed font-medium">{m.text}</p>
+                 )}
+                 <span className={`text-[9px] font-bold block text-right ${m.sender === 'me' ? 'text-white/65' : 'text-[#b8b8b8]'}`}>
                    {m.time}
                  </span>
               </div>
            </div>
          ))}
 
-         <div className={`mx-auto w-full p-4 space-y-4 ${lightSurfaceCard}`}>
-            <div className="flex justify-between items-start">
-               <p className="text-[10px] font-black text-[#b4834a] tracking-widest uppercase">共创动态</p>
-               <span className="text-[10px] font-black text-[#b0a08e]">召集中</span>
+         <div className="mx-auto w-full rounded-[18px] bg-white px-4 py-3 shadow-sm flex items-center justify-between gap-3">
+            <div className="min-w-0">
+               <p className="text-[11px] font-black text-[#FE2C55]">共创动态</p>
+               <h4 className="mt-0.5 text-sm font-black text-[#161616] truncate">今天的城市声音</h4>
             </div>
-            <div>
-               <h4 className="font-bold text-[#2f261d]">今天的城市声音</h4>
-               <p className="text-[10px] text-[#8f7f6d] mt-1 italic">6/8 · 过程与成品同步预览</p>
-            </div>
-            <button onClick={() => setScreen('topic-detail')} className="w-full h-10 bg-[#fff1dc] text-[#b4834a] font-black text-[10px] uppercase rounded-xl border border-[#f0dfc0]">
-               进入话题详情
+            <button onClick={() => setScreen('topic-detail')} className="h-8 px-3 bg-[#f5f5f5] text-[#161616] font-black text-[10px] rounded-full shrink-0">
+               查看
             </button>
          </div>
 
 
       </main>
 
-      <div className="absolute inset-x-6 bottom-8 z-50">
-         <div className="h-14 rounded-full flex items-center pr-2 pl-6 gap-4 shadow-2xl bg-white/92 backdrop-blur-xl border border-[#eadfce]">
-            <input 
-              className="flex-1 bg-transparent text-sm font-bold placeholder:text-[#baa897] outline-none text-[#2f261d]" 
-              placeholder="想对林野说点什么..." 
-              value={msg}
-              onChange={(e) => setMsg(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            />
-            <button onClick={() => setScreen('gift')} className="w-10 h-10 bg-[#fff1dc] rounded-full flex items-center justify-center text-[#b4834a]">
-               <Gift size={20} />
+      <div className="absolute inset-x-0 bottom-0 z-50 bg-[#f7f7f7]/96 backdrop-blur-xl px-3 pt-2 pb-6">
+         <div className="h-12 rounded-full flex items-center pr-1.5 pl-2 gap-2 bg-white shadow-[0_8px_28px_rgba(0,0,0,0.08)]">
+            <button
+              onClick={() => {
+                setIsVoiceMode(prev => !prev);
+                setIsEmojiOpen(false);
+              }}
+              className={`w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-transform ${isVoiceMode ? 'bg-[#161616] text-white' : 'text-[#161616]'}`}
+            >
+               <Mic size={20} />
             </button>
+            {isVoiceMode ? (
+              <button
+                onPointerDown={() => setIsRecording(true)}
+                onPointerUp={finishRecording}
+                onPointerLeave={() => setIsRecording(false)}
+                className={`flex-1 h-9 rounded-full text-sm font-black transition-all ${isRecording ? 'bg-[#FE2C55] text-white scale-[0.98]' : 'bg-[#f4f4f4] text-[#161616]'}`}
+              >
+                {isRecording ? '松开发送' : '按住说话'}
+              </button>
+            ) : (
+              <input
+                className="flex-1 bg-[#f4f4f4] h-9 rounded-full px-4 text-sm font-medium placeholder:text-[#a5a5a5] outline-none text-[#161616]"
+                placeholder="想对林野说点什么..."
+                value={msg}
+                onChange={(e) => setMsg(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              />
+            )}
+            <button
+              onClick={() => {
+                setIsEmojiOpen(prev => !prev);
+                setIsVoiceMode(false);
+              }}
+              className={`w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-transform ${isEmojiOpen ? 'bg-[#161616] text-white' : 'text-[#161616]'}`}
+            >
+               <Smile size={19} />
+            </button>
+            <label className="w-9 h-9 rounded-full flex items-center justify-center text-[#161616] active:scale-95 transition-transform cursor-pointer">
+               <ImageIcon size={19} />
+               <input type="file" accept="image/*" className="hidden" onChange={handleImageSend} />
+            </label>
             <button 
               onClick={handleSend}
               disabled={!msg.trim()}
-              className={`h-10 px-6 font-black rounded-full text-xs uppercase shadow-xl transition-all ${
-                msg.trim() ? 'bg-[#FE2C55] text-white' : 'bg-[#f3e8ea] text-[#d9b7bf]'
+              className={`h-9 min-w-[58px] px-4 font-black rounded-full text-xs whitespace-nowrap transition-all ${
+                msg.trim() ? 'bg-[#FE2C55] text-white' : 'bg-[#efefef] text-[#b7b7b7]'
               }`}
             >
                发送
             </button>
          </div>
+         {isEmojiOpen && (
+           <div className="mt-2 rounded-[22px] bg-white p-3 shadow-[0_8px_28px_rgba(0,0,0,0.08)] grid grid-cols-6 gap-2">
+             {emojis.map((emoji) => (
+               <button
+                 key={emoji}
+                 onClick={() => addEmoji(emoji)}
+                 className="h-10 rounded-2xl bg-[#f7f7f7] text-xl active:scale-95 transition-transform"
+               >
+                 {emoji}
+               </button>
+             ))}
+           </div>
+         )}
       </div>
     </div>
   );
@@ -5339,162 +5451,187 @@ const UserProfileScreen = ({ setScreen, userName, prevScreen, showToast, setInit
   });
   const publicProfile = {
     description: '喜欢收集城市角落里的声音和短暂的光，也愿意把日常交给一群人共同完成。',
-    gender: userName === 'Mia' ? '女' : '男',
-    zodiac: userName === 'Mia' ? '天秤座' : '水瓶座',
-    age: userName === 'Mia' ? '25' : '27',
+    gender: userName === 'Mia' ? '女' : '',
+    birthday: userName === 'Mia' ? '1999-10-08' : '',
   };
+  const getAge = (birthday: string) => {
+    if (!birthday) return '';
+    const birth = new Date(birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDelta = today.getMonth() - birth.getMonth();
+    if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birth.getDate())) age -= 1;
+    return `${age} 岁`;
+  };
+  const getZodiac = (birthday: string) => {
+    if (!birthday) return '';
+    const [, monthText, dayText] = birthday.split('-');
+    const month = Number(monthText);
+    const day = Number(dayText);
+    const signs = [
+      ['摩羯座', 20], ['水瓶座', 19], ['双鱼座', 21], ['白羊座', 20],
+      ['金牛座', 21], ['双子座', 22], ['巨蟹座', 23], ['狮子座', 23],
+      ['处女座', 23], ['天秤座', 24], ['天蝎座', 23], ['射手座', 22], ['摩羯座', 32],
+    ];
+    return day < Number(signs[month - 1][1]) ? String(signs[month - 1][0]) : String(signs[month][0]);
+  };
+  const profileFacts = [
+    publicProfile.gender ? { label: '性别', value: publicProfile.gender } : null,
+    publicProfile.birthday ? { label: '星座', value: getZodiac(publicProfile.birthday) } : null,
+    publicProfile.birthday ? { label: '年龄', value: getAge(publicProfile.birthday) } : null,
+  ].filter(Boolean) as Array<{ label: string; value: string }>;
+  const userCode = `${Math.abs([...userName].reduce((sum, char) => sum + char.charCodeAt(0), 0) * 73).toString(36).toUpperCase()}B6SG`;
+  const displayName = `迪儿${userCode}`;
+  const displayId = `@dear${userCode}`;
 
   return (
-    <div className="flex flex-col h-full bg-dark">
-      <header className="p-6 flex items-center justify-between z-20">
-        <button onClick={() => setScreen(prevScreen)} className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center">
+    <div className="flex flex-col h-full bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_42%,#f2ebe1_100%)] pt-8 text-[#2f261d]">
+      <header className="p-6 flex items-center justify-between sticky top-0 bg-[#f9f5ef]/90 backdrop-blur-xl z-20">
+        <button onClick={() => setScreen(prevScreen)} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
           <ArrowLeft size={20} />
         </button>
-        <h2 className="font-bold">用户详情</h2>
-        <button onClick={() => showToast('已生成个人主页分享卡片。')} className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center">
+        <h2 className="font-bold text-[#2f261d] text-lg tracking-tight">用户详情</h2>
+        <button onClick={() => showToast('已生成个人主页分享卡片。')} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
           <CornerUpRight size={20} />
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-32">
-        <section className="text-center py-6 px-8">
-           <div className="relative w-24 h-24 mx-auto">
-              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} alt="" className="w-24 h-24 rounded-[32px] mx-auto shadow-2xl object-cover border border-white/10" />
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gold rounded-full border-4 border-dark flex items-center justify-center text-dark scale-90">
-                 <ShieldCheck size={14} strokeWidth={3} />
+      <main className="flex-1 overflow-y-auto no-scrollbar px-4 pb-32">
+        <section className="mt-2 px-2 py-4">
+          <div className="flex items-center gap-4">
+            <div className="relative shrink-0">
+              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayId}`} alt="" className="w-[78px] h-[78px] rounded-full object-cover shadow-[0_10px_22px_rgba(73,55,39,0.12)]" />
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-[#fff6e9] rounded-full shadow-sm flex items-center justify-center text-[#b4834a]">
+                <ShieldCheck size={14} strokeWidth={3} />
               </div>
-           </div>
-           <h1 className="text-2xl font-bold mt-4">{userName}</h1>
-           <p className="text-white/40 text-[10px] mt-1 uppercase tracking-widest font-black">@{userName.toLowerCase()}_dr</p>
-           <p className="text-white/20 text-[10px] font-bold mt-1">IP：{['广东', '浙江', '上海', '北京', '四川'][userName.length % 5]}</p>
-           <p className="text-white/50 text-xs leading-relaxed mt-4 max-w-[280px] mx-auto">{publicProfile.description}</p>
-           
-           <div className="flex justify-center gap-8 mt-6">
-              <button 
-                onClick={() => { setInitialNetworkTab('followers'); setScreen('network-list'); }}
-                className="text-center active:scale-95 transition-transform"
-              >
-                 <p className="text-lg font-bold text-white">1.2k</p>
-                 <p className="text-[8px] font-black uppercase text-white/20 tracking-widest">粉丝</p>
-              </button>
-              <div className="text-center">
-                 <p className="text-lg font-bold text-white">86</p>
-                 <p className="text-[8px] font-black uppercase text-white/20 tracking-widest">共创话题</p>
-              </div>
-              <button 
-                onClick={() => { setInitialNetworkTab('following'); setScreen('network-list'); }}
-                className="text-center active:scale-95 transition-transform"
-              >
-                 <p className="text-lg font-bold text-white">14w</p>
-                 <p className="text-[8px] font-black uppercase text-white/20 tracking-widest">获赞</p>
-              </button>
-           </div>
+            </div>
 
-           <div className="grid grid-cols-3 gap-2 mt-5">
-              {[
-                { label: '性别', value: publicProfile.gender },
-                { label: '星座', value: publicProfile.zodiac },
-                { label: '年龄', value: `${publicProfile.age} 岁` },
-              ].map(item => (
-                <div key={item.label} className="bg-white/5 border border-white/5 rounded-2xl px-3 py-3">
-                  <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">{item.label}</p>
-                  <p className="text-xs font-bold text-white mt-1">{item.value}</p>
+            <div className="flex-1 min-w-0 text-left">
+              <h1 className="text-[24px] font-black text-[#2f261d] tracking-tight leading-tight">{displayName}</h1>
+              <p className="mt-1.5 text-[#7d6f61] text-sm">{displayId}</p>
+              <p className="mt-2.5 text-[#8f7f6d] text-sm leading-relaxed">{publicProfile.description}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-6">
+            <button 
+              onClick={() => { setInitialNetworkTab('followers'); setScreen('network-list'); }}
+              className="text-center active:scale-95 transition-transform"
+            >
+              <p className="text-[20px] font-black text-[#2f261d]">1.2k</p>
+              <p className="text-[10px] text-[#a79584] font-bold">粉丝</p>
+            </button>
+            <div className="text-center">
+              <p className="text-[20px] font-black text-[#2f261d]">86</p>
+              <p className="text-[10px] text-[#a79584] font-bold">共创</p>
+            </div>
+            <button 
+              onClick={() => { setInitialNetworkTab('following'); setScreen('network-list'); }}
+              className="text-center active:scale-95 transition-transform"
+            >
+              <p className="text-[20px] font-black text-[#2f261d]">14w</p>
+              <p className="text-[10px] text-[#a79584] font-bold">获赞</p>
+            </button>
+          </div>
+
+          {profileFacts.length > 0 && (
+            <div className={`grid gap-2 mt-5 ${profileFacts.length === 1 ? 'grid-cols-1' : profileFacts.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              {profileFacts.map(item => (
+                <div key={item.label} className="rounded-[18px] bg-white/58 px-3 py-3 text-center shadow-sm">
+                  <p className="text-[10px] font-black text-[#a79584]">{item.label}</p>
+                  <p className="mt-1 text-sm font-black text-[#2f261d]">{item.value}</p>
                 </div>
               ))}
-           </div>
+            </div>
+          )}
 
-           <div className="flex gap-3 mt-8 px-4">
-              <button 
-                onClick={() => setIsFollowed(!isFollowed)}
-                className={`flex-1 h-12 rounded-2xl font-black uppercase text-[10px] transition-all flex items-center justify-center gap-2 ${
-                  isFollowed 
-                  ? 'bg-white/5 border border-white/10 text-white/40' 
-                  : 'bg-white text-dark shadow-xl hover:scale-[1.02] active:scale-95'
-                }`}
-              >
-                {isFollowed ? '已关注' : '关注 TA'}
-              </button>
-              <button 
-                onClick={() => setScreen('dm')}
-                className="flex-1 h-12 bg-white/5 border border-white/10 rounded-2xl font-black uppercase text-[10px] text-white active:scale-95 transition-transform flex items-center justify-center gap-2"
-              >
-                <MessageCircle size={14} /> 发送私信
-              </button>
-           </div>
+          <div className="flex gap-2.5 mt-5">
+            <button 
+              onClick={() => setIsFollowed(!isFollowed)}
+              className={`flex-1 h-12 rounded-[18px] font-black text-xs transition-all flex items-center justify-center gap-2 active:scale-95 ${
+                isFollowed 
+                ? 'bg-white/70 text-[#8f7f6d] shadow-sm' 
+                : 'bg-[#2f261d] text-white shadow-[0_14px_28px_rgba(47,38,29,0.14)]'
+              }`}
+            >
+              {isFollowed ? '已关注' : '关注 TA'}
+            </button>
+            <button 
+              onClick={() => setScreen('dm')}
+              className="flex-1 h-12 rounded-[18px] bg-white/76 text-[#2f261d] font-black text-xs active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-sm"
+            >
+              <MessageCircle size={14} /> 发送私信
+            </button>
+          </div>
         </section>
 
-        <section className="px-6 space-y-6">
-           {/* Relationship Section */}
-           <div className="p-6 bg-gradient-to-br from-rose-500/10 to-dark bento-card border border-rose-500/10 space-y-4">
-              <div className="flex justify-between items-start">
-                 <div>
-                    <h4 className="text-sm font-bold flex items-center gap-2">
-                       <Heart size={14} className="text-rose-500 fill-current" /> 关系状态
-                    </h4>
-                    <p className="text-[10px] text-white/40 font-black uppercase mt-1 tracking-widest leading-relaxed">
-                       目前还没有与 TA 建立专属关系标记
-                    </p>
-                 </div>
-                 <button 
-                  onClick={() => setScreen('relation-invite')}
-                  className="h-9 px-4 bg-white text-dark rounded-xl text-[10px] font-black uppercase active:scale-95 transition-transform"
+        <section className="mt-2 space-y-5">
+          <div className="rounded-[22px] bg-gradient-to-r from-[#fff1f4] via-white to-[#fffaf4] px-4 py-4 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h4 className="text-sm font-black text-[#2f261d] flex items-center gap-2">
+                  <Heart size={15} className="text-[#FE2C55] fill-current" /> 关系状态
+                </h4>
+                <p className="mt-1 text-[11px] text-[#8f7f6d] font-bold">目前还没有与 TA 建立专属关系标记</p>
+              </div>
+              <button 
+                onClick={() => setScreen('relation-invite')}
+                className="h-9 px-4 bg-[#FE2C55] text-white rounded-full text-[10px] font-black active:scale-95 transition-transform shrink-0"
+              >
+                发起绑定
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <h4 className="text-xs font-black text-[#2f261d]">TA 的共创作品</h4>
+            </div>
+
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              {filterOptions.map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setFilter(opt)}
+                  className={`px-4 py-2 rounded-full text-[10px] font-black transition-all whitespace-nowrap ${
+                    filter === opt 
+                    ? 'bg-[#2f261d] text-white shadow-sm' 
+                    : 'bg-white/82 text-[#8f7f6d]'
+                  }`}
                 >
-                    发起绑定
-                 </button>
-              </div>
-           </div>
+                  {opt}
+                </button>
+              ))}
+            </div>
 
-           <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-black uppercase text-white/40 tracking-widest ml-1">TA 的共创作品</h4>
-              </div>
-
-              {/* Filter Tabs */}
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                {filterOptions.map(opt => (
-                  <button
-                    key={opt}
-                    onClick={() => setFilter(opt)}
-                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${
-                      filter === opt 
-                      ? 'bg-white text-dark shadow-lg' 
-                      : 'bg-white/5 text-white/40 border border-white/5'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 mt-4 pb-8">
-                 {filteredWorks.map(work => (
-                    <div key={work.id} className="aspect-[4/3] bg-card bento-card border border-white/5 relative overflow-hidden group">
-                       <div className="absolute inset-0 bg-white/5 flex items-center justify-center opacity-40">
-                          <p className="text-2xl font-bold text-white/5">#{work.id}</p>
-                       </div>
-                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex flex-col justify-end p-3">
-                          <p className="text-[8px] font-black uppercase text-white/40 tracking-wider">
-                             话题 #{work.id+102}
-                          </p>
-                          <div className="flex items-center justify-between mt-1">
-                             <div className="flex items-center gap-1">
-                                <span className={`w-1.5 h-1.5 rounded-full ${work.type === '发起' ? 'bg-[#FE2C55]' : work.status === '已成圈' ? 'bg-green-400' : 'bg-gold'}`}></span>
-                                <span className="text-[8px] font-black uppercase text-white/60 tracking-wider">
-                                  {getDisplayStatus(work)}
-                                </span>
-                             </div>
-                             <p className="text-[10px] font-bold">2.4k</p>
-                          </div>
-                       </div>
+            <div className="grid grid-cols-2 gap-2.5 pb-8">
+              {filteredWorks.map((work, index) => {
+                const topic = TOPICS[(work.id + index) % TOPICS.length];
+                const isPending = work.status !== '已成圈';
+                return (
+                  <button key={work.id} className="relative aspect-[3/4.1] overflow-hidden rounded-[24px] bg-[#f6ede3] shadow-[0_12px_24px_rgba(103,81,58,0.08)] active:scale-[0.98] transition-transform text-left">
+                    <img src={topic.image} alt="" className={`absolute inset-0 h-full w-full object-cover transition-all ${isPending ? 'scale-105 blur-[6px]' : ''}`} />
+                    <div className={`absolute inset-0 bg-gradient-to-t ${isPending ? 'from-black/75 via-black/30 to-black/5' : 'from-black/65 via-black/15 to-transparent'}`} />
+                    <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2 py-1 text-[9px] font-black text-[#2f261d] shadow-sm">
+                      {getDisplayStatus(work)}
+                    </span>
+                    <div className="absolute inset-x-0 bottom-0 p-3">
+                      <p className="text-sm font-black text-white leading-tight line-clamp-2">{topic.title}</p>
+                      <div className="mt-2 flex items-center justify-between text-white/85">
+                        <span className="text-[10px] font-black">{topic.likes}</span>
+                        <span className="text-[10px] font-black">2.4k</span>
+                      </div>
                     </div>
-                 ))}
-                 {filteredWorks.length === 0 && (
-                   <div className="col-span-2 py-20 text-center">
-                     <p className="text-white/20 text-xs font-black uppercase tracking-widest">暂无相关作品</p>
-                   </div>
-                 )}
-              </div>
-           </div>
+                  </button>
+                );
+              })}
+              {filteredWorks.length === 0 && (
+                <div className="col-span-2 py-20 text-center">
+                  <p className="text-[#b0a08e] text-xs font-black tracking-widest">暂无相关作品</p>
+                </div>
+              )}
+            </div>
+          </div>
         </section>
       </main>
     </div>
@@ -5504,7 +5641,29 @@ const UserProfileScreen = ({ setScreen, userName, prevScreen, showToast, setInit
 
 // --- Personal Profile Screen ---
 
-const PersonalProfileScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
+const PersonalProfileScreen = ({ setScreen, profile, setProfile, showToast }: {
+  setScreen: (s: Screen) => void,
+  profile: EditableProfile,
+  setProfile: (profile: EditableProfile) => void,
+  showToast: (message: string) => void
+}) => {
+  const [draft, setDraft] = useState<EditableProfile>(profile);
+  const updateDraft = (key: keyof EditableProfile, value: string) => {
+    setDraft(prev => ({ ...prev, [key]: value }));
+  };
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => updateDraft('avatar', event.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+  const saveProfile = () => {
+    setProfile(draft);
+    showToast('个人资料已保存');
+    setScreen('me');
+  };
+
   return (
     <div className={lightPageRootPadded}>
       <header className={lightHeaderShell}>
@@ -5512,49 +5671,59 @@ const PersonalProfileScreen = ({ setScreen }: { setScreen: (s: Screen) => void }
           <ArrowLeft size={20} />
         </button>
         <h2 className="font-bold text-[#2f261d]">个人主页</h2>
-        <div className="w-10"></div>
+        <button onClick={saveProfile} className="h-10 px-4 rounded-2xl bg-[#2f261d] text-white text-xs font-black active:scale-95 transition-transform">
+          保存
+        </button>
       </header>
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-32">
-        <section className="text-center py-10">
-           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Dear6317B6SG" alt="" className="w-32 h-32 rounded-[40px] border border-[#eadfce] bg-white mx-auto shadow-2xl object-cover" />
-           <h1 className="text-3xl font-bold mt-6 text-[#2f261d]">迪儿6317B6SG</h1>
-           <p className="text-[#8f7f6d] text-sm mt-1 uppercase tracking-widest font-black">@Dear6317B6SG</p>
+        <section className="text-center py-8">
+           <div className="relative w-28 h-28 mx-auto">
+             <img src={draft.avatar} alt="" className="w-28 h-28 rounded-full bg-white mx-auto shadow-[0_12px_28px_rgba(73,55,39,0.14)] object-cover" />
+             <label className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-[#2f261d] text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform cursor-pointer">
+                <Camera size={18} />
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+             </label>
+           </div>
+           <h1 className="text-2xl font-black mt-5 text-[#2f261d]">{draft.name}</h1>
+           <p className="text-[#8f7f6d] text-sm mt-1 font-black">@{draft.userId}</p>
            <p className="text-[#b0a08e] text-[10px] font-bold mt-1">IP：广东</p>
-           <p className="text-[#7d6f61] text-xs leading-relaxed mt-4 px-8">
-             喜欢记录城市里转瞬即逝的真实片段，也愿意和陌生人一起完成一段共同记忆。
-           </p>
+           <p className="text-[#7d6f61] text-xs leading-relaxed mt-4 px-8">{draft.bio}</p>
         </section>
 
         <section className="px-6 space-y-4">
-           <div className="p-6 bg-gradient-to-br from-[#eef3fb] to-white rounded-[32px] border border-[#dfe7f6] flex items-center justify-between shadow-[0_18px_40px_rgba(103,81,58,0.06)]">
-              <div>
-                 <p className="text-[10px] font-black uppercase text-indigo-500 tracking-widest">积分值</p>
-                 <h4 className="text-lg font-bold mt-1 text-[#2f261d]">DR 级 · 核心共创者</h4>
+           <div className="p-5 space-y-4 rounded-[28px] bg-white/68 shadow-[0_12px_28px_rgba(103,81,58,0.05)]">
+              <h4 className="text-[11px] font-black text-[#8f7f6d]">编辑资料</h4>
+              <label className="block space-y-2">
+                <span className="text-[10px] font-black text-[#a79584]">名称</span>
+                <input value={draft.name} onChange={(e) => updateDraft('name', e.target.value)} className="w-full h-12 rounded-2xl bg-[#f8f1e8] px-4 text-sm font-bold text-[#2f261d] outline-none" />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-[10px] font-black text-[#a79584]">UserID</span>
+                <div className="flex h-12 rounded-2xl bg-[#f8f1e8] px-4 items-center gap-1">
+                  <span className="text-sm font-bold text-[#8f7f6d]">@</span>
+                  <input value={draft.userId} onChange={(e) => updateDraft('userId', e.target.value.replace(/^@/, ''))} className="flex-1 bg-transparent text-sm font-bold text-[#2f261d] outline-none" />
+                </div>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block space-y-2">
+                  <span className="text-[10px] font-black text-[#a79584]">性别</span>
+                  <select value={draft.gender} onChange={(e) => updateDraft('gender', e.target.value)} className="w-full h-12 rounded-2xl bg-[#f8f1e8] px-4 text-sm font-bold text-[#2f261d] outline-none">
+                    <option value="">不填写</option>
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                    <option value="其他">其他</option>
+                  </select>
+                </label>
+                <label className="block space-y-2">
+                  <span className="text-[10px] font-black text-[#a79584]">生日</span>
+                  <input type="date" value={draft.birthday} onChange={(e) => updateDraft('birthday', e.target.value)} className="w-full h-12 rounded-2xl bg-[#f8f1e8] px-3 text-sm font-bold text-[#2f261d] outline-none" />
+                </label>
               </div>
-              <div className="w-10 h-10 bg-white rounded-xl border border-[#eadfce] flex items-center justify-center text-[#b4834a]">
-                 <ShieldCheck size={20} />
-              </div>
-           </div>
-
-           <div className={`p-6 space-y-4 ${lightSurfaceCard}`}>
-              <h4 className="text-[10px] font-black uppercase text-[#b0a08e] tracking-widest">个人资料</h4>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: '性别', value: '男' },
-                  { label: '星座', value: '水瓶座' },
-                  { label: '年龄', value: '27 岁' },
-                ].map(item => (
-                  <div key={item.label} className="rounded-2xl bg-[#f6ede3] border border-[#eadfce] p-3">
-                    <p className="text-[9px] text-[#b0a08e] font-black uppercase tracking-widest">{item.label}</p>
-                    <p className="text-xs text-[#2f261d] font-bold mt-1">{item.value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-2xl bg-[#f6ede3] border border-[#eadfce] p-4">
-                <p className="text-[9px] text-[#b0a08e] font-black uppercase tracking-widest">个人描述</p>
-                <p className="text-sm text-[#6f6256] leading-relaxed mt-2">喜欢记录城市里转瞬即逝的真实片段，也愿意和陌生人一起完成一段共同记忆。</p>
-              </div>
+              <label className="block space-y-2">
+                <span className="text-[10px] font-black text-[#a79584]">个人描述</span>
+                <textarea value={draft.bio} onChange={(e) => updateDraft('bio', e.target.value)} className="w-full min-h-[92px] rounded-2xl bg-[#f8f1e8] px-4 py-3 text-sm font-bold leading-relaxed text-[#2f261d] outline-none resize-none" />
+              </label>
            </div>
 
            <div className="grid grid-cols-2 gap-3">
