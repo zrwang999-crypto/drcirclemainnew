@@ -2085,43 +2085,50 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
 
 const MessagesScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
   const conversations = [
-    { name: '林野', msg: '我刚拍了一段 3 秒片段...', time: '09:41', unread: 2 },
-    { name: 'Mia', msg: '谢谢你给早餐桌送的礼物...', time: '昨天', unread: 0 },
-    { name: '系统通知', msg: '《下班后的三十分钟》已完成...', time: '周一', unread: 0 },
+    { name: '系统通知', msg: '《下班后的三十分钟》已完成，可以查看成圈作品', time: '周一', unread: 0, tag: '官方' },
+    { name: '迪儿7P2B6SG', msg: '我刚拍了一段 3 秒片段，顺手把声音也录进去了', time: '09:41', unread: 2, tag: '共创 12 次' },
+    { name: '迪儿8JQB6SG', msg: '谢谢你给早餐桌送的礼物', time: '昨天', unread: 0, tag: '好友' },
+    { name: '迪儿4K9B6SG', msg: '我还差一段夜景片段，等你一起补齐', time: '昨天', unread: 1, tag: '共创中' },
+    { name: '迪儿9M2B6SG', msg: '这个主题我也想参与，先收藏了', time: '周二', unread: 0, tag: '' },
+    { name: '迪儿3R8B6SG', msg: '上次那条成圈作品质感很好', time: '周一', unread: 0, tag: '共创 3 次' },
   ];
 
   return (
-    <div className="flex flex-col h-full bg-[#ededed] pt-8 text-[#111111]">
-      <header className="px-5 py-4 sticky top-0 bg-[#f7f7f7]/96 backdrop-blur-xl z-20 border-b border-[#e5e5e5]">
+    <div className="flex flex-col h-full bg-[#f7f7f7] pt-8 text-[#161616]">
+      <header className="px-5 pt-4 pb-3 sticky top-0 bg-[#f7f7f7]/96 backdrop-blur-xl z-20">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-[28px] font-bold text-[#111111]">消息</h1>
-          </div>
+          <h1 className="text-[26px] font-black text-[#161616] tracking-tight">消息</h1>
+          <div className="w-9 h-9" />
         </div>
       </header>
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-32">
-         <div className="bg-white divide-y divide-[#efefef]">
+         <div className="bg-white">
             {conversations.map((convo) => (
               <div 
                 key={convo.name}
                 onClick={() => setScreen('dm')}
-                className="flex items-center px-4 py-3.5 active:bg-[#f7f7f7] transition-colors cursor-pointer relative"
+                className="flex items-center px-4 py-3 active:bg-[#f7f7f7] transition-colors cursor-pointer relative"
               >
                  <div className="relative">
-                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${convo.name}`} alt="" className="w-12 h-12 rounded-[14px] bg-[#f3f3f3] object-cover" />
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${convo.name}`} alt="" className="w-[52px] h-[52px] rounded-full bg-[#f3f3f3] object-cover" />
                     {convo.unread > 0 && (
-                       <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-[#fe2c55] rounded-full flex items-center justify-center border-2 border-white">
+                       <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#FE2C55] rounded-full flex items-center justify-center border-2 border-white">
                           <span className="text-[10px] font-black text-white">{convo.unread}</span>
                        </div>
                     )}
                  </div>
-                 <div className="ml-3 flex-1 min-w-0 py-0.5">
-                    <div className="flex justify-between items-start gap-3">
-                       <h4 className="text-[17px] font-medium text-[#111111] truncate">{convo.name}</h4>
-                       <span className="shrink-0 text-[11px] text-[#999999] pt-0.5">{convo.time}</span>
+                 <div className="ml-3 flex-1 min-w-0 py-1">
+                    <div className="flex justify-between items-center gap-3">
+                       <div className="flex items-center gap-2 min-w-0">
+                         <h4 className="text-[16px] font-black text-[#161616] truncate">{convo.name}</h4>
+                         {convo.tag && (
+                           <span className="shrink-0 rounded-full bg-[#f4f4f4] px-2 py-0.5 text-[9px] font-black text-[#8b8b8b]">{convo.tag}</span>
+                         )}
+                       </div>
+                       <span className="shrink-0 text-[11px] text-[#a6a6a6]">{convo.time}</span>
                     </div>
-                    <p className="text-[14px] text-[#999999] truncate mt-1">{convo.msg}</p>
+                    <p className="text-[14px] text-[#8f8f8f] truncate mt-1.5">{convo.msg}</p>
                  </div>
               </div>
             ))}
