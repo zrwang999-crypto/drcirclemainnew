@@ -205,6 +205,8 @@ const HomeScreen = ({
   spotlightTopicIds, 
   spotlightTopic, 
   showToast,
+  showGrowthPrompt,
+  dismissGrowthPrompt,
 }: { 
   setScreen: (s: Screen) => void, 
   setSelectedTopic: (t: Topic) => void,
@@ -217,9 +219,10 @@ const HomeScreen = ({
   spotlightTopicIds: Set<string>,
   spotlightTopic: (id: string) => void,
   showToast: (m: string) => void,
+  showGrowthPrompt: boolean,
+  dismissGrowthPrompt: () => void,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showGrowthPrompt, setShowGrowthPrompt] = useState(true);
   const homeTopics = topics.filter(t => t.status !== 'completed');
   const currentTopic = homeTopics[currentIndex % homeTopics.length];
   const isFavorite = savedTopicIds.has(currentTopic.id);
@@ -383,7 +386,7 @@ const HomeScreen = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setShowGrowthPrompt(false)}
+            onClick={dismissGrowthPrompt}
             className="absolute inset-0 z-[120] bg-black/35 backdrop-blur-sm flex items-center justify-center p-5"
           >
             <motion.div
@@ -401,7 +404,7 @@ const HomeScreen = ({
                   <p className="mt-1 text-[12px] font-bold text-[#8f7f6d]">参与一个待成圈话题，就能点亮今日记录。</p>
                 </div>
                 <button
-                  onClick={() => setShowGrowthPrompt(false)}
+                  onClick={dismissGrowthPrompt}
                   className="w-9 h-9 rounded-full bg-white text-[#7b6b5c] shadow-sm flex items-center justify-center active:scale-95 transition-transform shrink-0"
                   aria-label="关闭"
                 >
@@ -412,7 +415,7 @@ const HomeScreen = ({
               <button
                 onClick={() => {
                   setSelectedTopic(currentTopic);
-                  setShowGrowthPrompt(false);
+                  dismissGrowthPrompt();
                   setScreen('topic-detail');
                 }}
                 className="mt-5 w-full rounded-[24px] bg-white px-4 py-4 text-left shadow-sm active:scale-[0.99] transition-transform"
@@ -450,10 +453,10 @@ const HomeScreen = ({
                     <p className="min-h-[32px] text-[11px] font-black leading-snug text-[#4a3a2a]">{task.title}</p>
                     <div className="mt-3 flex items-center justify-between">
                       <span className={`text-[10px] font-black ${task.primary ? 'text-[#FE2C55]' : 'text-[#b4834a]'}`}>{task.done}</span>
-                      <span className="rounded-full bg-[#fff1d8] px-2 py-0.5 text-[9px] font-black text-[#b4834a]">⚡ {task.reward}</span>
+                      <span className="inline-flex items-center whitespace-nowrap rounded-full bg-[#fff1d8] px-2 py-0.5 text-[9px] font-black leading-none text-[#b4834a]">⚡ {task.reward}</span>
                     </div>
                     <button
-                      onClick={() => setShowGrowthPrompt(false)}
+                      onClick={dismissGrowthPrompt}
                       className={`mt-3 h-8 w-full rounded-full text-[10px] font-black active:scale-95 transition-transform ${
                         task.primary ? 'bg-[#FE2C55] text-white' : 'bg-[#2f261d] text-white'
                       }`}
@@ -1051,7 +1054,6 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                 <X size={20} />
               </button>
               <div className="flex gap-2">
-                {topicGifts.length > 0 && <GiftDonorStack gifts={topicGifts} onClick={() => setIsGiftDonorModalOpen(true)} />}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1915,6 +1917,7 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
 }) => {
   const lightCard = '';
   const [activeGallery, setActiveGallery] = useState<'works' | 'likes' | 'saved'>('works');
+  const [isGrowthDialogOpen, setIsGrowthDialogOpen] = useState(false);
   const myStartedTopicIds = new Set(['1', '4', '6']);
 
   const getWorkBadge = (topic: Topic) => {
@@ -2092,6 +2095,23 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
           </div>
         </section>
 
+        <button
+          onClick={() => setIsGrowthDialogOpen(true)}
+          className="mt-4 w-full rounded-[24px] border border-[#eadfce] bg-white/82 px-4 py-4 text-left shadow-sm active:scale-[0.99] transition-transform"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#b4834a]">今日成长</p>
+              <h3 className="mt-1 text-xl font-black tracking-tight text-[#2f261d]">2/3 已完成</h3>
+              <p className="mt-1 text-[11px] font-bold text-[#8f7f6d]">参与一个待成圈话题，就能点亮今日记录。</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="rounded-full bg-[#fff1d8] px-3 py-1 text-[11px] font-black text-[#b4834a]">+170</span>
+              <ChevronRight size={18} className="text-[#bcae9d]" />
+            </div>
+          </div>
+        </button>
+
         <section className="mt-4">
           <div className="flex items-center justify-between px-1">
             <div className="flex bg-white/82 rounded-full p-1 shadow-sm">
@@ -2169,6 +2189,90 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
           </div>
         </section>
       </main>
+
+      <AnimatePresence>
+        {isGrowthDialogOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsGrowthDialogOpen(false)}
+            className="absolute inset-0 z-[120] bg-black/35 backdrop-blur-sm flex items-center justify-center p-5"
+          >
+            <motion.div
+              initial={{ y: 28, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 28, opacity: 0, scale: 0.98 }}
+              transition={{ type: 'spring', damping: 24, stiffness: 220 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[360px] rounded-[32px] bg-[#fffaf4] px-5 pt-5 pb-6 text-[#2f261d] shadow-[0_24px_70px_rgba(78,56,35,0.24)]"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#b4834a]">今日成长</p>
+                  <h3 className="mt-1 text-2xl font-black tracking-tight">2/3 已完成</h3>
+                  <p className="mt-1 text-[12px] font-bold text-[#8f7f6d]">参与一个待成圈话题，就能点亮今日记录。</p>
+                </div>
+                <button
+                  onClick={() => setIsGrowthDialogOpen(false)}
+                  className="w-9 h-9 rounded-full bg-white text-[#7b6b5c] shadow-sm flex items-center justify-center active:scale-95 transition-transform shrink-0"
+                  aria-label="关闭"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <button
+                onClick={() => setIsGrowthDialogOpen(false)}
+                className="mt-5 w-full rounded-[24px] bg-white px-4 py-4 text-left shadow-sm active:scale-[0.99] transition-transform"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-black text-[#8f7f6d]">最接近成圈</p>
+                    <p className="mt-1 text-sm font-black text-[#2f261d]">今天的城市声音</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-black text-[#b4834a]">6/8</p>
+                    <p className="text-[9px] font-black text-[#aa9a86]">人数</p>
+                  </div>
+                </div>
+                <div className="mt-4 h-2 rounded-full bg-[#ebe2d4] overflow-hidden">
+                  <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-[#edbd79] to-[#ff2e67]" />
+                </div>
+              </button>
+
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {[
+                  { title: '浏览 3 个共创', done: '3/3', reward: '+20', primary: true },
+                  { title: '回应一位好友', done: '0/1', reward: '+50' },
+                  { title: '参与待成圈话题', done: '0/2', reward: '+100' },
+                ].map((task) => (
+                  <div
+                    key={task.title}
+                    className={`rounded-[20px] border px-3 py-3 text-left shadow-sm ${
+                      task.primary ? 'border-[#ffbed0] bg-[#fff6f8]' : 'border-[#eadfce] bg-white'
+                    }`}
+                  >
+                    <p className="min-h-[32px] text-[11px] font-black leading-snug text-[#4a3a2a]">{task.title}</p>
+                    <div className="mt-3 flex items-center justify-between gap-1">
+                      <span className={`text-[10px] font-black ${task.primary ? 'text-[#FE2C55]' : 'text-[#b4834a]'}`}>{task.done}</span>
+                      <span className="inline-flex items-center whitespace-nowrap rounded-full bg-[#fff1d8] px-2 py-0.5 text-[9px] font-black leading-none text-[#b4834a]">⚡ {task.reward}</span>
+                    </div>
+                    <button
+                      onClick={() => setIsGrowthDialogOpen(false)}
+                      className={`mt-3 h-8 w-full rounded-full text-[10px] font-black active:scale-95 transition-transform ${
+                        task.primary ? 'bg-[#FE2C55] text-white' : 'bg-[#2f261d] text-white'
+                      }`}
+                    >
+                      {task.primary ? '领取' : '去完成'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -2716,9 +2820,7 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
           <ArrowLeft size={20} />
         </button>
         <h2 className="font-bold text-[#2f261d] text-lg tracking-tight">全部作品</h2>
-        <button onClick={() => setScreen('saved-topics')} className="w-10 h-10 rounded-2xl flex items-center justify-center border border-[#e9dfd3] bg-white/82 text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
-          <Star size={18} />
-        </button>
+        <div className="w-10 h-10" />
       </header>
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-32">
@@ -3265,6 +3367,7 @@ const CircleScreen = ({
   spotlightTopic, 
   showToast, 
   diamondBalance,
+  setDiamondBalance,
   initialTopicId,
   isMyWorkMode,
   setCircleIsMyWorkMode,
@@ -3286,6 +3389,7 @@ const CircleScreen = ({
   spotlightTopic: (id: string) => void,
   showToast: (m: string) => void,
   diamondBalance: number,
+  setDiamondBalance: React.Dispatch<React.SetStateAction<number>>,
   initialTopicId?: string,
   isMyWorkMode?: boolean,
   setCircleIsMyWorkMode: (b: boolean) => void,
@@ -3303,6 +3407,8 @@ const CircleScreen = ({
   
   const [sharingTopic, setSharingTopic] = useState<Topic | null>(null);
   const [isGiftDrawerOpen, setIsGiftDrawerOpen] = useState(false);
+  const [selectedGiftName, setSelectedGiftName] = useState(GIFTS[0]?.name || '');
+  const [giftQuantity, setGiftQuantity] = useState(1);
   const [isGiftersDrawerOpen, setIsGiftersDrawerOpen] = useState(false);
   const [expandedCreatorsId, setExpandedCreatorsId] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -3338,6 +3444,22 @@ const CircleScreen = ({
     setSharingTopic(topic);
     setSelectedShareUserIds(new Set());
     setIsShareDrawerOpen(true);
+  };
+
+  const selectedGift = GIFTS.find((gift) => gift.name === selectedGiftName) || GIFTS[0];
+  const giftTotalCost = selectedGift ? selectedGift.price * giftQuantity : 0;
+  const giftQuantityOptions = [1, 3, 5, 10];
+
+  const sendSelectedGift = () => {
+    if (!selectedGift) return;
+    if (giftTotalCost > diamondBalance) {
+      showToast('钻石不足，请先充值');
+      return;
+    }
+
+    setDiamondBalance((prev) => prev - giftTotalCost);
+    showToast(`已送出 ${giftQuantity} 个${selectedGift.name}`);
+    setIsGiftDrawerOpen(false);
   };
 
   return (
@@ -3654,34 +3776,103 @@ const CircleScreen = ({
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 220 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#fffaf5] rounded-t-3xl pt-6 pb-10 shadow-[0_-10px_40px_rgba(103,81,58,0.14)] border-t border-[#eadfce] flex flex-col max-h-[72vh]"
+              className="bg-[#fffaf5] rounded-t-3xl pt-5 pb-4 shadow-[0_-10px_40px_rgba(103,81,58,0.14)] border-t border-[#eadfce] flex flex-col max-h-[76vh]"
             >
-              <div className="w-12 h-1.5 bg-[#eadfce] rounded-full mx-auto mb-6 flex-shrink-0" />
-              <div className="flex justify-between items-center px-6 pb-5">
+              <div className="w-12 h-1.5 bg-[#eadfce] rounded-full mx-auto mb-5 flex-shrink-0" />
+              <div className="flex justify-between items-start px-6 pb-4">
                 <div>
                   <h3 className="text-[#2f261d] font-bold text-lg">选择礼物</h3>
                   <p className="text-[10px] text-[#9f8f7e] font-black uppercase tracking-widest mt-1">赠送后将展示在评论区</p>
                 </div>
-                <button onClick={() => setIsGiftDrawerOpen(false)} className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-[#8f7f6d] border border-[#eadfce] active:scale-95 transition-transform shadow-sm">
-                  <X size={16} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setScreen('recharge')}
+                    className="h-8 rounded-full border border-[#eadfce] bg-white px-3 text-[11px] font-black text-[#2f261d] shadow-sm active:scale-95 transition-transform flex items-center gap-1.5"
+                  >
+                    <Gem size={13} />
+                    {diamondBalance.toLocaleString()}
+                  </button>
+                  <button onClick={() => setIsGiftDrawerOpen(false)} className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-[#8f7f6d] border border-[#eadfce] active:scale-95 transition-transform shadow-sm">
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-3 overflow-y-auto px-6 pb-6 no-scrollbar">
+              <div className="grid grid-cols-4 gap-3 overflow-y-auto px-6 pb-4 no-scrollbar">
                 {GIFTS.map((gift) => (
                   <button
                     key={gift.name}
                     onClick={() => {
-                      showToast(`已送出${gift.name}`);
-                      setIsGiftDrawerOpen(false);
+                      setSelectedGiftName(gift.name);
                     }}
-                    className="bg-white border border-[#eadfce] rounded-2xl p-3 flex flex-col items-center gap-2 active:scale-95 transition-transform shadow-sm"
+                    className={`relative bg-white border rounded-2xl p-3 flex flex-col items-center gap-2 active:scale-95 transition-transform shadow-sm ${
+                      selectedGiftName === gift.name ? 'border-[#FE2C55] shadow-[0_10px_24px_rgba(254,44,85,0.14)]' : 'border-[#eadfce]'
+                    }`}
                   >
+                    {selectedGiftName === gift.name && (
+                      <span className="absolute right-2 top-2 h-4 w-4 rounded-full bg-[#FE2C55] text-white flex items-center justify-center">
+                        <Check size={10} strokeWidth={4} />
+                      </span>
+                    )}
                     <span className="text-3xl leading-none">{gift.icon}</span>
                     <span className="text-[10px] font-black text-[#2f261d] leading-tight text-center">{gift.name}</span>
                     <span className="text-[9px] font-black text-[#FE2C55] tracking-widest">{gift.price}</span>
                   </button>
                 ))}
+              </div>
+
+              <div className="border-t border-[#eadfce] bg-[#fffaf5]/95 px-5 pt-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black text-[#9f8f7e] uppercase tracking-widest">已选择</p>
+                    <p className="mt-1 truncate text-sm font-black text-[#2f261d]">
+                      {selectedGift?.icon} {selectedGift?.name}
+                      <span className="ml-2 text-[#FE2C55]">{giftTotalCost.toLocaleString()}</span>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 rounded-full bg-white border border-[#eadfce] p-1 shadow-sm">
+                    <button
+                      onClick={() => setGiftQuantity((q) => Math.max(1, q - 1))}
+                      className="h-8 w-8 rounded-full text-lg font-black text-[#8f7f6d] active:scale-95 transition-transform"
+                      aria-label="减少数量"
+                    >
+                      -
+                    </button>
+                    <span className="min-w-8 text-center text-sm font-black text-[#2f261d]">x{giftQuantity}</span>
+                    <button
+                      onClick={() => setGiftQuantity((q) => Math.min(99, q + 1))}
+                      className="h-8 w-8 rounded-full text-lg font-black text-[#2f261d] active:scale-95 transition-transform"
+                      aria-label="增加数量"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    {giftQuantityOptions.map((quantity) => (
+                      <button
+                        key={quantity}
+                        onClick={() => setGiftQuantity(quantity)}
+                        className={`h-8 min-w-10 rounded-full border px-3 text-[11px] font-black active:scale-95 transition-all ${
+                          giftQuantity === quantity
+                            ? 'border-[#2f261d] bg-[#2f261d] text-white'
+                            : 'border-[#eadfce] bg-white text-[#8f7f6d]'
+                        }`}
+                      >
+                        x{quantity}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={sendSelectedGift}
+                    className="ml-auto h-10 min-w-[116px] rounded-full bg-[#FE2C55] px-5 text-sm font-black text-white shadow-[0_12px_26px_rgba(254,44,85,0.22)] active:scale-95 transition-transform disabled:opacity-50"
+                    disabled={!selectedGift}
+                  >
+                    赠送
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -4405,7 +4596,9 @@ export default function App() {
     };
   }, []);
 
-  const [screen, setScreen] = useState<Screen>('home');
+  const [screen, setScreen] = useState<Screen>(() => (
+    new URLSearchParams(window.location.search).get('preview')?.startsWith('me-growth') ? 'me' : 'home'
+  ));
   const [prevScreen, setPrevScreen] = useState<Screen>('home');
   const [topics, setTopics] = useState<Topic[]>(TOPICS);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
@@ -4431,6 +4624,7 @@ export default function App() {
   const [circleIsMyWorkMode, setCircleIsMyWorkMode] = useState<boolean>(false);
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [isGiftDonorDetailModalOpen, setIsGiftDonorDetailModalOpen] = useState(false);
+  const [hasShownHomeGrowthPrompt, setHasShownHomeGrowthPrompt] = useState(false);
 
   useEffect(() => {
     if (screen === 'splash') {
@@ -4500,6 +4694,10 @@ export default function App() {
   const handleSetScreen = (newScreen: Screen) => {
     setPrevScreen(screen);
     setScreen(newScreen);
+  };
+
+  const dismissHomeGrowthPrompt = () => {
+    setHasShownHomeGrowthPrompt(true);
   };
 
   const toggleFavorite = (id: string) => {
@@ -4587,6 +4785,8 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
             spotlightTopicIds={spotlightTopicIds}
             spotlightTopic={spotlightTopic}
             showToast={showToast}
+            showGrowthPrompt={!hasShownHomeGrowthPrompt}
+            dismissGrowthPrompt={dismissHomeGrowthPrompt}
           />
         );
       case 'topic-detail':
@@ -4621,6 +4821,8 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
             spotlightTopicIds={spotlightTopicIds} 
             spotlightTopic={spotlightTopic} 
             showToast={showToast} 
+            showGrowthPrompt={!hasShownHomeGrowthPrompt}
+            dismissGrowthPrompt={dismissHomeGrowthPrompt}
           />
         );
       case 'create-circle':
@@ -4645,6 +4847,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
             spotlightTopic={spotlightTopic}
             showToast={showToast}
             diamondBalance={diamondBalance}
+            setDiamondBalance={setDiamondBalance}
             initialTopicId={circleInitialTopicId}
             isMyWorkMode={circleIsMyWorkMode}
             setCircleIsMyWorkMode={setCircleIsMyWorkMode}
