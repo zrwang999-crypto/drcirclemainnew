@@ -3858,11 +3858,10 @@ const CircleScreen = ({
                 </button>
               </div>
 
-              <div className="px-6 grid grid-cols-4 gap-4 mb-8 flex-shrink-0">
+              <div className="px-6 grid grid-cols-3 gap-4 mb-8 flex-shrink-0">
                 {[
                   { icon: <CornerUpRight size={20} />, label: '分享片段', action: () => { setIsMoreDrawerOpen(false); setIsShareDrawerOpen(true); } },
                   { icon: <ShieldCheck size={20} />, label: '权限设置', action: () => { setIsMoreDrawerOpen(false); setIsVisibilityDrawerOpen(true); } },
-                  { icon: <RotateCw size={20} />, label: '作品合集', action: () => { showToast('即将跳转合集页面'); setIsMoreDrawerOpen(false); } },
                   { icon: <Trash2 size={20} className="text-red-primary" />, label: '删除作品', action: () => { showToast('作品已申请删除'); setIsMoreDrawerOpen(false); } },
                 ].map((item, i) => (
                   <button key={i} onClick={item.action} className="flex flex-col items-center gap-3 group">
