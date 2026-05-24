@@ -4399,13 +4399,6 @@ const FeedbackScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
 };
 
 export default function App() {
-  useEffect(() => {
-    document.body.dataset.appReady = '1';
-    return () => {
-      delete document.body.dataset.appReady;
-    };
-  }, []);
-
   const [screen, setScreen] = useState<Screen>('home');
   const [prevScreen, setPrevScreen] = useState<Screen>('home');
   const [topics, setTopics] = useState<Topic[]>(TOPICS);
