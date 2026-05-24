@@ -443,7 +443,7 @@ const HomeScreen = ({
                   { title: '浏览 3 个共创', done: '3/3', reward: '+20', primary: true },
                   { title: '回应一位好友', done: '0/1', reward: '+50' },
                   { title: '参与待成圈话题', done: '0/2', reward: '+100' },
-                ].map((task) => (
+                ].map((task, taskIndex) => (
                   <div
                     key={task.title}
                     className={`rounded-[20px] border px-3 py-3 text-left shadow-sm ${
@@ -456,7 +456,16 @@ const HomeScreen = ({
                       <span className="inline-flex items-center whitespace-nowrap rounded-full bg-[#fff1d8] px-2 py-0.5 text-[9px] font-black leading-none text-[#b4834a]">⚡ {task.reward}</span>
                     </div>
                     <button
-                      onClick={dismissGrowthPrompt}
+                      onClick={() => {
+                        dismissGrowthPrompt();
+                        if (taskIndex === 1) {
+                          setScreen('messages');
+                        } else if (taskIndex === 2) {
+                          setScreen('home');
+                        } else if (!task.primary) {
+                          setScreen('circle');
+                        }
+                      }}
                       className={`mt-3 h-8 w-full rounded-full text-[10px] font-black active:scale-95 transition-transform ${
                         task.primary ? 'bg-[#FE2C55] text-white' : 'bg-[#2f261d] text-white'
                       }`}
@@ -2246,7 +2255,7 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
                   { title: '浏览 3 个共创', done: '3/3', reward: '+20', primary: true },
                   { title: '回应一位好友', done: '0/1', reward: '+50' },
                   { title: '参与待成圈话题', done: '0/2', reward: '+100' },
-                ].map((task) => (
+                ].map((task, taskIndex) => (
                   <div
                     key={task.title}
                     className={`rounded-[20px] border px-3 py-3 text-left shadow-sm ${
@@ -2259,7 +2268,16 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
                       <span className="inline-flex items-center whitespace-nowrap rounded-full bg-[#fff1d8] px-2 py-0.5 text-[9px] font-black leading-none text-[#b4834a]">⚡ {task.reward}</span>
                     </div>
                     <button
-                      onClick={() => setIsGrowthDialogOpen(false)}
+                      onClick={() => {
+                        setIsGrowthDialogOpen(false);
+                        if (taskIndex === 1) {
+                          setScreen('messages');
+                        } else if (taskIndex === 2) {
+                          setScreen('home');
+                        } else if (!task.primary) {
+                          setScreen('circle');
+                        }
+                      }}
                       className={`mt-3 h-8 w-full rounded-full text-[10px] font-black active:scale-95 transition-transform ${
                         task.primary ? 'bg-[#FE2C55] text-white' : 'bg-[#2f261d] text-white'
                       }`}
