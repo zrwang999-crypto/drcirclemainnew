@@ -37,6 +37,7 @@ export interface User {
   followers: number;
   following: number;
   gender?: string;
+  ipLocation?: string;
 }
 
 export type Screen = 

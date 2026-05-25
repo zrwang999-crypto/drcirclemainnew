@@ -93,6 +93,17 @@ const lightHeaderShell = 'p-6 flex items-center justify-between sticky top-0 bg-
 const lightIconButton = 'w-10 h-10 rounded-2xl flex items-center justify-center border border-[#e9dfd3] bg-white/80 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform';
 const lightSurfaceCard = 'rounded-[32px] border border-[#ece3d7] bg-white/82 shadow-[0_18px_40px_rgba(103,81,58,0.06)] backdrop-blur-xl';
 const lightInputField = 'bg-white/82 border border-[#eadfce] text-[#2f261d] placeholder:text-[#baa897]';
+const userIpLocations: Record<string, string> = {
+  [CURRENT_USER.name]: CURRENT_USER.ipLocation || '广东',
+  Mia: '浙江',
+  林野: '上海',
+  周屿: '广东',
+  南川: '四川',
+  Echo: '北京',
+  阿泽: '广东',
+  小北: '江苏',
+};
+const getUserIpLocation = (name: string) => userIpLocations[name] || ['广东', '浙江', '上海', '北京', '四川', '江苏'][Math.abs([...name].reduce((sum, char) => sum + char.charCodeAt(0), 0)) % 6];
 
 const BottomNav = ({ active, setScreen, onPlusClick }: { 
   active: Screen, 
@@ -2030,7 +2041,10 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
                   <Pencil size={16} />
                 </button>
               </div>
-              <p className="mt-1.5 text-[#7d6f61] text-sm">@{profile.userId}</p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                <p className="text-[#7d6f61]">@{profile.userId}</p>
+                <span className="text-[11px] font-bold text-[#b0a08e]">IP：{profile.ipLocation}</span>
+              </div>
               <p className="mt-2.5 text-[#8f7f6d] text-sm leading-relaxed">{profile.bio}</p>
             </div>
           </div>
@@ -4551,6 +4565,7 @@ interface EditableProfile {
   bio: string;
   gender: string;
   birthday: string;
+  ipLocation: string;
 }
 
 // --- Feedback Screen ---
@@ -4634,6 +4649,7 @@ export default function App() {
     bio: CURRENT_USER.bio,
     gender: CURRENT_USER.gender || '',
     birthday: '',
+    ipLocation: CURRENT_USER.ipLocation || '广东',
   });
   const [toast, setToast] = useState<string | null>(null);
   const [initialNetworkTab, setInitialNetworkTab] = useState<'friends' | 'followers' | 'following'>('friends');
@@ -5809,6 +5825,7 @@ const UserProfileScreen = ({ setScreen, userName, prevScreen, showToast, setInit
   const userCode = `${Math.abs([...userName].reduce((sum, char) => sum + char.charCodeAt(0), 0) * 73).toString(36).toUpperCase()}B6SG`;
   const displayName = `迪儿${userCode}`;
   const displayId = `@dear${userCode}`;
+  const ipLocation = getUserIpLocation(userName);
 
   return (
     <div className="flex flex-col h-full bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_42%,#f2ebe1_100%)] pt-8 text-[#2f261d]">
@@ -5834,7 +5851,10 @@ const UserProfileScreen = ({ setScreen, userName, prevScreen, showToast, setInit
 
             <div className="flex-1 min-w-0 text-left">
               <h1 className="text-[24px] font-black text-[#2f261d] tracking-tight leading-tight">{displayName}</h1>
-              <p className="mt-1.5 text-[#7d6f61] text-sm">{displayId}</p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                <p className="text-[#7d6f61]">{displayId}</p>
+                <span className="text-[11px] font-bold text-[#b0a08e]">IP：{ipLocation}</span>
+              </div>
               <p className="mt-2.5 text-[#8f7f6d] text-sm leading-relaxed">{publicProfile.description}</p>
             </div>
           </div>
@@ -6013,7 +6033,7 @@ const PersonalProfileScreen = ({ setScreen, profile, setProfile, showToast }: {
            </div>
            <h1 className="text-2xl font-black mt-5 text-[#2f261d]">{draft.name}</h1>
            <p className="text-[#8f7f6d] text-sm mt-1 font-black">@{draft.userId}</p>
-           <p className="text-[#b0a08e] text-[10px] font-bold mt-1">IP：广东</p>
+           <p className="text-[#b0a08e] text-[10px] font-bold mt-1">IP：{draft.ipLocation}</p>
            <p className="text-[#7d6f61] text-xs leading-relaxed mt-4 px-8">{draft.bio}</p>
         </section>
 

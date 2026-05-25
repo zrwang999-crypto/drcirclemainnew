@@ -277,4 +277,5 @@ export const CURRENT_USER: User = {
   followers: 1200,
   following: 86,
   gender: '男',
+  ipLocation: '广东',
 };
