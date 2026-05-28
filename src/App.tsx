@@ -3734,9 +3734,6 @@ const JoinScreen = ({ topic, setScreen, showToast }: { topic: Topic, setScreen: 
 
 const JoinSuccessScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) => void, showToast: (m: string) => void }) => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isVisibilityDrawerOpen, setIsVisibilityDrawerOpen] = useState(false);
-  const [visibility, setVisibility] = useState<Visibility>('public');
-  const [selectedFriendIds, setSelectedFriendIds] = useState<Set<string>>(new Set());
 
   return (
     <div className="flex flex-col h-full bg-dark p-10 pt-16">
@@ -3766,29 +3763,6 @@ const JoinSuccessScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) =>
           </p>
         </div>
 
-        <div
-          onClick={() => setIsVisibilityDrawerOpen(true)}
-          className="w-full max-w-[280px] p-5 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-between active:bg-white/10 transition-all cursor-pointer group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 group-active:text-gold transition-colors">
-              {visibility === 'public' && <Globe size={18} />}
-              {visibility === 'friends' && <Users2 size={18} />}
-              {visibility === 'private' && <Lock size={18} />}
-              {visibility === 'selected' && <UserIcon size={18} />}
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">谁可以看</p>
-              <p className="text-sm font-bold text-white mt-0.5">
-                {visibility === 'public' && '公开'}
-                {visibility === 'friends' && '朋友'}
-                {visibility === 'private' && '私密'}
-                {visibility === 'selected' && `选中的朋友 (${selectedFriendIds.size})`}
-              </p>
-            </div>
-          </div>
-          <ChevronRight size={16} className="text-white/20" />
-        </div>
       </div>
 
       <div className="w-full space-y-3 pb-6 shrink-0 mt-6">
@@ -3812,14 +3786,6 @@ const JoinSuccessScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) =>
         />
       </AnimatePresence>
 
-      <VisibilitySelectorDrawer
-        isOpen={isVisibilityDrawerOpen}
-        onClose={() => setIsVisibilityDrawerOpen(false)}
-        visibility={visibility}
-        setVisibility={setVisibility}
-        selectedFriendIds={selectedFriendIds}
-        setSelectedFriendIds={setSelectedFriendIds}
-      />
     </div>
   );
 };
@@ -5834,7 +5800,6 @@ const ContentDetailScreen = ({
           <ArrowLeft size={20} />
         </button>
         <div className="min-w-0 text-center">
-          <p className="text-[10px] font-black tracking-[0.18em] text-[#b4834a]">{typeLabel}</p>
           <h2 className="truncate text-sm font-black">{item.title}</h2>
         </div>
         <button onClick={() => setIsShareDrawerOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#2f261d] shadow-sm active:scale-95 transition-transform" aria-label="分享">
@@ -5925,7 +5890,11 @@ const ContentDetailScreen = ({
             <Heart size={20} className={isLiked ? 'fill-current' : ''} />
             {item.topic.likes}
           </button>
-          <button onClick={() => toggleFavorite(item.topic.id)} className={`flex h-10 w-10 items-center justify-center rounded-full ${isSaved ? 'text-[#b4834a]' : 'text-[#7d6d5f]'}`}>
+          <button
+            onClick={() => toggleFavorite(item.topic.id)}
+            className={`flex h-10 w-10 items-center justify-center rounded-full ${isSaved ? 'text-[#b4834a]' : 'text-[#7d6d5f]'}`}
+            aria-label={isSaved ? '取消收藏' : '收藏'}
+          >
             <Bookmark size={20} className={isSaved ? 'fill-current' : ''} />
           </button>
           <button onClick={sendComment} className="flex h-10 w-10 items-center justify-center rounded-full text-[#7d6d5f]">
