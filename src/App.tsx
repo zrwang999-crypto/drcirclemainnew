@@ -47,7 +47,8 @@ import {
   Image as ImageIcon,
   Mic,
   Smile,
-  ClipboardCheck
+  ClipboardCheck,
+  Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TOPICS, CURRENT_USER, GIFTS, SHOP_ITEMS, SHARE_FRIENDS, MOCK_GIFT_RECORDS } from './constants';
@@ -148,6 +149,26 @@ const dailyLifeCaptions = [
   '新鞋第一次出门',
 ];
 const dailyLifeUsers = ['林野', 'Mia', '周屿', '南川', 'Echo', '阿泽', '小北', '苏苏', '张震', 'Dear', 'Ann', 'Lucas'];
+type HomeFeedItemKind = 'collab' | 'cp' | 'video' | 'image';
+type HomeFeedItem = {
+  id: string;
+  topic: Topic;
+  mediaIndex: number;
+  title: string;
+  author: string;
+  kind: HomeFeedItemKind;
+  heightClass: string;
+};
+const suggestedCreators = [
+  { name: '阿飞 Kathy', bio: '教育内容热门作者', followers: '12.8万粉丝', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128&h=128&fit=crop' },
+  { name: '克里斯 Kris', bio: '热门作者', followers: '5684粉丝', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=128&h=128&fit=crop' },
+  { name: '把故事听到最后 Jayhon', bio: '音乐内容热门作者', followers: '8.7万粉丝', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=128&h=128&fit=crop' },
+  { name: '-谢安然-', bio: '二次元内容热门作者', followers: '6.2万粉丝', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=128&h=128&fit=crop', verified: true },
+  { name: '在香港的阿龍', bio: '探店内容热门作者', followers: '4.9万粉丝', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop' },
+  { name: '一堆林女士', bio: '情感内容热门作者', followers: '3.8万粉丝', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=128&h=128&fit=crop' },
+  { name: '冰镇西瓜', bio: '模特', followers: '2.6万粉丝', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=watermelon' },
+  { name: '大连攻略', bio: '美食内容热门作者', followers: '9.4万粉丝', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=大连攻略&backgroundColor=ef4444&fontWeight=700' },
+];
 
 const BottomNav = ({ active, setScreen, onPlusClick }: {
   active: Screen,
@@ -163,7 +184,7 @@ const BottomNav = ({ active, setScreen, onPlusClick }: {
     { id: 'messages', label: '消息', icon: MessageCircle },
     { id: 'me', label: '我的', icon: UserIcon },
   ];
-  const isLightNav = active === 'messages' || active === 'me';
+  const isLightNav = true;
 
   const getNavButtonClass = (id: Screen) =>
     `flex flex-col items-center justify-center space-y-1 w-12 h-12 rounded-2xl transition-all duration-300 ${
@@ -217,13 +238,13 @@ const BottomNav = ({ active, setScreen, onPlusClick }: {
 
       <button
         onClick={onPlusClick}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all -mt-12 border-[6px] box-content z-50 ${
+        className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm active:scale-90 transition-all z-50 ${
           isLightNav
-            ? 'border-[#f7f3ec] bg-[#2f261d] text-[#fff9f1] shadow-[0_16px_30px_rgba(73,55,39,0.18)]'
+            ? 'bg-[#FE2C55] text-white shadow-[0_10px_20px_rgba(254,44,85,0.22)]'
             : 'border-dark bg-white text-dark'
         }`}
       >
-        <Plus size={28} strokeWidth={3} />
+        <Plus size={28} strokeWidth={3.2} />
       </button>
 
       <div className="flex flex-1 justify-around">
@@ -264,6 +285,7 @@ const HomeScreen = ({
   showGrowthPrompt,
   dismissGrowthPrompt,
   setCircleInitialTopicId,
+  onOpenContent,
 }: {
   setScreen: (s: Screen) => void,
   setSelectedTopic: (t: Topic) => void,
@@ -279,169 +301,327 @@ const HomeScreen = ({
   showGrowthPrompt: boolean,
   dismissGrowthPrompt: () => void,
   setCircleInitialTopicId: (id: string | undefined) => void,
+  onOpenContent: (item: HomeFeedItem) => void,
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const homeTopics = topics.filter(t => t.status !== 'completed');
-  const currentTopic = homeTopics[currentIndex % homeTopics.length];
-  const isFavorite = savedTopicIds.has(currentTopic.id);
-  const isLiked = likedTopicIds.has(currentTopic.id);
-  const spotlightTopics = topics.filter(t => spotlightTopicIds.has(t.id));
-  const marqueeTopics = spotlightTopics.length > 0 ? spotlightTopics : homeTopics;
+  const [homeTab, setHomeTab] = useState<'推荐' | '关注'>('推荐');
+  const [hiddenSuggestedCreators, setHiddenSuggestedCreators] = useState<Set<string>>(new Set());
+  const [followedSuggestedCreators, setFollowedSuggestedCreators] = useState<Set<string>>(new Set());
+  const [activeFeaturedIndex, setActiveFeaturedIndex] = useState(0);
+  const feedItems = topics.flatMap((topic, topicIndex) =>
+    [0, 1].map((variant) => {
+      const mediaIndex = (topicIndex * 2 + variant) % dailyLifeFrames.length;
+      return {
+        id: `${topic.id}-${variant}`,
+        topic,
+        mediaIndex,
+        title: variant === 0 ? topic.title : dailyLifeCaptions[mediaIndex],
+        author: dailyLifeUsers[mediaIndex],
+        kind: variant === 0 ? 'collab' : topicIndex % 3 === 0 ? 'cp' : topicIndex % 2 === 0 ? 'video' : 'image',
+        heightClass: 'aspect-[4/5]',
+      } satisfies HomeFeedItem;
+    })
+  );
+  const followedAuthorNames = followedSuggestedCreators;
+  const priorityFeedItems = (['collab', 'cp', 'video', 'image'] as const)
+    .map(kind => feedItems.find(item => item.kind === kind))
+    .filter((item): item is typeof feedItems[number] => Boolean(item));
+  const priorityFeedItemIds = new Set(priorityFeedItems.map(item => item.id));
+  const prioritizedFeedItems = [
+    ...priorityFeedItems,
+    ...feedItems.filter(item => !priorityFeedItemIds.has(item.id)),
+  ];
+  const visibleFeedItems = homeTab === '关注'
+    ? prioritizedFeedItems
+    : prioritizedFeedItems;
+  const feedColumns = visibleFeedItems.reduce<[typeof visibleFeedItems, typeof visibleFeedItems]>((columns, item, index) => {
+    columns[index % 2].push(item);
+    return columns;
+  }, [[], []]);
+  const visibleSuggestedCreators = suggestedCreators.filter(author => !hiddenSuggestedCreators.has(author.name));
+  const featuredTopics = topics.filter(t => t.status !== 'completed').slice(0, 5);
+  const activeFeaturedTopic = featuredTopics[activeFeaturedIndex % Math.max(featuredTopics.length, 1)] || topics[0];
+  const featuredTopic = activeFeaturedTopic;
 
-  const nextTopic = () => setCurrentIndex((prev) => (prev + 1) % homeTopics.length);
-  const prevTopic = () => setCurrentIndex((prev) => (prev - 1 + homeTopics.length) % homeTopics.length);
+  useEffect(() => {
+    if (homeTab !== '推荐' || featuredTopics.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setActiveFeaturedIndex(prev => (prev + 1) % featuredTopics.length);
+    }, 3600);
+    return () => window.clearInterval(timer);
+  }, [featuredTopics.length, homeTab]);
+
+  const handleHideSuggestedCreator = (name: string) => {
+    setHiddenSuggestedCreators(prev => new Set(prev).add(name));
+  };
+  const handleFollowSuggestedCreator = (name: string) => {
+    setFollowedSuggestedCreators(prev => new Set(prev).add(name));
+    showToast(`已关注 ${name}`);
+  };
 
   return (
-    <div className="flex flex-col h-full bg-dark font-sans pt-8 relative overflow-hidden">
-      <div className="pt-6">
-        <SpotlightMarquee
-          spotlightTopics={marqueeTopics}
-          onSelect={(topic) => {
-            if (topic.status === 'completed') {
-              setCircleInitialTopicId(topic.id);
-              setScreen('circle');
-              return;
-            }
-            setCircleInitialTopicId(undefined);
-            setSelectedTopic(topic);
-            setScreen('topic-detail');
-          }}
-        />
-      </div>
-
-      <main className="px-4 flex-1 overflow-y-auto no-scrollbar pb-32 pt-14">
-        <div className="relative">
-          {[0, 1].map((stackIndex) => {
-            const topicIndex = (currentIndex - stackIndex - 1 + homeTopics.length * 10) % homeTopics.length;
-            const topic = homeTopics[topicIndex];
-            return (
-              <div
-                key={`stack-preview-${topic.id}-${stackIndex}`}
-                className={`absolute h-20 rounded-[36px] bg-gradient-to-br ${
-                  topic.tone === 'blue' ? 'from-indigo-600/60 via-indigo-900/55' : 'from-amber-600/60 via-amber-900/55'
-                } to-black border border-white/15 shadow-xl`}
-                style={{
-                  left: `${20 + stackIndex * 7}px`,
-                  right: `${20 + stackIndex * 7}px`,
-                  top: `${-10 - stackIndex * 9}px`,
-                  opacity: 0.72 - stackIndex * 0.12,
-                  transform: `rotate(${stackIndex % 2 === 0 ? -1 : 1}deg)`,
-                  zIndex: stackIndex,
-                }}
-              >
-                <div className="absolute inset-x-6 bottom-4 h-px bg-white/15" />
-              </div>
-            );
-          })}
-
-          <button
-            onClick={(e) => { e.stopPropagation(); prevTopic(); }}
-            className="absolute left-2 top-1/2 z-20 -translate-y-1/2 w-8 h-8 glass-pill rounded-full flex items-center justify-center border border-white/15 text-white/80 active:scale-95 transition-transform shadow-xl bg-black/25"
-            aria-label="上一个话题"
-          >
-            <ChevronLeft size={18} />
-          </button>
-
-          <button
-            onClick={(e) => { e.stopPropagation(); nextTopic(); }}
-            className="absolute right-2 top-1/2 z-20 -translate-y-1/2 w-8 h-8 glass-pill rounded-full flex items-center justify-center border border-white/15 text-white/80 active:scale-95 transition-transform shadow-xl bg-black/25"
-            aria-label="下一个话题"
-          >
-            <ChevronRight size={18} />
-          </button>
-
-          <motion.div
-            key={currentTopic.id}
-            layoutId={`topic-card-${currentTopic.id}`}
-            initial={{ opacity: 0, y: 15, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            drag
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
-            whileDrag={{ scale: 0.97 }}
-            onDragEnd={(_, info) => {
-              if (info.offset.x < -50 || info.velocity.x < -450 || info.offset.y < -50 || info.velocity.y < -450) {
-                nextTopic();
-              } else if (info.offset.x > 50 || info.velocity.x > 450 || info.offset.y > 50 || info.velocity.y > 450) {
-                prevTopic();
-              }
-            }}
-            className="group relative z-10 active:scale-[0.98] transition-transform duration-500 border-none"
-            onClick={() => {
-              setSelectedTopic(currentTopic);
-              setScreen('topic-detail');
-            }}
-          >
-            <div className={`aspect-[4/6] relative bg-gradient-to-br transition-all duration-1000 px-10 pt-6 pb-10 flex flex-col justify-between rounded-[48px] overflow-hidden border ${
-              currentTopic.status === 'completed' ? 'border-gold/30 shadow-[0_0_40px_rgba(214,178,126,0.1)]' : 'border-white/20 shadow-2xl'
-            } ${
-              currentTopic.tone === 'blue' ? 'from-indigo-600 via-indigo-900' : 'from-amber-600 via-amber-900'
-            } to-black group-hover:scale-[1.02] transition-transform`}>
-            {currentTopic.image && (
-              <img
-                src={currentTopic.image}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-65"
-              />
-            )}
-            {currentTopic.status === 'completed' && (
-              <div className="absolute inset-0 bg-gold/5 pointer-events-none mix-blend-overlay"></div>
-            )}
-            <div className="absolute inset-0 bg-black/50 pointer-events-none"></div>
-            <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/80 to-transparent opacity-100"></div>
-            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/40 to-transparent opacity-80"></div>
-            <div className="absolute inset-0 opacity-20 pointer-events-none"
-                 style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, white 0%, transparent 100%)' }}></div>
-
-            <div className="flex justify-between items-start z-10 pt-2">
-              <div className="flex flex-col gap-1.5">
-                <span className="w-fit bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-black tracking-widest uppercase text-white border border-white/10 shadow-sm">
-                  {currentTopic.city}
-                </span>
-              </div>
-              <div className="flex gap-2 mt-1">
-                <button
-                  onClick={(e) => { e.stopPropagation(); toggleFavorite(currentTopic.id); }}
-                  className={`w-10 h-10 glass-pill rounded-xl flex items-center justify-center transition-colors ${isFavorite ? 'bg-gold text-dark border-dark shadow-lg shadow-gold/20' : ''}`}
-                >
-                  <Star size={20} className={isFavorite ? 'fill-current' : ''} />
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-10 z-10">
-              <div className="space-y-4">
-                <p className="text-white/60 text-[13px] font-medium tracking-[0.05em] mb-2 drop-shadow-sm">Today's DR Moment</p>
-                <h2 className="text-6xl font-bold leading-[0.85] tracking-tighter text-white">{currentTopic.title}</h2>
-                <p className="text-white/80 text-base line-clamp-3 mt-6 leading-relaxed">{currentTopic.description}</p>
-              </div>
-
-              <div className="grid grid-cols-2 items-end pt-10 border-t border-white/20 gap-8">
-                <div className="flex min-h-[48px] flex-col justify-end min-w-0 order-2 items-end text-right">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 backdrop-blur-md">
-                      <Users size={14} className="text-white/60" />
-                      <span className="text-[12px] font-black text-white tracking-widest">
-                        {currentTopic.joinedCount} / {currentTopic.targetCount}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-left min-h-[48px] pb-1 flex flex-col justify-end items-start gap-2 isolate mt-auto order-1">
-                  <div className="flex flex-col items-start">
-                    <p className={`text-2xl font-bold leading-none ${currentTopic.status === 'completed' ? 'text-gold italic font-black' : 'text-white'}`}>
-                      {currentTopic.status === 'completed' ? 'DR·CIRCLE' : currentTopic.deadline}
-                    </p>
-                    {currentTopic.status !== 'completed' && (
-                       <p className="text-[10px] font-black uppercase text-white/40 mt-1 tracking-widest">剩余时间</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-            </div>
-          </motion.div>
+    <div className="flex flex-col h-full bg-[#f7f3ec] font-sans pt-8 relative overflow-hidden text-[#2f261d]">
+      <header className="sticky top-0 z-30 flex items-center justify-start bg-[#f7f3ec]/92 px-4 pb-3 pt-4 backdrop-blur-xl">
+        <div className="flex items-center gap-5">
+          {(['推荐', '关注'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setHomeTab(tab)}
+              className={`relative h-10 px-1 text-[16px] font-black transition-colors ${
+                homeTab === tab ? 'text-[#2f261d]' : 'text-[#9d8c7a]'
+              }`}
+            >
+              {tab}
+              {homeTab === tab && (
+                <motion.span
+                  layoutId="homeFeedTab"
+                  className="absolute bottom-0 left-1/2 h-1 w-5 -translate-x-1/2 rounded-full bg-[#FE2C55]"
+                />
+              )}
+            </button>
+          ))}
         </div>
+      </header>
+
+      <main className="flex-1 overflow-y-auto no-scrollbar px-3 pb-32 pt-1">
+        {homeTab === '推荐' && (
+          <section className="mb-4">
+            <div className="relative h-44 overflow-hidden rounded-[28px] bg-black text-white shadow-[0_18px_38px_rgba(47,38,29,0.16)]">
+              <AnimatePresence initial={false} mode="popLayout">
+                <motion.button
+                  key={activeFeaturedTopic.id}
+                  initial={{ opacity: 0, x: 46, scale: 0.98 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -36, scale: 0.98 }}
+                  transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                  onClick={() => {
+                    setSelectedTopic(activeFeaturedTopic);
+                    setScreen('topic-detail');
+                  }}
+                  className="absolute inset-0 text-left active:scale-[0.99] transition-transform"
+                >
+                  <motion.img
+                    src={activeFeaturedTopic.image || dailyLifeFrames[activeFeaturedIndex % dailyLifeFrames.length]}
+                    alt=""
+                    className="h-full w-full object-cover opacity-88"
+                    initial={{ scale: 1.06 }}
+                    animate={{ scale: 1.12 }}
+                    transition={{ duration: 3.6, ease: 'linear' }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/72 via-black/18 to-black/20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/18 to-transparent" />
+                  <span
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setSelectedTopic(activeFeaturedTopic);
+                      setScreen('join');
+                    }}
+                    className="absolute right-3 top-3 rounded-full bg-white px-3 py-1.5 text-[10px] font-black text-[#2f261d] shadow-lg active:scale-95 transition-transform"
+                  >
+                    参与共创
+                  </span>
+                  <div className="absolute left-4 right-4 bottom-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="rounded-full bg-white/16 px-3 py-1 text-[10px] font-black backdrop-blur-md">热门共创</span>
+                    </div>
+                    <h2 className="text-xl font-black leading-tight">{activeFeaturedTopic.title}</h2>
+                    <p className="mt-1 line-clamp-1 text-[12px] font-bold text-white/68">{activeFeaturedTopic.description}</p>
+                  </div>
+                </motion.button>
+              </AnimatePresence>
+
+              <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 items-center justify-center gap-1.5">
+                {featuredTopics.map((dotTopic, dotIndex) => (
+                  <button
+                    key={`featured-dot-${dotTopic.id}`}
+                    onClick={() => setActiveFeaturedIndex(dotIndex)}
+                    className={`h-1.5 rounded-full transition-all ${dotIndex === activeFeaturedIndex ? 'w-4 bg-[#FE2C55]' : 'w-1.5 bg-white/55'}`}
+                    aria-label={`切换到${dotTopic.title}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {homeTab === '关注' && (
+          <section className="mb-4 text-[#2f261d]">
+            <div className="overflow-hidden rounded-[30px] border border-[#eadfce] bg-white shadow-[0_14px_32px_rgba(103,81,58,0.08)]">
+              <div className="border-b border-[#f1eee9] px-6 pb-11 pt-11 text-center">
+                <h2 className="text-[26px] font-black tracking-tight">还没有关注的人</h2>
+                <p className="mt-4 text-[16px] font-bold text-[#a39a91]">关注更多人，在这里查看 TA 的最新动态</p>
+              </div>
+
+              <div className="px-4 pb-5 pt-6">
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[18px] font-black text-[#4a4540]">你可能感兴趣的人</h3>
+                    <Info size={17} className="text-[#a9a29a]" />
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {visibleSuggestedCreators.map(author => {
+                    const isFollowed = followedSuggestedCreators.has(author.name);
+                    return (
+                      <div key={author.name} className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setSelectedUserName(author.name);
+                            setScreen('user-profile');
+                          }}
+                          className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-full bg-[#f6ede3]"
+                        >
+                          <img src={author.avatar} alt="" className="h-full w-full object-cover" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedUserName(author.name);
+                            setScreen('user-profile');
+                          }}
+                          className="min-w-0 flex-1 text-left"
+                        >
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            <p className="truncate text-[16px] font-black leading-tight text-[#3c3834]">{author.name}</p>
+                            {author.verified && (
+                              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#FE2C55] text-white">
+                                <Check size={10} strokeWidth={4} />
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => handleFollowSuggestedCreator(author.name)}
+                          className={`h-10 shrink-0 rounded-full border px-5 text-[15px] font-black active:scale-95 transition-all ${
+                            isFollowed
+                              ? 'border-[#ded4c7] bg-[#f4eee6] text-[#9b938b]'
+                              : 'border-[#FE2C55] bg-white text-[#FE2C55]'
+                          }`}
+                        >
+                          {isFollowed ? '已关注' : '关注'}
+                        </button>
+                        <button
+                          onClick={() => handleHideSuggestedCreator(author.name)}
+                          className="flex h-10 w-8 shrink-0 items-center justify-center text-[#9b938b] active:scale-95 transition-transform"
+                          aria-label={`不再推荐 ${author.name}`}
+                        >
+                          <X size={23} strokeWidth={1.8} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {visibleFeedItems.length > 0 && (
+          <section className="grid grid-cols-2 gap-3 items-start">
+            {feedColumns.map((column, columnIndex) => (
+              <div key={`feed-column-${columnIndex}`} className="flex flex-col gap-3">
+                {column.map((item) => {
+                  const isLiked = likedTopicIds.has(item.topic.id);
+                  return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  onOpenContent(item);
+                }}
+                className="group overflow-hidden rounded-[24px] bg-white text-left shadow-[0_10px_26px_rgba(103,81,58,0.08)] border border-[#eadfce] active:scale-[0.98] transition-transform"
+              >
+	                <div className={`relative ${item.heightClass} flex items-center justify-center overflow-hidden bg-[#eadfce]`}>
+                    {item.kind === 'collab' || item.kind === 'cp' ? (
+                      <div className="grid h-full w-full grid-cols-2 grid-rows-6 gap-px bg-black">
+                        {Array.from({ length: 12 }).map((_, frameIndex) => {
+                          const frameSeed = (item.mediaIndex + frameIndex) % dailyLifeFrames.length;
+                          return (
+                            <div key={frameIndex} className="relative overflow-hidden bg-[#e6ddd2]">
+                              <img
+                                src={dailyLifeFrames[frameSeed]}
+                                alt=""
+                                className="h-full w-full object-cover transition-transform duration-500 group-active:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/62 via-black/12 to-black/18" />
+                              <div className="absolute inset-x-1.5 top-1/2 -translate-y-1/2">
+                                <p className="line-clamp-2 text-center text-[10px] font-black leading-tight text-white drop-shadow-[0_2px_7px_rgba(0,0,0,0.58)]">
+                                  {dailyLifeCaptions[frameSeed]}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : item.kind === 'video' ? (
+                      <video
+                        src={dailyLifeVideos[item.mediaIndex]}
+                        poster={dailyLifeFrames[item.mediaIndex]}
+                        className="h-full w-full object-cover transition-transform duration-500 group-active:scale-105"
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                      />
+                    ) : (
+                      <img src={dailyLifeFrames[item.mediaIndex]} alt="" className="h-full w-full object-cover transition-transform duration-500 group-active:scale-105" />
+                    )}
+                    {item.kind === 'collab' && (
+                      <span className="absolute right-2 top-2 rounded-full bg-black/58 px-2.5 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur-md">
+                        共创
+                      </span>
+                    )}
+                    {item.kind === 'cp' && (
+                      <span className="absolute right-2 top-2 rounded-full bg-[#FE2C55]/90 px-2.5 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur-md">
+                        CP
+                      </span>
+                    )}
+                    {item.kind === 'video' && (
+                      <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/58 text-white shadow-sm backdrop-blur-md">
+                        <Play size={13} className="ml-0.5 fill-current" strokeWidth={3} />
+                      </span>
+                    )}
+	                  <div className="absolute inset-0 bg-gradient-to-t from-black/42 via-transparent to-black/5" />
+	                </div>
+                <div className="p-3">
+                  <h3 className="line-clamp-2 text-[13px] font-black leading-snug text-[#2f261d]">{item.title}</h3>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    {item.kind === 'collab' || item.kind === 'cp' ? (
+                      <div className="flex min-w-0 items-center">
+                        {Array.from({ length: Math.min(5, item.topic.joinedCount) }).map((_, avatarIndex) => {
+                          const name = dailyLifeUsers[(item.mediaIndex + avatarIndex) % dailyLifeUsers.length];
+                          return (
+                            <img
+                              key={`${item.id}-creator-${name}-${avatarIndex}`}
+                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`}
+                              alt=""
+                              className={`h-5 w-5 shrink-0 rounded-full border border-white bg-[#f6ede3] ${avatarIndex > 0 ? '-ml-1.5' : ''}`}
+                            />
+                          );
+                        })}
+                        {item.topic.joinedCount > 5 && (
+                          <span className="-ml-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-[#f2e7db] px-1 text-[8px] font-black text-[#8f7f6d]">
+                            +{item.topic.joinedCount - 5}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.author}`} alt="" className="h-5 w-5 shrink-0 rounded-full bg-[#f6ede3]" />
+                        <span className="truncate text-[10px] font-bold text-[#8f7f6d]">{item.author}</span>
+                      </div>
+                    )}
+                    <span className={`flex items-center gap-1 text-[10px] font-black ${isLiked ? 'text-[#FE2C55]' : 'text-[#b0a08e]'}`}>
+                      <Heart size={11} className={isLiked ? 'fill-current' : ''} />
+                      {item.topic.likes}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            );
+                })}
+              </div>
+            ))}
+          </section>
+        )}
       </main>
 
       <AnimatePresence>
@@ -478,7 +658,7 @@ const HomeScreen = ({
 
               <button
                 onClick={() => {
-                  setSelectedTopic(currentTopic);
+                  setSelectedTopic(featuredTopic);
                   dismissGrowthPrompt();
                   setScreen('topic-detail');
                 }}
@@ -487,17 +667,17 @@ const HomeScreen = ({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-black text-[#8f7f6d]">最接近成圈</p>
-                    <p className="mt-1 text-sm font-black text-[#2f261d]">{currentTopic.title}</p>
+                    <p className="mt-1 text-sm font-black text-[#2f261d]">{featuredTopic.title}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xl font-black text-[#b4834a]">{currentTopic.joinedCount}/{currentTopic.targetCount}</p>
+                    <p className="text-xl font-black text-[#b4834a]">{featuredTopic.joinedCount}/{featuredTopic.targetCount}</p>
                     <p className="text-[9px] font-black text-[#aa9a86]">人数</p>
                   </div>
                 </div>
                 <div className="mt-4 h-2 rounded-full bg-[#ebe2d4] overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-[#edbd79] to-[#ff2e67]"
-                    style={{ width: `${Math.min(100, (currentTopic.joinedCount / currentTopic.targetCount) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (featuredTopic.joinedCount / featuredTopic.targetCount) * 100)}%` }}
                   />
                 </div>
               </button>
@@ -525,7 +705,7 @@ const HomeScreen = ({
                         if (taskIndex === 1) {
                           setScreen('messages');
                         } else if (taskIndex === 2) {
-                          setScreen('home');
+                          setScreen('circle');
                         } else if (!task.primary) {
                           setScreen('circle');
                         }
@@ -1088,58 +1268,46 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
 
   if (topic.status !== 'completed') {
     return (
-      <div className="flex flex-col h-full bg-dark pt-8">
-        <main className="flex-1 overflow-y-auto no-scrollbar px-4 pt-4 pb-8">
+      <div className="flex h-full flex-col overflow-hidden bg-[#f7f3ec] pt-8 text-[#2f261d]">
+        <main className="flex-1 overflow-y-auto no-scrollbar px-4 py-5">
+          <div className="flex min-h-full flex-col justify-center">
           <motion.div
             layoutId={`topic-card-${topic.id}`}
-            className={`relative min-h-[720px] rounded-[48px] overflow-hidden border border-white/20 shadow-2xl px-7 pt-6 pb-7 flex flex-col justify-between bg-gradient-to-br ${
-              topic.tone === 'blue' ? 'from-indigo-600 via-indigo-950' :
-              topic.tone === 'amber' ? 'from-amber-600 via-amber-950' : 'from-emerald-600 via-emerald-950'
-            } to-black`}
+            className="relative z-10 overflow-hidden rounded-[34px] border border-[#eadfce] bg-white shadow-[0_20px_44px_rgba(103,81,58,0.14)]"
           >
-            {topic.image && (
-              <img src={topic.image} alt="" className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-60" />
-            )}
-            <div className="absolute inset-0 bg-black/60 pointer-events-none" />
-            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
-            <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 70% 28%, white 0%, transparent 65%)' }} />
-
-            <div className="relative z-10 flex items-start justify-between gap-3">
+            <div className="relative h-[360px] overflow-hidden bg-black">
+              <img src={topic.image || dailyLifeFrames[0]} alt="" className="h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/8 to-black/12" />
               <button
                 onClick={() => setScreen(prevScreen || 'home')}
-                className="w-10 h-10 rounded-2xl bg-black/25 border border-white/10 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-transform"
+                className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/24 bg-black/22 text-white backdrop-blur-md active:scale-95 transition-transform"
                 aria-label="关闭详情"
               >
                 <X size={20} />
               </button>
-              <div className="flex gap-2">
+              <div className="absolute right-4 top-4 flex gap-2">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleFavorite(topic.id);
                   }}
-                  className={`w-10 h-10 rounded-2xl border backdrop-blur-md flex items-center justify-center active:scale-95 transition-all ${
-                    isFavorite ? 'bg-gold text-dark border-gold' : 'bg-black/25 text-white border-white/10'
+                  className={`flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md active:scale-95 transition-all ${
+                    isFavorite ? 'border-[#d6b27e] bg-[#d6b27e] text-white' : 'border-white/24 bg-black/22 text-white'
                   }`}
                   aria-label={isFavorite ? '取消收藏' : '收藏'}
                 >
                   <Star size={18} className={isFavorite ? 'fill-current' : ''} />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); setIsShareDrawerOpen(true); }} className="w-10 h-10 rounded-2xl border backdrop-blur-md flex items-center justify-center bg-black/25 text-white border-white/10 active:scale-95">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setIsShareDrawerOpen(true); }}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/24 bg-black/22 text-white backdrop-blur-md active:scale-95"
+                  aria-label="分享话题"
+                >
                   <CornerUpRight size={18} />
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsHeatingModalOpen(true);
-                  }}
-                  className={`w-10 h-10 rounded-2xl border backdrop-blur-md flex items-center justify-center active:scale-95 transition-all ${
-                    isSpotlighted ? 'bg-gold text-dark border-gold' : 'bg-black/25 text-gold border-gold/30'
-                  }`}
-                >
-                  <Flame size={14} className={isSpotlighted ? 'fill-current' : ''} />
-                </button>
+              </div>
+              <div className="absolute bottom-6 left-5 right-5 text-white">
+                <h1 className="text-[34px] font-black leading-[0.98] drop-shadow-[0_3px_12px_rgba(0,0,0,0.58)]">{topic.title}</h1>
               </div>
             </div>
 
@@ -1155,55 +1323,32 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
               gifts={topicGifts}
             />
 
-            <div className="relative z-10 space-y-7">
+            <div className="space-y-4 px-5 py-5">
+              <p className="text-[14px] font-bold leading-relaxed text-[#5f5145]">
+                {topic.description}
+              </p>
+
               <div className="space-y-4">
-                <div className="space-y-3">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedUserName(topic.creator);
-                      setScreen('user-profile');
-                    }}
-                    className="flex items-center gap-2 w-fit rounded-full bg-white/10 border border-white/10 py-1.5 pl-1.5 pr-3 backdrop-blur-md active:scale-95 transition-transform"
-                  >
-                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topic.creator}`} alt="" className="w-7 h-7 rounded-full bg-white/10" />
-                    <span className="text-[10px] font-black text-white/70 tracking-widest">{topic.creator} 发起</span>
-                  </button>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-white/10 border border-white/10 px-3 py-1.5 text-[10px] font-black text-white/75 tracking-widest">{topic.city}</span>
-                    <span className="rounded-full bg-gold/15 border border-gold/20 px-3 py-1.5 text-[10px] font-black text-gold tracking-widest">待成圈</span>
-                    <span className="rounded-full bg-white/10 border border-white/10 px-3 py-1.5 text-[10px] font-black text-white/55 tracking-widest">拍{topic.durationLimit || 15}秒视频</span>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h1 className="text-5xl font-black leading-[0.9] tracking-tight text-white">{topic.title}</h1>
-                  <p className="text-sm text-white/75 leading-relaxed max-w-[280px]">{topic.description}</p>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-white/5 space-y-6">
                  <div>
                    <div className="flex items-center justify-between mb-3">
-                     <h4 className="text-[10px] font-black uppercase text-white/40 tracking-widest">共创进度</h4>
-                     <span className="text-[10px] font-black text-gold">{topic.joinedCount}/{topic.targetCount} <span className="text-white/30 ml-0.5">人</span></span>
+                     <h4 className="text-[10px] font-black text-[#9b8a79]">共创进度</h4>
+                     <span className="text-[11px] font-black text-[#b4834a]">{topic.joinedCount}/{topic.targetCount}</span>
                    </div>
-                   <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mb-3">
+                   <div className="h-2 w-full bg-[#eadfce] rounded-full overflow-hidden mb-3">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${progressPercent}%` }}
-                        className="h-full bg-gold rounded-full"
+                        className="h-full bg-[#FE2C55] rounded-full"
                       />
                    </div>
                    <div className="flex justify-between items-center">
-                     <p className="text-[10px] text-white/40 tracking-wide">
-                       再邀请 <span className="text-white font-bold">{topic.targetCount - topic.joinedCount}</span> 人即可成圈
+                     <p className="text-[11px] font-bold text-[#8f7f6d]">
+                       还差 <span className="text-[#2f261d]">{topic.targetCount - topic.joinedCount}</span> 位共创者即可成圈
                      </p>
-                     <p className="text-[10px] font-black text-red-primary tracking-widest bg-red-primary/10 px-2 py-1 rounded-md">限时 {topic.deadline}</p>
                    </div>
                  </div>
 
-                 <div className="flex items-center justify-between gap-3 pb-3">
+                 <div className="flex items-center justify-between gap-3 pb-2">
                    <div className="flex -space-x-2 min-w-0">
                      {Array.from({ length: Math.min(topic.joinedCount, 8) }).map((_, i) => (
                        <button
@@ -1213,7 +1358,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                            setSelectedUserName(`共创者 ${i + 1}`);
                            setScreen('user-profile');
                          }}
-                         className="w-9 h-9 rounded-full border-2 border-black bg-white/10 overflow-hidden active:scale-90 transition-transform relative z-10"
+                         className="w-9 h-9 rounded-full border-2 border-white bg-[#f6ede3] overflow-hidden active:scale-90 transition-transform relative z-10"
                        >
                          <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topic.id + i}`} alt="" className="w-full h-full object-cover" />
                        </button>
@@ -1221,34 +1366,30 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                    </div>
                    <button
                      onClick={() => setIsCreatorsExpanded(true)}
-                     className="shrink-0 h-10 px-4 rounded-full bg-white/10 border border-white/10 text-[10px] font-black text-white/65 active:scale-95 transition-transform"
+                     className="shrink-0 h-10 px-4 rounded-full bg-[#f7f3ec] border border-[#eadfce] text-[10px] font-black text-[#8f7f6d] active:scale-95 transition-transform"
                    >
                      查看共创人
                    </button>
                  </div>
 
-                 <div className="pt-2 border-t border-white/5">
+                 <div>
                    {userTopicClips.length === 0 ? (
                      <button
                        onClick={() => {
-                          if (topic.creator === CURRENT_USER.name) {
-                            setScreen('create-and-shoot');
-                          } else {
-                            setScreen('join');
-                          }
+                          setScreen('join');
                        }}
-                       className="w-full h-14 bg-red-primary text-white rounded-[20px] font-black uppercase shadow-[0_10px_25px_-5px_rgba(255,36,66,0.5)] active:scale-95 transition-all flex items-center justify-center gap-2.5"
+                       className="w-full h-14 bg-[#FE2C55] text-white rounded-full shadow-[0_12px_26px_rgba(254,44,85,0.22)] active:scale-95 transition-all flex items-center justify-center gap-2.5"
                      >
-                       <Camera size={18} />
+                       <ImageIcon size={18} />
                        <div className="flex flex-col items-start leading-tight">
-                         <span className="text-sm">{topic.creator === CURRENT_USER.name ? '开始拍摄' : '参与话题'}</span>
+                         <span className="text-sm font-black">参与共创</span>
                          <span className="text-[10px] text-white/80">拍下此刻</span>
                        </div>
                      </button>
                    ) : (
                      <button
                        onClick={() => setIsInviteModalOpen(true)}
-                       className="w-full h-14 bg-white/10 border border-white/10 text-white rounded-[20px] font-black uppercase text-sm shadow-[0_10px_25px_-5px_rgba(0,0,0,0.5)] active:scale-95 transition-all flex items-center justify-center gap-2.5"
+                       className="w-full h-14 bg-[#f7f3ec] border border-[#eadfce] text-[#2f261d] rounded-full font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-2.5"
                      >
                        <UserPlus size={18} />
                        <span className="text-sm">邀请好友加入</span>
@@ -1259,14 +1400,15 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
 
               {userTopicClips.length > 0 && (
                 <div className="flex flex-col items-center gap-1 pt-4 opacity-50">
-                  <p className="text-[9px] font-black text-white/60 tracking-[0.2em] uppercase">下滑查看拍摄记录</p>
-                  <ChevronDown size={12} className="text-white animate-bounce" />
+                  <p className="text-[9px] font-black text-[#9b8a79] tracking-[0.2em] uppercase">下滑查看拍摄记录</p>
+                  <ChevronDown size={12} className="text-[#9b8a79] animate-bounce" />
                 </div>
               )}
             </div>
-          </motion.div>
+	          </motion.div>
+          </div>
 
-          <AnimatePresence>
+	          <AnimatePresence>
             {userTopicClips.length > 0 && (
               <motion.div
                 key="user-clips"
@@ -1276,14 +1418,14 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                 className="mt-8 space-y-4"
               >
                 <div className="flex items-center justify-between px-2">
-                  <h3 className="text-xs font-black text-white/40 uppercase tracking-widest">我的拍摄记录</h3>
-                  <span className="text-[10px] text-green-400 font-bold">{userTopicClips.length} 个片段</span>
+                  <h3 className="text-xs font-black text-[#9b8a79] uppercase tracking-widest">我的拍摄记录</h3>
+                  <span className="text-[10px] text-[#b4834a] font-bold">{userTopicClips.length} 个片段</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {userTopicClips.map((clip) => (
-                    <div key={clip.id} className="aspect-[4/3] rounded-[24px] bg-white/5 border border-white/10 relative overflow-hidden group">
+                    <div key={clip.id} className="aspect-[4/3] rounded-[24px] bg-white border border-[#eadfce] relative overflow-hidden group">
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Camera size={24} className="text-white/5" />
+                        <Camera size={24} className="text-[#d8cdbc]" />
                       </div>
                       <div className="absolute top-2 right-2 flex gap-1 z-20">
                         <button
@@ -1292,7 +1434,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                             setEditingClipId(clip.id);
                             setIsVisibilityDrawerOpenForClips(true);
                           }}
-                          className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/60 border border-white/10 transition-all active:scale-95 hover:text-white"
+                          className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-[#8f7f6d] border border-[#eadfce] transition-all active:scale-95"
                         >
                           <Lock size={12} />
                         </button>
@@ -1302,13 +1444,13 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                             setClipToDelete(clip.id);
                             setIsDeletingClip(true);
                           }}
-                          className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-rose-400 border border-white/10 transition-all active:scale-95 hover:bg-rose-500/20"
+                          className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-rose-500 border border-[#eadfce] transition-all active:scale-95"
                         >
                           <Trash2 size={12} />
                         </button>
                       </div>
                       <div className="absolute bottom-3 left-3 right-3 text-center">
-                        <p className="text-[9px] font-bold text-white/60 truncate tracking-wide">已录制 • 待解锁</p>
+                        <p className="text-[9px] font-bold text-[#8f7f6d] truncate tracking-wide">已录制 · 待解锁</p>
                       </div>
                     </div>
                   ))}
@@ -1370,7 +1512,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setIsCreatorsExpanded(false)}
-                  className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[50]"
+                  className="absolute inset-0 bg-[#2f261d]/35 backdrop-blur-sm z-[50]"
                 />
                 <motion.div
                   key="creators-expanded"
@@ -1378,16 +1520,16 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                   animate={{ y: 0 }}
                   exit={{ y: '100%' }}
                   transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                  className="absolute inset-x-0 bottom-0 h-[85vh] bg-[#121212] rounded-t-[40px] z-[51] flex flex-col overflow-hidden border-t border-white/10"
+                  className="absolute inset-x-0 bottom-0 h-[85vh] bg-[#f7f3ec] rounded-t-[40px] z-[51] flex flex-col overflow-hidden border-t border-[#eadfce]"
                 >
-                  <div className="p-6 flex items-center justify-between border-b border-white/5">
+                  <div className="p-6 flex items-center justify-between border-b border-[#eadfce]">
                     <div>
-                      <h3 className="text-xl font-bold text-white tracking-wide">全部共创者</h3>
-                      <p className="text-[10px] text-white/30 mt-1 uppercase tracking-widest">还差 {remainingCount} 个共创人成圈</p>
+                      <h3 className="text-xl font-bold text-[#2f261d] tracking-wide">全部共创者</h3>
+                      <p className="text-[10px] text-[#9b8a79] mt-1 uppercase tracking-widest">还差 {remainingCount} 个共创人成圈</p>
                     </div>
                     <button
                       onClick={() => setIsCreatorsExpanded(false)}
-                      className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/50"
+                      className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#8f7f6d] border border-[#eadfce]"
                     >
                       <X size={20} />
                     </button>
@@ -1401,47 +1543,47 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                           setSelectedUserName(`共创者 ${i + 1}`);
                           setScreen('user-profile');
                         }}
-                        className="flex items-center gap-4 bg-white/5 border border-white/5 p-4 rounded-3xl active:scale-[0.98] transition-transform cursor-pointer"
+                        className="flex items-center gap-4 bg-white border border-[#eadfce] p-4 rounded-3xl active:scale-[0.98] transition-transform cursor-pointer"
                       >
                         <img
                           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topic.id + i}`}
                           alt=""
-                          className="w-12 h-12 rounded-full border-2 border-black bg-white/10"
+                          className="w-12 h-12 rounded-full border-2 border-white bg-[#f6ede3]"
                         />
                         <div className="flex-1">
-                          <h4 className="font-bold text-white">共创者 {i + 1}</h4>
-                          <p className="text-[10px] text-white/30 uppercase tracking-tighter">已上传共创片段</p>
+                          <h4 className="font-bold text-[#2f261d]">共创者 {i + 1}</h4>
+                          <p className="text-[10px] text-[#9b8a79] uppercase tracking-tighter">已上传共创片段</p>
                         </div>
-                        <ChevronRight size={16} className="text-white/20" />
+                        <ChevronRight size={16} className="text-[#c0b09d]" />
                       </div>
                     ))}
 
                     {Array.from({ length: remainingCount }).map((_, i) => (
                       <div
                         key={`empty-${i}`}
-                        className="flex items-center gap-4 bg-white/[0.02] border border-dashed border-white/10 p-4 rounded-3xl"
+                        className="flex items-center gap-4 bg-white/50 border border-dashed border-[#d8cdbc] p-4 rounded-3xl"
                       >
-                        <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center">
-                          <UserIcon size={20} className="text-white/10" />
+                        <div className="w-12 h-12 rounded-full border-2 border-dashed border-[#d8cdbc] flex items-center justify-center">
+                          <UserIcon size={20} className="text-[#c0b09d]" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-bold text-white/20 italic">虚位以待</h4>
-                          <p className="text-[10px] text-white/10 uppercase tracking-tighter">等待共创者加入</p>
+                          <h4 className="font-bold text-[#9b8a79] italic">虚位以待</h4>
+                          <p className="text-[10px] text-[#c0b09d] uppercase tracking-tighter">等待共创者加入</p>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="p-6 bg-dark/80 backdrop-blur-xl border-t border-white/5">
+                  <div className="p-6 bg-white/80 backdrop-blur-xl border-t border-[#eadfce]">
                     <button
                       onClick={() => setIsInviteModalOpen(true)}
-                      className="w-full h-14 bg-white text-dark font-black rounded-2xl shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-2"
+                      className="w-full h-14 bg-[#2f261d] text-white font-black rounded-2xl shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-2"
                     >
                       <UserPlus size={18} />
                       邀请好友
                     </button>
                     <div className="mt-4 text-center">
-                      <p className="text-[10px] text-white/20 font-medium">邀请好友加入，成圈后解锁集体记忆</p>
+                      <p className="text-[10px] text-[#9b8a79] font-medium">邀请好友加入，成圈后解锁集体记忆</p>
                     </div>
                   </div>
                 </motion.div>
@@ -1598,19 +1740,13 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
           )}
 
           {topic.status === 'completed' && (
-            <div
-              onClick={() => {
-                setSelectedUserName(topic.creator);
-                setScreen('user-profile');
-              }}
-              className="flex items-center p-4 bg-card bento-card border border-white/5 shadow-2xl relative overflow-hidden active:scale-[0.98] transition-transform cursor-pointer"
-            >
+            <div className="flex items-center p-4 bg-card bento-card border border-white/5 shadow-2xl relative overflow-hidden">
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden shrink-0">
                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topic.creator}`} alt="" className="w-full h-full object-cover" />
               </div>
               <div className="ml-4 flex-1">
-                <p className="text-sm font-bold leading-none text-white">{topic.creator}</p>
-                <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-1.5">话题发起人 · {topic.city}</p>
+                <p className="text-sm font-bold leading-none text-white">DR官方</p>
+                <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-1.5">官方发起话题 · {topic.city}</p>
               </div>
               <ChevronRight size={16} className="text-white/10" />
             </div>
@@ -1646,17 +1782,10 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
 
                 <div className="relative z-10 space-y-5">
                   <div className="space-y-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedUserName(topic.creator);
-                        setScreen('user-profile');
-                      }}
-                      className="flex items-center gap-2 w-fit rounded-full bg-white/10 border border-white/10 py-1.5 pl-1.5 pr-3 backdrop-blur-md active:scale-95 transition-transform"
-                    >
+                    <div className="flex items-center gap-2 w-fit rounded-full bg-white/10 border border-white/10 py-1.5 pl-1.5 pr-3 backdrop-blur-md">
                       <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topic.creator}`} alt="" className="w-7 h-7 rounded-full bg-white/10" />
-                      <span className="text-[10px] font-black text-white/70 tracking-widest">{topic.creator} 发起</span>
-                    </button>
+                      <span className="text-[10px] font-black text-white/70 tracking-widest">DR官方话题</span>
+                    </div>
 
                     <div>
                       <p className="text-[10px] font-black text-white/45 tracking-widest uppercase mb-2">{topic.mode} · {topic.durationLimit || 15}s</p>
@@ -1830,10 +1959,10 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                 onClick={() => setScreen('join')}
                 className={`flex-[1.5] h-14 bg-red-primary text-white font-black rounded-[24px] shadow-[0_10px_25px_-5px_rgba(255,36,66,0.5)] active:scale-95 transition-all text-xs uppercase flex items-center justify-center gap-2`}
               >
-                拍下此刻
+                参与共创
               </button>
-              <button onClick={() => showToast('邀请链接已复制，去发给好友吧！')} className="flex-1 h-14 bg-white/5 text-white/40 font-black rounded-[24px] text-xs uppercase border border-white/5 active:scale-95 flex items-center justify-center">
-                邀请
+              <button onClick={() => showToast('进入拍摄后完成你的共创片段')} className="flex-1 h-14 bg-white/5 text-white/40 font-black rounded-[24px] text-xs uppercase border border-white/5 active:scale-95 flex items-center justify-center">
+                拍摄
               </button>
             </>
           ) : (
@@ -3383,10 +3512,95 @@ const CreateSuccessScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) 
   );
 };
 
+const AlbumComposer = ({
+  setScreen,
+  showToast,
+  source,
+  topic,
+}: {
+  setScreen: (s: Screen) => void,
+  showToast: (m: string) => void,
+  source: 'create' | 'join',
+  topic?: Topic,
+}) => {
+  const [selectedPreview, setSelectedPreview] = useState<string | null>(null);
+  const [caption, setCaption] = useState('');
+
+  const handlePick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (loadEvent) => {
+      setSelectedPreview(String(loadEvent.target?.result || ''));
+      showToast('已从相册选择素材');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <main className="flex-1 overflow-y-auto px-6 pb-10 pt-32 no-scrollbar">
+      <div className="mx-auto flex max-w-[360px] flex-col gap-5">
+        <div className="rounded-[34px] border border-white/10 bg-white/[0.04] p-4 shadow-2xl">
+          <label className="relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[28px] border border-dashed border-white/18 bg-white/[0.03] active:scale-[0.99] transition-transform">
+            {selectedPreview ? (
+              <img src={selectedPreview} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-black">
+                  <ImageIcon size={28} />
+                </div>
+                <div>
+                  <p className="text-lg font-black text-white">从相册选择</p>
+                  <p className="mt-1 text-[11px] font-bold text-white/38">取第一帧作为共创封面</p>
+                </div>
+              </div>
+            )}
+            <input type="file" accept="image/*,video/*" className="hidden" onChange={handlePick} />
+            {selectedPreview && (
+              <div className="absolute left-3 top-3 rounded-full bg-black/52 px-3 py-1 text-[10px] font-black text-white backdrop-blur-md">
+                第一帧封面
+              </div>
+            )}
+          </label>
+        </div>
+
+        <div className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <label className="text-[10px] font-black uppercase tracking-[0.22em] text-white/38">写文字</label>
+            <span className="text-[10px] font-black text-white/18">{caption.length}/80</span>
+          </div>
+          <textarea
+            value={caption}
+            onChange={(event) => setCaption(event.target.value.slice(0, 80))}
+            placeholder={topic ? `回应：${topic.prompt}` : '写下这次共创想表达的内容'}
+            className="h-28 w-full resize-none rounded-2xl border border-white/8 bg-black/24 px-4 py-3 text-sm font-bold leading-relaxed text-white outline-none placeholder:text-white/18 focus:border-white/20"
+          />
+        </div>
+
+        <button
+          onClick={() => {
+            if (!selectedPreview) {
+              showToast('请先从相册选择素材');
+              return;
+            }
+            if (!caption.trim()) {
+              showToast('请写一句共创文字');
+              return;
+            }
+            setScreen('video-edit');
+          }}
+          className="h-14 rounded-[24px] bg-white text-[12px] font-black uppercase tracking-widest text-black shadow-2xl active:scale-95 transition-transform"
+        >
+          {source === 'create' ? '发布共创' : '完成参与共创'}
+        </button>
+      </div>
+    </main>
+  );
+};
+
 const CreateAndShootScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) => void, showToast: (m: string) => void }) => {
   return (
     <div className="flex flex-col h-full bg-black relative">
-       {/* Viewfinder/Result Background */}
        <div className="absolute inset-0 transition-colors duration-700 bg-[#111]">
           <div className="w-full h-full flex flex-col items-center justify-center">
              <Camera size={64} className="text-white/5" />
@@ -3399,7 +3613,6 @@ const CreateAndShootScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
           </div>
        </div>
 
-       {/* Overlays */}
        <div className="absolute inset-x-0 top-0 p-6 pt-12 flex items-center justify-between z-30">
           <button
             onClick={() => setScreen('topic-detail')}
@@ -3442,64 +3655,79 @@ const CreateAndShootScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
 };
 
 const JoinScreen = ({ topic, setScreen, showToast }: { topic: Topic, setScreen: (s: Screen) => void, showToast: (m: string) => void }) => {
+  const [showLandscapeHint, setShowLandscapeHint] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowLandscapeHint(false), 2600);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="flex flex-col h-full bg-black relative">
-       {/* Viewfinder/Result Background */}
-       <div className="absolute inset-0 transition-colors duration-700 bg-[#111]">
-          <div className="w-full h-full flex flex-col items-center justify-center">
-             <Camera size={64} className="text-white/5" />
-             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <div className="w-[85%] aspect-[3/4.5] border border-white/5 rounded-[48px] relative">
-                   <div className="absolute top-1/2 left-0 right-0 h-[0.5px] bg-white/5"></div>
-                   <div className="absolute top-0 bottom-0 left-1/2 w-[0.5px] bg-white/5"></div>
-                </div>
+    <div className="flex h-full flex-col bg-[#101010] text-white relative overflow-hidden">
+       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_84%,rgba(255,255,255,0.08),transparent_30%)]" />
+       <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-6 pt-10">
+          <button
+            onClick={() => setScreen('topic-detail')}
+            className="flex h-14 w-14 items-center justify-center rounded-[24px] border border-white/12 bg-white/10 text-white backdrop-blur-md active:scale-95 transition-transform"
+            aria-label="返回话题详情"
+          >
+            <X size={28} />
+          </button>
+          <div className="w-14" />
+       </div>
+
+       <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-36 pt-28">
+          <div className="relative w-full aspect-[4/5.1] rounded-[48px] border border-white/10 bg-white/[0.018] shadow-[inset_0_0_46px_rgba(255,255,255,0.03)]">
+             <div className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-white/[0.07]" />
+             <div className="absolute left-10 right-10 top-1/2 h-px -translate-y-1/2 bg-white/[0.07]" />
+             <div className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[28px] border border-white/8 bg-black/10">
+               <Camera size={44} className="text-white/[0.12]" />
+             </div>
+             <div className="absolute -right-4 top-1/2 flex min-h-[112px] -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-full border border-white/10 bg-black/55 px-3 py-5 shadow-xl backdrop-blur-md">
+               {Array.from(topic.title).map((char, index) => (
+                 <span
+                   key={`${char}-${index}`}
+                   className="block rotate-90 text-[13px] font-black leading-none text-white/82"
+                 >
+                   {char}
+                 </span>
+               ))}
              </div>
           </div>
        </div>
 
-       {/* Overlays */}
-       <div className="absolute inset-x-0 top-0 p-6 pt-12 flex items-center justify-between z-30">
-          <button
-            onClick={() => setScreen('topic-detail')}
-            className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center border border-white/5"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div className="text-center">
-             <p className="text-[10px] font-black uppercase text-gold tracking-widest leading-none mb-1">
-               共创中
-             </p>
-             <h3 className="text-sm font-bold truncate max-w-[180px] text-white">
-               {topic.title}
-             </h3>
+       <div className="absolute inset-x-0 bottom-0 z-30 px-8 pb-12">
+          <div className="flex items-center justify-between">
+             <button onClick={() => showToast('美颜模式已开启')} className="flex h-16 w-16 items-center justify-center rounded-full border border-white/12 bg-white/10 text-white/86 active:scale-95 transition-transform">
+                <Sparkles size={23} />
+             </button>
+             <button
+               onClick={() => setScreen('video-edit')}
+               className="flex h-24 w-24 items-center justify-center rounded-full border-[6px] border-white bg-black shadow-[0_0_64px_rgba(255,255,255,0.22)] active:scale-95 transition-transform"
+               aria-label="拍摄"
+             >
+                <div className="h-16 w-16 rounded-full bg-white" />
+             </button>
+             <button onClick={() => showToast('已切换至前置摄像头')} className="flex h-16 w-16 items-center justify-center rounded-full border border-white/12 bg-white/10 text-white/86 active:scale-95 transition-transform">
+                <RotateCw size={23} />
+             </button>
           </div>
-          <div className="w-10"></div>
+          <p className="mt-8 text-center text-[14px] font-black tracking-[0.34em] text-white/28">点击开始拍摄</p>
        </div>
 
-       <div className="absolute inset-x-0 bottom-0 p-8 pb-12 z-30 flex flex-col gap-6">
-          <div className="space-y-8">
-            <div className="flex justify-center">
-              <div className="glass-pill px-5 py-2 backdrop-blur-xl bg-black/20 border border-white/5">
-                 <p className="text-xs font-bold text-white/90">正在执行: {topic.prompt}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4">
-               <button onClick={() => showToast('美颜模式已开启')} className="w-12 h-12 glass-pill rounded-full flex items-center justify-center text-white">
-                  <Sparkles size={22} />
-               </button>
-               <button
-                 onClick={() => setScreen('video-edit')}
-                 className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center active:scale-95 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.3)]"
-               >
-                  <div className="w-14 h-14 bg-white rounded-full"></div>
-               </button>
-               <button onClick={() => showToast('已切换至前置摄像头')} className="w-12 h-12 glass-pill rounded-full flex items-center justify-center text-white">
-                  <RotateCw size={22} />
-               </button>
-            </div>
-          </div>
-       </div>
+       <AnimatePresence>
+         {showLandscapeHint && (
+           <motion.div
+             initial={{ opacity: 0, y: 16 }}
+             animate={{ opacity: 1, y: 0 }}
+             exit={{ opacity: 0, y: -8 }}
+             className="absolute left-1/2 top-[150px] z-40 w-[270px] -translate-x-1/2 rounded-2xl border border-white/14 bg-white/10 px-4 py-3 text-center shadow-2xl backdrop-blur-xl"
+           >
+             <p className="text-sm font-black text-white">请横屏拍摄</p>
+             <p className="mt-1 text-[10px] font-bold text-white/60">横向画面更适合合成 DR圈共创视频</p>
+           </motion.div>
+         )}
+       </AnimatePresence>
     </div>
   );
 };
@@ -3650,6 +3878,7 @@ const CircleScreen = ({
   setReportType: (type: 'account' | 'video') => void
 }) => {
   const [activeTab, setActiveTab] = useState('推荐');
+  const [circleIndex, setCircleIndex] = useState(0);
   const [isShareDrawerOpen, setIsShareDrawerOpen] = useState(false);
   const [isMoreDrawerOpen, setIsMoreDrawerOpen] = useState(false);
   const [isVisibilityDrawerOpen, setIsVisibilityDrawerOpen] = useState(false);
@@ -3735,6 +3964,7 @@ const CircleScreen = ({
   const selectedGift = GIFTS.find((gift) => gift.name === selectedGiftName) || GIFTS[0];
   const giftTotalCost = selectedGift ? selectedGift.price * giftQuantity : 0;
   const giftQuantityOptions = [1, 3, 5, 10];
+  const circleTabs = ['推荐', 'CP'];
 
   const sendSelectedGift = () => {
     if (!selectedGift) return;
@@ -3748,13 +3978,207 @@ const CircleScreen = ({
     setIsGiftDrawerOpen(false);
   };
 
-  const completedCircleTopics = topics.filter(t => t.status === 'completed');
-  const targetCircleTopic = initialTopicId ? completedCircleTopics.find(t => t.id === initialTopicId) : undefined;
+  const circleTopics = activeTab === 'CP'
+    ? topics.filter((_, index) => index % 2 === 0)
+    : topics;
+  const targetCircleTopic = initialTopicId ? circleTopics.find(t => t.id === initialTopicId) : undefined;
   const circleFeedTopics = isMyWorkMode
-    ? completedCircleTopics.filter(t => t.id === initialTopicId)
+    ? circleTopics.filter(t => t.id === initialTopicId)
     : targetCircleTopic
-      ? [targetCircleTopic, ...completedCircleTopics.filter(t => t.id !== initialTopicId), ...completedCircleTopics]
-      : [...completedCircleTopics, ...completedCircleTopics];
+      ? [targetCircleTopic, ...circleTopics.filter(t => t.id !== initialTopicId), ...circleTopics]
+      : [...circleTopics, ...circleTopics];
+  const circleCardTopics = circleTopics.filter(t => t.status !== 'completed');
+  const currentCircleTopic = circleCardTopics[circleIndex % circleCardTopics.length] || topics[0];
+  const circleIsFavorite = savedTopicIds.has(currentCircleTopic.id);
+  const nextCircleTopic = () => setCircleIndex((prev) => (prev + 1) % circleCardTopics.length);
+  const prevCircleTopic = () => setCircleIndex((prev) => (prev - 1 + circleCardTopics.length) % circleCardTopics.length);
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden bg-[#f7f3ec] pt-8 font-sans text-[#2f261d]">
+      <header className="sticky top-0 z-30 bg-[#f7f3ec]/94 px-4 pb-3 pt-4 backdrop-blur-xl">
+        <div className="flex items-center gap-5">
+          {circleTabs.map(tab => (
+            <button
+              key={tab}
+              onClick={() => {
+                setActiveTab(tab);
+                setCircleIndex(0);
+              }}
+              className={`relative h-10 px-1 text-[16px] font-black transition-colors ${
+                activeTab === tab ? 'text-[#2f261d]' : 'text-[#9d8c7a]'
+              }`}
+            >
+              {tab}
+              {activeTab === tab && (
+                <motion.span
+                  layoutId="circleFeedTab"
+                  className="absolute bottom-0 left-1/2 h-1 w-5 -translate-x-1/2 rounded-full bg-[#FE2C55]"
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      <main className="flex-1 overflow-hidden px-4 pb-32 pt-1">
+        <div className="relative h-full">
+          {[0, 1].map((stackIndex) => {
+            const topicIndex = (circleIndex + stackIndex + 1) % circleCardTopics.length;
+            const topic = circleCardTopics[topicIndex] || currentCircleTopic;
+            return (
+              <div
+                key={`light-circle-stack-${topic.id}-${stackIndex}`}
+                className="absolute inset-x-4 top-5 h-[560px] rounded-[34px] border border-[#eadfce] bg-white shadow-[0_12px_30px_rgba(103,81,58,0.08)]"
+                style={{
+                  opacity: 0.58 - stackIndex * 0.18,
+                  transform: `translateY(${18 + stackIndex * 16}px) scale(${0.96 - stackIndex * 0.035})`,
+                  zIndex: stackIndex,
+                }}
+              />
+            );
+          })}
+
+          <motion.article
+            key={currentCircleTopic.id}
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            drag
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.22}
+            whileDrag={{ scale: 0.975, rotate: 1 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.x < -50 || info.velocity.x < -450 || info.offset.y < -50 || info.velocity.y < -450) {
+                nextCircleTopic();
+              } else if (info.offset.x > 50 || info.velocity.x > 450 || info.offset.y > 50 || info.velocity.y > 450) {
+                prevCircleTopic();
+              }
+            }}
+            onClick={() => {
+              setSelectedTopic(currentCircleTopic);
+              setScreen('topic-detail');
+            }}
+            className="relative z-20 h-[590px] overflow-hidden rounded-[34px] border border-[#eadfce] bg-white shadow-[0_20px_44px_rgba(103,81,58,0.14)] active:scale-[0.99] transition-transform"
+          >
+            <div className="relative h-[360px] overflow-hidden bg-black">
+              {currentCircleTopic.status === 'completed' ? (
+                <div className="grid h-full w-full grid-cols-2 grid-rows-4 gap-px bg-black">
+                  {Array.from({ length: 8 }).map((_, frameIndex) => {
+                    const seed = (circleIndex * 2 + frameIndex) % dailyLifeFrames.length;
+                    return (
+                      <div key={frameIndex} className="relative overflow-hidden">
+                        <img src={dailyLifeFrames[seed]} alt="" className="h-full w-full object-cover" />
+                        <div className="absolute inset-0 bg-black/16" />
+                        <p className="absolute inset-x-2 top-1/2 -translate-y-1/2 text-center text-[12px] font-black leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)]">
+                          {dailyLifeCaptions[seed]}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <>
+                  <img src={currentCircleTopic.image || dailyLifeFrames[circleIndex % dailyLifeFrames.length]} alt="" className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/8 to-black/12" />
+                </>
+              )}
+
+              <div className="absolute left-4 right-4 top-4 flex items-center justify-between">
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    toggleFavorite(currentCircleTopic.id);
+                  }}
+                  className={`ml-auto flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md active:scale-95 transition-transform ${
+                    circleIsFavorite ? 'border-[#d6b27e] bg-[#d6b27e] text-white' : 'border-white/24 bg-black/22 text-white'
+                  }`}
+                  aria-label={circleIsFavorite ? '取消收藏' : '收藏'}
+                >
+                  <Star size={18} className={circleIsFavorite ? 'fill-current' : ''} />
+                </button>
+              </div>
+
+              <div className="absolute left-5 right-5 bottom-5 text-white">
+                <h2 className="text-[30px] font-black leading-[0.98] drop-shadow-[0_3px_12px_rgba(0,0,0,0.58)]">{currentCircleTopic.title}</h2>
+              </div>
+
+            </div>
+
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                prevCircleTopic();
+              }}
+              className="absolute left-4 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/45 bg-white/62 text-[#2f261d] shadow-[0_10px_28px_rgba(47,38,29,0.18)] backdrop-blur-md active:scale-95 transition-transform"
+              aria-label="上一个话题"
+            >
+              <ChevronLeft size={19} />
+            </button>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                nextCircleTopic();
+              }}
+              className="absolute right-4 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/45 bg-white/62 text-[#2f261d] shadow-[0_10px_28px_rgba(47,38,29,0.18)] backdrop-blur-md active:scale-95 transition-transform"
+              aria-label="下一个话题"
+            >
+              <ChevronRight size={19} />
+            </button>
+
+            <div className="space-y-5 px-5 py-5">
+              <p className="line-clamp-2 min-h-[42px] text-[14px] font-bold leading-relaxed text-[#5f5145]">
+                {currentCircleTopic.description}
+              </p>
+
+              <div className="rounded-[22px] bg-[#f7f3ec] p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[10px] font-black text-[#9b8a79]">共创进度</span>
+                  <span className="text-[11px] font-black text-[#b4834a]">
+                    {currentCircleTopic.joinedCount}/{currentCircleTopic.targetCount}
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-[#eadfce]">
+                  <div
+                    className="h-full rounded-full bg-[#FE2C55]"
+                    style={{ width: `${Math.min(100, (currentCircleTopic.joinedCount / currentCircleTopic.targetCount) * 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center">
+                  {Array.from({ length: Math.min(6, currentCircleTopic.joinedCount) }).map((_, avatarIndex) => (
+                    <img
+                      key={`${currentCircleTopic.id}-creator-${avatarIndex}`}
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentCircleTopic.id}-${avatarIndex}`}
+                      alt=""
+                      className={`h-8 w-8 shrink-0 rounded-full border-2 border-white bg-[#f6ede3] ${avatarIndex > 0 ? '-ml-2' : ''}`}
+                    />
+                  ))}
+                  {currentCircleTopic.joinedCount > 6 && (
+                    <span className="-ml-2 flex h-8 min-w-8 items-center justify-center rounded-full border-2 border-white bg-[#f2e7db] px-1 text-[9px] font-black text-[#8f7f6d]">
+                      +{currentCircleTopic.joinedCount - 6}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSelectedTopic(currentCircleTopic);
+                    setScreen('join');
+                  }}
+                  className="h-12 shrink-0 rounded-full bg-[#FE2C55] px-5 text-[13px] font-black text-white shadow-[0_12px_26px_rgba(254,44,85,0.22)] active:scale-95 transition-transform"
+                >
+                  参与共创
+                </button>
+              </div>
+            </div>
+          </motion.article>
+        </div>
+      </main>
+    </div>
+  );
+
+
 
   return (
     <div className="flex flex-col h-full bg-black font-sans relative overflow-hidden">
@@ -3781,8 +4205,25 @@ const CircleScreen = ({
               </button>
             ) : (
               <>
-                 <div className="w-10 h-10" />
-                 <div className="w-10 h-10" />
+                 <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/36 p-1 backdrop-blur-xl">
+                   {circleTabs.map(tab => (
+                     <button
+                       key={tab}
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         setActiveTab(tab);
+                       }}
+                       className={`h-8 rounded-full px-4 text-[11px] font-black transition-all ${
+                         activeTab === tab ? 'bg-white text-black' : 'text-white/60'
+                       }`}
+                     >
+                       {tab}
+                     </button>
+                   ))}
+                 </div>
+                 <div className="pointer-events-auto rounded-full border border-gold/20 bg-gold/14 px-3 py-2 text-[10px] font-black text-gold backdrop-blur-xl">
+                   官方话题
+                 </div>
               </>
             )}
           </motion.header>
@@ -3911,18 +4352,15 @@ const CircleScreen = ({
                     className="absolute right-2 bottom-16 z-20 flex flex-col items-center gap-4"
                   >
                     <div className="relative mb-2">
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedUserName(topic.creator);
-                          setScreen('user-profile');
-                        }}
-                        className="w-14 h-14 rounded-full border-2 border-white/20 p-0.5 bg-dark active:scale-95 transition-transform"
-                      >
+                      <div className="w-14 h-14 rounded-full border-2 border-white/20 p-0.5 bg-dark">
                         <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topic.creator}`} alt="" className="w-full h-full rounded-full object-cover" />
                       </div>
                       <button
-                        onClick={(e) => { e.stopPropagation(); setScreen('join'); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTopic(topic);
+                          setScreen('join');
+                        }}
                         className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 bg-red-primary rounded-full flex items-center justify-center text-white border-2 border-dark"
                       >
                         <Plus size={15} strokeWidth={3} />
@@ -4068,8 +4506,8 @@ const CircleScreen = ({
                               </div>
                           )}
                         </div>
-                        <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-wider text-white/58 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]">
-                          {topic.status === 'completed' ? `${topic.joinedCount}人共创` : `还差 ${topic.targetCount - topic.joinedCount} 人即可解锁`}
+                      <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-wider text-white/58 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]">
+                          {topic.status === 'completed' ? `${topic.joinedCount}人共创` : '参与共创'}
                           <ChevronRight size={12} className={`inline-block ml-0.5 transition-transform ${expandedCreatorsId === topic.id ? 'rotate-90' : ''}`} />
                         </span>
                     </div>
@@ -4732,7 +5170,6 @@ const EnergyDetailScreen = ({ setScreen, prevScreen, balance }: { setScreen: (s:
 
 const VideoEditScreen = ({ topic, setScreen, showToast, onPost, source = 'join' }: { topic: Topic, setScreen: (s: Screen) => void, showToast: (m: string) => void, onPost: (t: string, s: 'create' | 'join') => void, source?: 'create' | 'join' }) => {
   const [subtitle, setSubtitle] = useState('');
-  const [enableTimestamp, setEnableTimestamp] = useState(true);
   const [posting, setPosting] = useState(false);
   const [isEditingText, setIsEditingText] = useState(false);
 
@@ -4783,26 +5220,6 @@ const VideoEditScreen = ({ topic, setScreen, showToast, onPost, source = 'join' 
                 </AnimatePresence>
              </div>
 
-             {/* Timestamp Overlay */}
-             <AnimatePresence>
-               {enableTimestamp && (
-                 <motion.div
-                   initial={{ opacity: 0, x: -10 }}
-                   animate={{ opacity: 1, x: 0 }}
-                   exit={{ opacity: 0, x: -10 }}
-                   className="absolute top-6 left-6 flex flex-col z-10"
-                 >
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-primary animate-pulse"></div>
-                      <p className="text-[9px] font-black text-white/80 tracking-widest uppercase">REC • SHOT ON DR</p>
-                    </div>
-                    <p className="text-[12px] font-mono text-white/60 mt-0.5">
-                      {new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                 </motion.div>
-               )}
-             </AnimatePresence>
-
              <div className="text-white/5 opacity-50">
                 <motion.div
                   animate={{ scale: [1, 1.05, 1] }}
@@ -4838,29 +5255,6 @@ const VideoEditScreen = ({ topic, setScreen, showToast, onPost, source = 'join' 
                     </button>
                   )}
                 </div>
-             </div>
-          </div>
-
-          <div
-            onClick={() => setEnableTimestamp(!enableTimestamp)}
-            className={`flex items-center justify-between p-4 bg-white/5 rounded-2xl border transition-all cursor-pointer active:scale-[0.98] ${enableTimestamp ? 'border-gold/30' : 'border-white/5'}`}
-          >
-             <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${enableTimestamp ? 'bg-gold/20 text-gold shadow-[0_0_15px_rgba(212,175,55,0.2)]' : 'bg-white/5 text-white/20'}`}>
-                   <Zap size={14} fill="currentColor" />
-                </div>
-                <div>
-                   <p className="text-xs font-bold text-white">显示当前时间戳</p>
-                   <p className="text-[9px] text-white/30 uppercase tracking-tighter">在视频左上角标记拍摄时刻</p>
-                </div>
-             </div>
-             <div
-               className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${enableTimestamp ? 'bg-gold' : 'bg-white/10'}`}
-             >
-                <motion.div
-                  animate={{ x: enableTimestamp ? 22 : 2 }}
-                  className="absolute top-1 left-0 w-3 h-3 bg-white rounded-full shadow-lg"
-                />
              </div>
           </div>
 
@@ -4974,6 +5368,577 @@ const FeedbackScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
   );
 };
 
+const ContentDetailScreen = ({
+  item,
+  setScreen,
+  setSelectedUserName,
+  likedTopicIds,
+  toggleLike,
+  savedTopicIds,
+  toggleFavorite,
+  showToast,
+  setReportType,
+  setReportTargetName,
+  setCircleInitialTopicInfo,
+  spotlightTopic,
+  isSpotlighted,
+}: {
+  item: HomeFeedItem,
+  setScreen: (s: Screen) => void,
+  setSelectedUserName: (name: string) => void,
+  likedTopicIds: Set<string>,
+  toggleLike: (id: string) => void,
+  savedTopicIds: Set<string>,
+  toggleFavorite: (id: string) => void,
+  showToast: (m: string) => void,
+  setReportType: (type: 'account' | 'video') => void,
+  setReportTargetName: (name: string) => void,
+  setCircleInitialTopicInfo: (topic: Partial<Topic> | undefined) => void,
+  spotlightTopic: (id: string) => void,
+  isSpotlighted: boolean,
+}) => {
+  const [commentText, setCommentText] = useState('');
+  const [isPureMode, setIsPureMode] = useState(false);
+  const [areCreatorsExpanded, setAreCreatorsExpanded] = useState(false);
+  const [isShareDrawerOpen, setIsShareDrawerOpen] = useState(false);
+  const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
+  const [selectedShareUserIds, setSelectedShareUserIds] = useState<Set<string>>(new Set());
+  const initialCountdownSeconds = item.kind === 'video' ? 18 : item.kind === 'cp' ? 42 : item.kind === 'collab' ? 68 : 0;
+  const [remainingSeconds, setRemainingSeconds] = useState(initialCountdownSeconds);
+  const isLiked = likedTopicIds.has(item.topic.id);
+  const isSaved = savedTopicIds.has(item.topic.id);
+  const isCollabLike = item.kind === 'collab' || item.kind === 'cp';
+  const typeLabel = item.kind === 'collab' ? '共创完成' : item.kind === 'cp' ? 'CP共创完成' : item.kind === 'video' ? '视频完成' : '图片发布完成';
+  const videoRemainingTime = initialCountdownSeconds > 0
+    ? `${String(Math.floor(remainingSeconds / 60)).padStart(2, '0')}:${String(remainingSeconds % 60).padStart(2, '0')}`
+    : '';
+  const authorName = isCollabLike ? `${item.topic.joinedCount} 位共创人` : item.author;
+  const comments = [
+    ['Mia', '这个片段很有现场感，像刚好路过。'],
+    ['周屿', item.kind === 'image' ? '这张图的光线好舒服。' : '完整内容点进来比信息流更清楚。'],
+    ['Echo', isCollabLike ? '多人拼在一起的节奏很好。' : '想看更多同系列。'],
+  ];
+
+  useEffect(() => {
+    setRemainingSeconds(initialCountdownSeconds);
+  }, [initialCountdownSeconds, item.id]);
+
+  useEffect(() => {
+    if (initialCountdownSeconds <= 0) return;
+    const timer = window.setInterval(() => {
+      setRemainingSeconds(prev => (prev > 0 ? prev - 1 : initialCountdownSeconds));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [initialCountdownSeconds]);
+
+  const sendComment = () => {
+    if (!commentText.trim()) return;
+    showToast('评论已发布');
+    setCommentText('');
+  };
+
+  const toggleShareUser = (id: string) => {
+    setSelectedShareUserIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const closeShareDrawer = () => {
+    setIsShareDrawerOpen(false);
+    setSelectedShareUserIds(new Set());
+  };
+
+  const shareDrawer = (
+    <AnimatePresence>
+      {isShareDrawerOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={closeShareDrawer}
+          className="absolute inset-0 z-[100] flex flex-col justify-end bg-black/36 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+            onClick={(event) => event.stopPropagation()}
+            className="rounded-t-[32px] border-t border-[#eee4d8] bg-[#fffaf4] px-5 pb-10 pt-5 text-[#2f261d] shadow-[0_-18px_48px_rgba(47,38,29,0.18)]"
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-xl font-black tracking-[0.12em]">分享给好友</h3>
+              <button
+                onClick={closeShareDrawer}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f0e9df] text-[#7d6d5f] active:scale-95 transition-transform"
+                aria-label="关闭分享弹窗"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
+              {SHARE_FRIENDS.map((friend) => {
+                const isSelected = selectedShareUserIds.has(friend.id);
+                return (
+                  <button
+                    key={friend.id}
+                    className="relative flex min-w-[68px] flex-col items-center gap-2 active:scale-95 transition-transform"
+                    onClick={() => toggleShareUser(friend.id)}
+                  >
+                    <div className={`h-16 w-16 rounded-full border-[3px] p-0.5 transition-all ${
+                      isSelected ? 'border-[#FE2C55] bg-[#FE2C55]/10' : 'border-[#eadfce] bg-white'
+                    }`}>
+                      <img src={friend.avatar} alt={friend.name} className="h-full w-full rounded-full object-cover" />
+                    </div>
+                    <div className={`absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all ${
+                      isSelected ? 'border-[#FE2C55] bg-[#FE2C55] opacity-100' : 'border-[#d8ccbd] bg-[#fffaf4] opacity-80'
+                    }`}>
+                      {isSelected && <Check size={12} className="text-white" strokeWidth={4} />}
+                    </div>
+                    <span className={`max-w-[68px] truncate text-[12px] font-black ${isSelected ? 'text-[#2f261d]' : 'text-[#8f8173]'}`}>
+                      {friend.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <AnimatePresence>
+              {selectedShareUserIds.size > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  className="pb-4"
+                >
+                  <button
+                    onClick={() => {
+                      showToast(`已向 ${selectedShareUserIds.size} 位好友发送共创`);
+                      closeShareDrawer();
+                    }}
+                    className="h-12 w-full rounded-2xl bg-[#FE2C55] text-sm font-black text-white shadow-[0_12px_26px_rgba(254,44,85,0.24)] active:scale-[0.98] transition-transform"
+                  >
+                    发送给 {selectedShareUserIds.size} 位好友
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="mb-4 h-px bg-[#eee4d8]" />
+
+            <div className="flex gap-5 overflow-x-auto no-scrollbar pb-1">
+              {[
+                {
+                  key: 'gift',
+                  icon: Gift,
+                  label: '赠送礼物',
+                  tone: 'red',
+                  action: () => {
+                    showToast('已打开礼物选择');
+                    closeShareDrawer();
+                  },
+                },
+                {
+                  key: 'save',
+                  icon: ImageIcon,
+                  label: '保存至相册',
+                  tone: 'neutral',
+                  action: () => {
+                    showToast('已保存到本地相册');
+                    closeShareDrawer();
+                  },
+                },
+                {
+                  key: 'report',
+                  icon: AlertTriangle,
+                  label: '举报',
+                  tone: 'red',
+                  action: () => {
+                    setReportType('video');
+                    setReportTargetName(item.title);
+                    closeShareDrawer();
+                    setScreen('report-user');
+                  },
+                },
+                {
+                  key: 'copy',
+                  icon: Copy,
+                  label: '复制话题',
+                  tone: 'neutral',
+                  action: () => {
+                    setCircleInitialTopicInfo(item.topic);
+                    closeShareDrawer();
+                    setScreen('create-circle');
+                    showToast('话题配置已复制，您可以修改后发布');
+                  },
+                },
+              ].map((actionItem) => {
+                const Icon = actionItem.icon;
+                const isRed = actionItem.tone === 'red';
+                const isGold = actionItem.tone === 'gold';
+                return (
+                  <button
+                    key={actionItem.key}
+                    className="group flex min-w-[76px] flex-col items-center gap-2 active:scale-95 transition-transform"
+                    onClick={actionItem.action}
+                  >
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl border ${
+                      isRed
+                        ? 'border-[#FE2C55]/20 bg-[#FE2C55]/10 text-[#FE2C55]'
+                        : isGold
+                          ? 'border-[#d6b27e]/30 bg-[#d6b27e]/12 text-[#b4834a]'
+                          : 'border-[#e2d8ca] bg-[#f5efe7] text-[#7d6d5f]'
+                    }`}>
+                      <Icon size={23} className={isGold ? 'fill-current' : ''} />
+                    </div>
+                    <span className="text-[11px] font-black text-[#8f8173]">
+                      {actionItem.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const commentDrawer = (
+    <AnimatePresence>
+      {isCommentDrawerOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setIsCommentDrawerOpen(false)}
+          className="absolute inset-0 z-[100] flex flex-col justify-end bg-black/36 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+            onClick={(event) => event.stopPropagation()}
+            className="max-h-[72%] rounded-t-[32px] border-t border-[#eee4d8] bg-[#fffaf4] px-5 pb-8 pt-5 text-[#2f261d] shadow-[0_-18px_48px_rgba(47,38,29,0.18)]"
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-lg font-black">评论 17</h3>
+              <button
+                onClick={() => setIsCommentDrawerOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f0e9df] text-[#7d6d5f] active:scale-95 transition-transform"
+                aria-label="关闭评论"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="max-h-[360px] space-y-5 overflow-y-auto no-scrollbar pb-5">
+              {comments.map(([name, text], index) => (
+                <div key={`${name}-${index}`} className="flex gap-3">
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-9 w-9 shrink-0 rounded-full bg-white" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[12px] font-black text-[#8f8173]">{name}</p>
+                      <button className="flex h-8 w-8 items-center justify-center text-[#b7a899] active:scale-95 transition-transform">
+                        <Heart size={14} />
+                      </button>
+                    </div>
+                    <p className="mt-1 text-[14px] font-bold leading-relaxed text-[#3f352d]">{text}</p>
+                    <p className="mt-1 text-[11px] font-bold text-[#b7a899]">刚刚 · 回复</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 border-t border-[#eee4d8] pt-3">
+              <input
+                value={commentText}
+                onChange={(event) => setCommentText(event.target.value)}
+                onKeyDown={(event) => event.key === 'Enter' && sendComment()}
+                placeholder="说点什么..."
+                className="h-11 min-w-0 flex-1 rounded-full bg-white px-4 text-sm font-bold text-[#2f261d] outline-none placeholder:text-[#b7a899] shadow-sm"
+              />
+              <button
+                onClick={sendComment}
+                className="h-11 rounded-full bg-[#FE2C55] px-5 text-sm font-black text-white active:scale-95 transition-transform"
+              >
+                发送
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  if (item.kind !== 'image') {
+    return (
+      <div className="relative flex h-full flex-col overflow-hidden bg-black pt-8 text-white">
+        <main className="relative flex-1 overflow-hidden bg-black">
+          {isCollabLike ? (
+            <div className="absolute inset-0 grid grid-cols-2 grid-rows-6 gap-px bg-black">
+              {Array.from({ length: 12 }).map((_, frameIndex) => {
+                const frameSeed = (item.mediaIndex + frameIndex) % dailyLifeFrames.length;
+                return (
+                  <div key={frameIndex} className="relative overflow-hidden bg-[#111]">
+                    <img src={dailyLifeFrames[frameSeed]} alt="" className="h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/62 via-black/5 to-black/18" />
+                    <p className="absolute inset-x-3 top-1/2 -translate-y-1/2 text-center text-[17px] font-black leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]">
+                      {dailyLifeCaptions[frameSeed]}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <video
+              src={dailyLifeVideos[item.mediaIndex]}
+              poster={dailyLifeFrames[item.mediaIndex]}
+              className="absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          )}
+
+	          {!isPureMode && <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-3">
+	            <button onClick={() => setScreen('home')} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/22 text-white backdrop-blur-md active:scale-95 transition-transform">
+	              <ArrowLeft size={24} />
+	            </button>
+	            <div className="h-10 w-10" />
+	            <button onClick={() => setIsShareDrawerOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/22 text-white backdrop-blur-md active:scale-95 transition-transform" aria-label="分享">
+	              <CornerUpRight size={24} />
+	            </button>
+	          </div>}
+
+	          {!isPureMode && <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-64 bg-gradient-to-t from-black via-black/48 to-transparent" />}
+	          {!isPureMode && <section className="absolute inset-x-0 bottom-0 z-20 px-5 pb-5">
+	            <div className="flex items-center gap-3">
+	              {isCollabLike ? (
+                  <button
+                    onClick={() => setAreCreatorsExpanded(prev => !prev)}
+                    className="flex -space-x-2 active:scale-95 transition-transform"
+                    aria-label={areCreatorsExpanded ? '收起共创人' : '展开共创人'}
+                  >
+                    {Array.from({ length: Math.min(4, item.topic.joinedCount) }).map((_, index) => {
+                      const name = dailyLifeUsers[(item.mediaIndex + index) % dailyLifeUsers.length];
+                      return <img key={name} src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-8 w-8 rounded-full border-2 border-white/80 bg-white" />;
+                    })}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setSelectedUserName(item.author);
+                      setScreen('user-profile');
+                    }}
+                    className="flex -space-x-2 active:scale-95 transition-transform"
+                    aria-label={`查看${item.author}主页`}
+                  >
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.author}`} alt="" className="h-10 w-10 rounded-full border-2 border-white/80 bg-white" />
+                  </button>
+                )}
+	              <button
+	                onClick={() => {
+	                  if (!isCollabLike) {
+                    setSelectedUserName(item.author);
+                    setScreen('user-profile');
+                  }
+                }}
+                className="min-w-0 flex-1 text-left"
+	              >
+	                <p className="truncate text-lg font-black drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)]">{authorName}</p>
+	              </button>
+	              <div className="flex shrink-0 items-center gap-2">
+	                <span className="rounded-full bg-black/42 px-3 py-1.5 text-[12px] font-black text-white/88 backdrop-blur-md">{videoRemainingTime}</span>
+	                {!isCollabLike && (
+	                  <button className="h-9 rounded-full bg-[#FE2C55] px-5 text-sm font-black text-white active:scale-95 transition-transform">
+	                    关注
+	                  </button>
+	                )}
+	              </div>
+	            </div>
+              {isCollabLike && areCreatorsExpanded && (
+                <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar rounded-2xl bg-black/26 p-2 backdrop-blur-md">
+                  {Array.from({ length: item.topic.joinedCount }).map((_, index) => {
+                    const name = dailyLifeUsers[(item.mediaIndex + index) % dailyLifeUsers.length];
+                    return (
+                      <button
+                        key={`expanded-creator-${index}-${name}`}
+                        onClick={() => {
+                          setSelectedUserName(name);
+                          setScreen('user-profile');
+                        }}
+                        className="shrink-0 active:scale-95 transition-transform"
+                        aria-label={`查看${name}主页`}
+                      >
+                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-8 w-8 rounded-full border border-white/70 bg-white" />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+	            <p className="mt-4 line-clamp-2 text-[15px] font-bold leading-relaxed text-white/92 drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)]">
+	              {item.kind === 'cp' ? 'CP共创完成，一起记录两个人共同出现的瞬间。' : item.kind === 'collab' ? '多人共创完成，12 个真实片段拼成一条完整记忆。' : '视频完成，保留这一秒的动作、声音和现场感。'}
+	            </p>
+	          </section>}
+	        </main>
+
+	        <footer className="shrink-0 bg-black px-4 pb-6 pt-3">
+	          <div className="flex items-center gap-3">
+	            <button onClick={() => toggleLike(item.topic.id)} className="flex h-11 items-center gap-2 text-white active:scale-95 transition-transform">
+	              <Heart size={30} className={isLiked ? 'fill-[#FE2C55] text-[#FE2C55]' : ''} strokeWidth={2.4} />
+	              <span className="text-sm font-black">126</span>
+            </button>
+            <button onClick={() => toggleFavorite(item.topic.id)} className="flex h-11 items-center gap-2 text-white active:scale-95 transition-transform">
+              <Star size={30} className={isSaved ? 'fill-white' : ''} strokeWidth={2.4} />
+              <span className="text-sm font-black">29</span>
+            </button>
+            <button onClick={() => setIsCommentDrawerOpen(true)} className="flex h-11 items-center gap-2 text-white active:scale-95 transition-transform">
+	              <MessageCircle size={30} strokeWidth={2.4} />
+	              <span className="text-sm font-black">17</span>
+	            </button>
+              <button
+                onClick={() => setIsPureMode(prev => !prev)}
+                className="ml-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white active:scale-95 transition-transform"
+                aria-label={isPureMode ? '退出纯净模式' : '进入纯净模式'}
+              >
+                {isPureMode ? (
+                  <FileOutput size={25} />
+                ) : (
+                  <span className="relative block h-5 w-5">
+                    <span className="absolute left-0 top-0 h-2 w-2 rounded-tl-[3px] border-l-2 border-t-2 border-current" />
+                    <span className="absolute right-0 top-0 h-2 w-2 rounded-tr-[3px] border-r-2 border-t-2 border-current" />
+                    <span className="absolute bottom-0 left-0 h-2 w-2 rounded-bl-[3px] border-b-2 border-l-2 border-current" />
+                    <span className="absolute bottom-0 right-0 h-2 w-2 rounded-br-[3px] border-b-2 border-r-2 border-current" />
+                  </span>
+                )}
+              </button>
+	          </div>
+	        </footer>
+          {shareDrawer}
+          {commentDrawer}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col bg-[#fffaf4] pt-8 text-[#2f261d]">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[#eee4d8] bg-[#fffaf4]/94 px-4 py-3 backdrop-blur-xl">
+        <button onClick={() => setScreen('home')} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#2f261d] shadow-sm active:scale-95 transition-transform">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="min-w-0 text-center">
+          <p className="text-[10px] font-black tracking-[0.18em] text-[#b4834a]">{typeLabel}</p>
+          <h2 className="truncate text-sm font-black">{item.title}</h2>
+        </div>
+        <button onClick={() => setIsShareDrawerOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#2f261d] shadow-sm active:scale-95 transition-transform" aria-label="分享">
+          <CornerUpRight size={19} />
+        </button>
+      </header>
+
+      <main className="flex-1 overflow-y-auto no-scrollbar pb-28">
+        <section className="bg-black">
+	          <div className="flex min-h-[420px] items-center justify-center bg-black">
+	            <img src={dailyLifeFrames[item.mediaIndex]} alt="" className="max-h-[620px] w-full object-contain" />
+	          </div>
+        </section>
+
+        <section className="space-y-5 px-4 py-5">
+          <div className="flex items-center justify-between gap-3">
+            <button
+              onClick={() => {
+                setSelectedUserName(item.author);
+                setScreen('user-profile');
+              }}
+              className="flex min-w-0 items-center gap-3 text-left"
+            >
+              <div className="flex -space-x-2">
+                {isCollabLike ? Array.from({ length: Math.min(4, item.topic.joinedCount) }).map((_, index) => {
+                  const name = dailyLifeUsers[(item.mediaIndex + index) % dailyLifeUsers.length];
+                  return <img key={name} src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-10 w-10 rounded-full border-2 border-[#fffaf4] bg-white" />;
+                }) : (
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.author}`} alt="" className="h-10 w-10 rounded-full bg-white" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black">{authorName}</p>
+                <p className="text-[11px] font-bold text-[#9b8a79]">{item.topic.city} · 刚刚发布</p>
+              </div>
+            </button>
+            <button className="h-9 rounded-full bg-[#FE2C55] px-4 text-xs font-black text-white active:scale-95 transition-transform">
+              关注
+            </button>
+          </div>
+
+          <article className="space-y-2">
+            <h1 className="text-xl font-black leading-tight">{item.title}</h1>
+            <p className="text-[14px] font-medium leading-relaxed text-[#5f5145]">
+              一张来自日常瞬间的图片发布，记录此刻真实的光线和情绪。
+            </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[typeLabel, item.topic.city, item.topic.prompt].map(tag => (
+                <span key={tag} className="rounded-full bg-[#f2e8dc] px-3 py-1 text-[11px] font-black text-[#8f7f6d]">#{tag}</span>
+              ))}
+            </div>
+          </article>
+
+          <div className="h-px bg-[#eee4d8]" />
+
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-black">评论 · 42</h3>
+              <button className="text-[11px] font-black text-[#9b8a79]">按热度</button>
+            </div>
+            {comments.map(([name, text]) => (
+              <div key={name} className="flex gap-3">
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-8 w-8 shrink-0 rounded-full bg-white" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-black text-[#9b8a79]">{name}</p>
+                  <p className="mt-1 text-[13px] font-bold leading-relaxed text-[#3f352d]">{text}</p>
+                  <p className="mt-1 text-[10px] font-bold text-[#b7a899]">刚刚 · 回复</p>
+                </div>
+                <button className="flex h-8 w-8 items-center justify-center text-[#b7a899]">
+                  <Heart size={14} />
+                </button>
+              </div>
+            ))}
+          </section>
+        </section>
+      </main>
+
+      <footer className="absolute inset-x-0 bottom-0 z-40 border-t border-[#eee4d8] bg-[#fffaf4]/96 px-3 pb-6 pt-2 backdrop-blur-xl">
+        <div className="flex items-center gap-2">
+          <input
+            value={commentText}
+            onChange={(event) => setCommentText(event.target.value)}
+            onKeyDown={(event) => event.key === 'Enter' && sendComment()}
+            placeholder="说点什么..."
+            className="h-10 min-w-0 flex-1 rounded-full bg-white px-4 text-sm font-bold text-[#2f261d] outline-none placeholder:text-[#b7a899] shadow-sm"
+          />
+          <button onClick={() => toggleLike(item.topic.id)} className={`flex h-10 min-w-12 items-center justify-center gap-1 rounded-full px-2 text-[11px] font-black ${isLiked ? 'text-[#FE2C55]' : 'text-[#7d6d5f]'}`}>
+            <Heart size={20} className={isLiked ? 'fill-current' : ''} />
+            {item.topic.likes}
+          </button>
+          <button onClick={() => toggleFavorite(item.topic.id)} className={`flex h-10 w-10 items-center justify-center rounded-full ${isSaved ? 'text-[#b4834a]' : 'text-[#7d6d5f]'}`}>
+            <Bookmark size={20} className={isSaved ? 'fill-current' : ''} />
+          </button>
+          <button onClick={sendComment} className="flex h-10 w-10 items-center justify-center rounded-full text-[#7d6d5f]">
+            <MessageCircle size={20} />
+          </button>
+        </div>
+      </footer>
+      {shareDrawer}
+      {commentDrawer}
+    </div>
+  );
+};
+
 export default function App() {
   useEffect(() => {
     document.body.dataset.appReady = '1';
@@ -4988,6 +5953,7 @@ export default function App() {
   const [prevScreen, setPrevScreen] = useState<Screen>('home');
   const [topics, setTopics] = useState<Topic[]>(TOPICS);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [selectedContentItem, setSelectedContentItem] = useState<HomeFeedItem | null>(null);
   const [selectedUserName, setSelectedUserName] = useState<string>('林野');
   const [savedTopicIds, setSavedTopics] = useState<Set<string>>(new Set());
   const [likedTopicIds, setLikedTopics] = useState<Set<string>>(new Set());
@@ -5010,8 +5976,9 @@ export default function App() {
   const [circleInitialTopicInfo, setCircleInitialTopicInfo] = useState<Partial<Topic> | undefined>(undefined);
   const [circleIsMyWorkMode, setCircleIsMyWorkMode] = useState<boolean>(false);
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+  const [albumComposerSource, setAlbumComposerSource] = useState<'create' | 'join'>('create');
   const [isGiftDonorDetailModalOpen, setIsGiftDonorDetailModalOpen] = useState(false);
-  const [hasShownHomeGrowthPrompt, setHasShownHomeGrowthPrompt] = useState(false);
+  const [hasShownHomeGrowthPrompt, setHasShownHomeGrowthPrompt] = useState(true);
   const [isCirclePureMode, setIsCirclePureMode] = useState(false);
   const [blockedUserNames, setBlockedUserNames] = useState<Set<string>>(new Set());
   const [userRemarks, setUserRemarks] = useState<Record<string, string>>({});
@@ -5147,6 +6114,12 @@ export default function App() {
     showToast('话题加热成功！已进入热门展示区');
   };
 
+  const openContentDetail = (item: HomeFeedItem) => {
+    setSelectedContentItem(item);
+    setSelectedTopic(item.topic);
+    handleSetScreen('content-detail');
+  };
+
 // --- Gift Screen ---
 
 const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Screen) => void, prevScreen: Screen, showToast: (m: string) => void }) => {
@@ -5201,6 +6174,43 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
             showGrowthPrompt={!hasShownHomeGrowthPrompt}
             dismissGrowthPrompt={dismissHomeGrowthPrompt}
             setCircleInitialTopicId={setCircleInitialTopicId}
+            onOpenContent={openContentDetail}
+          />
+        );
+      case 'content-detail':
+        return selectedContentItem ? (
+          <ContentDetailScreen
+            item={selectedContentItem}
+            setScreen={sS}
+            setSelectedUserName={setSelectedUserName}
+            likedTopicIds={likedTopicIds}
+            toggleLike={toggleLike}
+            savedTopicIds={savedTopicIds}
+            toggleFavorite={toggleFavorite}
+            showToast={showToast}
+            setReportType={setReportType}
+            setReportTargetName={setReportTargetName}
+            setCircleInitialTopicInfo={setCircleInitialTopicInfo}
+            spotlightTopic={spotlightTopic}
+            isSpotlighted={spotlightTopicIds.has(selectedContentItem.topic.id)}
+          />
+        ) : (
+          <HomeScreen
+            setScreen={sS}
+            setSelectedTopic={setSelectedTopic}
+            topics={topics}
+            savedTopicIds={savedTopicIds}
+            toggleFavorite={toggleFavorite}
+            likedTopicIds={likedTopicIds}
+            toggleLike={toggleLike}
+            setSelectedUserName={setSelectedUserName}
+            spotlightTopicIds={spotlightTopicIds}
+            spotlightTopic={spotlightTopic}
+            showToast={showToast}
+            showGrowthPrompt={!hasShownHomeGrowthPrompt}
+            dismissGrowthPrompt={dismissHomeGrowthPrompt}
+            setCircleInitialTopicId={setCircleInitialTopicId}
+            onOpenContent={openContentDetail}
           />
         );
       case 'topic-detail':
@@ -5240,10 +6250,13 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
             showGrowthPrompt={!hasShownHomeGrowthPrompt}
             dismissGrowthPrompt={dismissHomeGrowthPrompt}
             setCircleInitialTopicId={setCircleInitialTopicId}
+            onOpenContent={openContentDetail}
           />
         );
       case 'create-circle':
         return <CreateCircleScreen setScreen={sS} setSelectedTopic={setSelectedTopic} initialTopicInfo={circleInitialTopicInfo} />;
+      case 'album-composer':
+        return <AlbumComposer setScreen={sS} showToast={showToast} source={albumComposerSource} topic={selectedTopic || undefined} />;
       case 'create-and-shoot':
         return <CreateAndShootScreen setScreen={sS} showToast={showToast} />;
       case 'create-success':
@@ -5441,14 +6454,62 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {isCreateMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsCreateMenuOpen(false)}
+            className="absolute inset-0 z-[120] flex flex-col justify-end bg-black/30 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+              onClick={(event) => event.stopPropagation()}
+              className="overflow-hidden rounded-t-[28px] bg-white text-center text-[#2f261d] shadow-[0_-18px_44px_rgba(47,38,29,0.16)]"
+            >
+              <button
+                onClick={() => {
+                  setAlbumComposerSource('create');
+                  setIsCreateMenuOpen(false);
+                  handleSetScreen('album-composer');
+                }}
+                className="flex h-[76px] w-full items-center justify-center border-b border-[#eee4d8] text-[20px] font-bold active:bg-[#f7f3ec]"
+              >
+                从相册选择
+              </button>
+              <button
+                onClick={() => {
+                  setCircleInitialTopicInfo(undefined);
+                  setIsCreateMenuOpen(false);
+                  handleSetScreen('create-circle');
+                }}
+                className="flex h-[76px] w-full items-center justify-center border-b border-[#eee4d8] text-[20px] font-bold active:bg-[#f7f3ec]"
+              >
+                写文字
+              </button>
+              <div className="h-2 bg-[#f7f3ec]" />
+              <button
+                onClick={() => setIsCreateMenuOpen(false)}
+                className="flex h-[70px] w-full items-center justify-center text-[20px] font-bold active:bg-[#f7f3ec]"
+              >
+                取消
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {(screen === 'home' || screen === 'circle' || screen === 'messages' || screen === 'me') && !(screen === 'circle' && isCirclePureMode) && (
         <>
           <BottomNav
             active={screen}
             setScreen={handleSetScreen}
             onPlusClick={() => {
-              setCircleInitialTopicInfo(undefined);
-              handleSetScreen('create-circle');
+              setIsCreateMenuOpen(true);
             }}
           />
         </>

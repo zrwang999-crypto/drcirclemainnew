@@ -47,6 +47,7 @@ export type Screen =
   | 'topic-detail'
   | 'create-circle'
   | 'create-and-shoot'
+  | 'album-composer'
   | 'create-success'
   | 'join'
   | 'join-success'
