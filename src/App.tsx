@@ -107,6 +107,19 @@ const userIpLocations: Record<string, string> = {
   小北: '江苏',
 };
 const getUserIpLocation = (name: string) => userIpLocations[name] || ['广东', '浙江', '上海', '北京', '四川', '江苏'][Math.abs([...name].reduce((sum, char) => sum + char.charCodeAt(0), 0)) % 6];
+type ShareFriend = (typeof SHARE_FRIENDS)[number];
+const cpTypeRank: Record<string, number> = { '真爱': 0, '闺蜜': 1, '兄弟': 2 };
+const sortedShareFriends = [...SHARE_FRIENDS].sort((a, b) => {
+  const aRank = a.cpType ? cpTypeRank[a.cpType] : 99;
+  const bRank = b.cpType ? cpTypeRank[b.cpType] : 99;
+  return aRank - bRank;
+});
+const getCpStyle = (type?: ShareFriend['cpType'] | null) => {
+  if (type === '真爱') return { ring: 'border-[#FE2C55] bg-[#FE2C55]/10', badge: 'bg-[#FE2C55] text-white', text: 'text-[#FE2C55]' };
+  if (type === '闺蜜') return { ring: 'border-[#6366f1] bg-[#6366f1]/10', badge: 'bg-[#6366f1] text-white', text: 'text-[#6366f1]' };
+  if (type === '兄弟') return { ring: 'border-[#10b981] bg-[#10b981]/10', badge: 'bg-[#10b981] text-white', text: 'text-[#10b981]' };
+  return { ring: 'border-[#eadfce] bg-white', badge: '', text: 'text-[#8f8173]' };
+};
 const dailyLifeFrames = [
   'https://images.unsplash.com/photo-1495195134817-aeb325a55b65?w=600&h=800&fit=crop',
   'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&h=800&fit=crop',
@@ -1210,32 +1223,40 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
 
               {/* Multi-select Friends List */}
               <div className="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-2">
-                {SHARE_FRIENDS.map((friend) => (
-                  <button
-                    key={friend.id}
-                    className="flex flex-col items-center gap-2 min-w-[64px] group relative"
-                    onClick={() => toggleShareUser(friend.id)}
-                  >
-                    <div className={`w-14 h-14 rounded-full overflow-hidden border-2 transition-all p-0.5 active:scale-95 ${
-                      selectedShareUserIds.has(friend.id) ? 'border-red-primary bg-red-primary/10' : 'border-white/5 bg-white/5'
-                    }`}>
-                      <img src={friend.avatar} alt={friend.name} className="w-full h-full rounded-full object-cover" />
-                    </div>
-                    {/* Checkbox Overlay */}
-                    <div className={`absolute top-0 right-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                        selectedShareUserIds.has(friend.id)
-                        ? 'bg-red-primary border-red-primary opacity-100 scale-100'
-                        : 'bg-black/20 border-white/20 opacity-40 scale-75'
-                    }`}>
-                      {selectedShareUserIds.has(friend.id) && <Check size={12} className="text-white" strokeWidth={4} />}
-                    </div>
-                    <span className={`text-[10px] font-black tracking-tight transition-colors ${
-                      selectedShareUserIds.has(friend.id) ? 'text-white' : 'text-white/40'
-                    }`}>
-                      {friend.name}
-                    </span>
-                  </button>
-                ))}
+                {sortedShareFriends.map((friend) => {
+                  const cpStyle = getCpStyle(friend.cpType);
+                  const isSelected = selectedShareUserIds.has(friend.id);
+                  return (
+                    <button
+                      key={friend.id}
+                      className="flex min-w-[64px] flex-col items-center gap-2 group relative"
+                      onClick={() => toggleShareUser(friend.id)}
+                    >
+                      <div className={`relative h-14 w-14 overflow-hidden rounded-full border-2 p-0.5 active:scale-95 transition-all ${
+                        isSelected ? 'border-red-primary bg-red-primary/10' : friend.cpType ? cpStyle.ring : 'border-white/5 bg-white/5'
+                      }`}>
+                        <img src={friend.avatar} alt={friend.name} className="h-full w-full rounded-full object-cover" />
+                        {friend.cpType && (
+                          <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full px-1.5 py-0.5 text-[7px] font-black leading-none ${cpStyle.badge}`}>
+                            {friend.cpType}
+                          </span>
+                        )}
+                      </div>
+                      <div className={`absolute top-0 right-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          isSelected
+                          ? 'bg-red-primary border-red-primary opacity-100 scale-100'
+                          : 'bg-black/20 border-white/20 opacity-40 scale-75'
+                      }`}>
+                        {isSelected && <Check size={12} className="text-white" strokeWidth={4} />}
+                      </div>
+                      <span className={`text-[10px] font-black tracking-tight transition-colors ${
+                        isSelected ? 'text-white' : friend.cpType ? cpStyle.text : 'text-white/40'
+                      }`}>
+                        {friend.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Action Bar / Send Button */}
@@ -4093,9 +4114,23 @@ const TextComposerScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) =
       </button>
       <div className="absolute inset-x-0 top-12 z-10 flex justify-center pointer-events-none">
         <div className="rounded-full bg-white/80 px-4 py-2 text-[12px] font-black shadow-sm">
-          {step === 'write' ? '写文字' : step === 'background' ? '选择背景板' : '发布动态'}
+          {step === 'write' ? '写想法' : step === 'background' ? '选择背景板' : '发布动态'}
         </div>
       </div>
+      {step === 'write' && (
+        <button
+          onClick={() => {
+            if (!body.trim()) {
+              showToast('请先写点内容');
+              return;
+            }
+            setStep('background');
+          }}
+          className="absolute right-5 top-12 z-20 flex h-10 items-center justify-center rounded-xl bg-[#FE2C55] px-4 text-[12px] font-black text-white shadow-[0_10px_20px_rgba(254,44,85,0.2)] active:scale-95 transition-transform"
+        >
+          下一步
+        </button>
+      )}
 
       <div className="mx-auto flex max-w-[360px] flex-col gap-4">
         {step === 'write' ? (
@@ -4108,19 +4143,6 @@ const TextComposerScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) =
                 className="h-80 w-full resize-none bg-transparent text-[18px] font-black leading-8 text-[#4f3d2d] outline-none placeholder:text-[#c2b2a1]"
               />
             </div>
-
-            <button
-              onClick={() => {
-                if (!body.trim()) {
-                  showToast('请先写点内容');
-                  return;
-                }
-                setStep('background');
-              }}
-              className="h-14 rounded-full bg-[#FE2C55] text-[13px] font-black text-white shadow-[0_18px_34px_rgba(254,44,85,0.24)] active:scale-95 transition-transform"
-            >
-              下一步
-            </button>
           </>
         ) : step === 'background' ? (
           <>
@@ -4755,20 +4777,26 @@ const CircleScreen = ({
               </div>
 
               <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center">
-                  {Array.from({ length: Math.min(6, currentCircleTopic.joinedCount) }).map((_, avatarIndex) => (
-                    <img
-                      key={`${currentCircleTopic.id}-creator-${avatarIndex}`}
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentCircleTopic.id}-${avatarIndex}`}
-                      alt=""
-                      className={`h-8 w-8 shrink-0 rounded-full border-2 border-white bg-[#f6ede3] ${avatarIndex > 0 ? '-ml-2' : ''}`}
-                    />
-                  ))}
-                  {currentCircleTopic.joinedCount > 6 && (
-                    <span className="-ml-2 flex h-8 min-w-8 items-center justify-center rounded-full border-2 border-white bg-[#f2e7db] px-1 text-[9px] font-black text-[#8f7f6d]">
-                      +{currentCircleTopic.joinedCount - 6}
-                    </span>
-                  )}
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <div className="flex min-w-0 items-center">
+                    {Array.from({ length: Math.min(6, currentCircleTopic.joinedCount) }).map((_, avatarIndex) => (
+                      <img
+                        key={`${currentCircleTopic.id}-creator-${avatarIndex}`}
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentCircleTopic.id}-${avatarIndex}`}
+                        alt=""
+                        className={`h-8 w-8 shrink-0 rounded-full border-2 border-white bg-[#f6ede3] ${avatarIndex > 0 ? '-ml-2' : ''}`}
+                      />
+                    ))}
+                    {currentCircleTopic.joinedCount > 6 && (
+                      <span className="-ml-2 flex h-8 min-w-8 items-center justify-center rounded-full border-2 border-white bg-[#f2e7db] px-1 text-[9px] font-black text-[#8f7f6d]">
+                        +{currentCircleTopic.joinedCount - 6}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-center text-[10px] font-black leading-[1.25] text-[#b4834a]">
+                    <span className="block">每人至少获得3积分</span>
+                    <span className="block">后续作品收益会平分给共创者</span>
+                  </p>
                 </div>
                 <button
                   onClick={(event) => {
@@ -5331,34 +5359,42 @@ const CircleScreen = ({
 
               {/* Multi-select Friends List */}
               <div className="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-2">
-                {SHARE_FRIENDS.map((friend) => (
-                  <button
-                    key={friend.id}
-                    className="flex flex-col items-center gap-2 min-w-[64px] group relative"
-                    onClick={() => toggleShareUser(friend.id)}
-                  >
-                    <div className={`w-14 h-14 rounded-full overflow-hidden border-2 transition-all p-0.5 active:scale-95 ${
-                      selectedShareUserIds.has(friend.id) ? 'border-red-primary bg-red-primary/10' : 'border-white/5 bg-white/5'
-                    }`}>
-                      <img src={friend.avatar} alt={friend.name} className="w-full h-full rounded-full object-cover" />
-                    </div>
+                {sortedShareFriends.map((friend) => {
+                  const cpStyle = getCpStyle(friend.cpType);
+                  const isSelected = selectedShareUserIds.has(friend.id);
+                  return (
+                    <button
+                      key={friend.id}
+                      className="flex min-w-[64px] flex-col items-center gap-2 group relative"
+                      onClick={() => toggleShareUser(friend.id)}
+                    >
+                      <div className={`relative h-14 w-14 overflow-hidden rounded-full border-2 p-0.5 active:scale-95 transition-all ${
+                        isSelected ? 'border-red-primary bg-red-primary/10' : friend.cpType ? cpStyle.ring : 'border-white/5 bg-white/5'
+                      }`}>
+                        <img src={friend.avatar} alt={friend.name} className="h-full w-full rounded-full object-cover" />
+                        {friend.cpType && (
+                          <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full px-1.5 py-0.5 text-[7px] font-black leading-none ${cpStyle.badge}`}>
+                            {friend.cpType}
+                          </span>
+                        )}
+                      </div>
 
-                    {/* Checkbox Overlay */}
-                    <div className={`absolute top-0 right-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                        selectedShareUserIds.has(friend.id)
-                        ? 'bg-red-primary border-red-primary opacity-100 scale-100'
-                        : 'bg-black/20 border-white/20 opacity-40 scale-75'
-                    }`}>
-                      {selectedShareUserIds.has(friend.id) && <Check size={12} className="text-white" strokeWidth={4} />}
-                    </div>
+                      <div className={`absolute top-0 right-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          isSelected
+                          ? 'bg-red-primary border-red-primary opacity-100 scale-100'
+                          : 'bg-black/20 border-white/20 opacity-40 scale-75'
+                      }`}>
+                        {isSelected && <Check size={12} className="text-white" strokeWidth={4} />}
+                      </div>
 
-                    <span className={`text-[10px] font-black tracking-tight transition-colors ${
-                      selectedShareUserIds.has(friend.id) ? 'text-white' : 'text-white/40'
-                    }`}>
-                      {friend.name}
-                    </span>
-                  </button>
-                ))}
+                      <span className={`text-[10px] font-black tracking-tight transition-colors ${
+                        isSelected ? 'text-white' : friend.cpType ? cpStyle.text : 'text-white/40'
+                      }`}>
+                        {friend.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Action Bar / Send Button */}
@@ -5387,12 +5423,6 @@ const CircleScreen = ({
 
               {/* Other Sharing Channels */}
               <div className="flex gap-6 overflow-x-auto no-scrollbar px-6 pb-2">
-                <button key="drawer2-gift" className="flex flex-col items-center gap-2 group" onClick={() => { setIsShareDrawerOpen(false); setIsGiftDrawerOpen(true); }}>
-                  <div className="w-12 h-12 bg-[#FE2C55]/10 border border-[#FE2C55]/20 rounded-xl flex items-center justify-center text-[#FE2C55] active:scale-95 transition-transform">
-                    <Gift size={24} />
-                  </div>
-                  <span className="text-[9px] font-black text-white/40 group-active:text-white uppercase tracking-tighter">赠送礼物</span>
-                </button>
                 <button key="drawer2-save-album" className="flex flex-col items-center gap-2 group" onClick={() => { showToast('已保存到本地相册'); setIsShareDrawerOpen(false); }}>
                   <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white/60 active:scale-95 transition-transform">
                     <ImageIcon size={20} />
@@ -5997,6 +6027,10 @@ const ContentDetailScreen = ({
   const [areCreatorsExpanded, setAreCreatorsExpanded] = useState(false);
   const [isShareDrawerOpen, setIsShareDrawerOpen] = useState(false);
   const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
+  const [isGiftDonorDetailOpen, setIsGiftDonorDetailOpen] = useState(false);
+  const [isGiftDrawerOpen, setIsGiftDrawerOpen] = useState(false);
+  const [selectedGiftName, setSelectedGiftName] = useState(GIFTS[0]?.name || '');
+  const [giftQuantity, setGiftQuantity] = useState(1);
   const [selectedShareUserIds, setSelectedShareUserIds] = useState<Set<string>>(new Set());
   const initialCountdownSeconds = item.kind === 'video' ? 18 : item.kind === 'cp' ? 42 : item.kind === 'collab' ? 68 : 0;
   const [remainingSeconds, setRemainingSeconds] = useState(initialCountdownSeconds);
@@ -6008,6 +6042,12 @@ const ContentDetailScreen = ({
     ? `${String(Math.floor(remainingSeconds / 60)).padStart(2, '0')}:${String(remainingSeconds % 60).padStart(2, '0')}`
     : '';
   const authorName = isCollabLike ? `${item.topic.joinedCount} 位共创人` : item.author;
+  const giftRecords = MOCK_GIFT_RECORDS.filter(gift => gift.topicId === item.topic.id);
+  const displayGiftRecords = giftRecords.length > 0 ? giftRecords : MOCK_GIFT_RECORDS;
+  const totalGiftDiamonds = displayGiftRecords.reduce((sum, gift) => sum + gift.giftValue, 0);
+  const selectedGift = GIFTS.find((gift) => gift.name === selectedGiftName) || GIFTS[0];
+  const giftTotalCost = selectedGift ? selectedGift.price * giftQuantity : 0;
+  const giftQuantityOptions = [1, 3, 5, 10];
   const comments = [
     ['Mia', '这个片段很有现场感，像刚好路过。'],
     ['周屿', item.kind === 'image' ? '这张图的光线好舒服。' : '完整内容点进来比信息流更清楚。'],
@@ -6046,6 +6086,12 @@ const ContentDetailScreen = ({
     setSelectedShareUserIds(new Set());
   };
 
+  const sendSelectedGift = () => {
+    if (!selectedGift) return;
+    showToast(`已送出 ${giftQuantity} 个${selectedGift.name}`);
+    setIsGiftDrawerOpen(false);
+  };
+
   const shareDrawer = (
     <AnimatePresence>
       {isShareDrawerOpen && (
@@ -6076,25 +6122,31 @@ const ContentDetailScreen = ({
             </div>
 
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
-              {SHARE_FRIENDS.map((friend) => {
+              {sortedShareFriends.map((friend) => {
                 const isSelected = selectedShareUserIds.has(friend.id);
+                const cpStyle = getCpStyle(friend.cpType);
                 return (
                   <button
                     key={friend.id}
                     className="relative flex min-w-[68px] flex-col items-center gap-2 active:scale-95 transition-transform"
                     onClick={() => toggleShareUser(friend.id)}
                   >
-                    <div className={`h-16 w-16 rounded-full border-[3px] p-0.5 transition-all ${
-                      isSelected ? 'border-[#FE2C55] bg-[#FE2C55]/10' : 'border-[#eadfce] bg-white'
+                    <div className={`relative h-16 w-16 rounded-full border-[3px] p-0.5 transition-all ${
+                      isSelected ? 'border-[#FE2C55] bg-[#FE2C55]/10' : friend.cpType ? cpStyle.ring : 'border-[#eadfce] bg-white'
                     }`}>
                       <img src={friend.avatar} alt={friend.name} className="h-full w-full rounded-full object-cover" />
+                      {friend.cpType && (
+                        <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full px-1.5 py-0.5 text-[8px] font-black leading-none ${cpStyle.badge}`}>
+                          {friend.cpType}
+                        </span>
+                      )}
                     </div>
                     <div className={`absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all ${
                       isSelected ? 'border-[#FE2C55] bg-[#FE2C55] opacity-100' : 'border-[#d8ccbd] bg-[#fffaf4] opacity-80'
                     }`}>
                       {isSelected && <Check size={12} className="text-white" strokeWidth={4} />}
                     </div>
-                    <span className={`max-w-[68px] truncate text-[12px] font-black ${isSelected ? 'text-[#2f261d]' : 'text-[#8f8173]'}`}>
+                    <span className={`max-w-[68px] truncate text-[12px] font-black ${isSelected ? 'text-[#2f261d]' : friend.cpType ? cpStyle.text : 'text-[#8f8173]'}`}>
                       {friend.name}
                     </span>
                   </button>
@@ -6127,16 +6179,6 @@ const ContentDetailScreen = ({
 
             <div className="flex gap-5 overflow-x-auto no-scrollbar pb-1">
               {[
-                {
-                  key: 'gift',
-                  icon: Gift,
-                  label: '赠送礼物',
-                  tone: 'red',
-                  action: () => {
-                    showToast('已打开礼物选择');
-                    closeShareDrawer();
-                  },
-                },
                 {
                   key: 'save',
                   icon: ImageIcon,
@@ -6259,6 +6301,128 @@ const ContentDetailScreen = ({
     </AnimatePresence>
   );
 
+  const giftDrawer = (
+    <AnimatePresence>
+      {isGiftDrawerOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setIsGiftDrawerOpen(false)}
+          className="absolute inset-0 z-[100] flex flex-col justify-end bg-black/36 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+            onClick={(event) => event.stopPropagation()}
+            className="max-h-[76%] rounded-t-[32px] border-t border-[#eee4d8] bg-[#fffaf4] px-5 pb-8 pt-5 text-[#2f261d] shadow-[0_-18px_48px_rgba(47,38,29,0.18)]"
+          >
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-black">选择礼物</h3>
+                <p className="mt-1 text-[11px] font-black text-[#9b8a79]">已收到 {totalGiftDiamonds.toLocaleString()} 钻石</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setIsGiftDrawerOpen(false);
+                    setIsGiftDonorDetailOpen(true);
+                  }}
+                  className="h-9 rounded-full border border-[#eadfce] bg-white px-3 text-[11px] font-black text-[#7d6d5f] shadow-sm active:scale-95 transition-transform"
+                >
+                  贡献榜
+                </button>
+                <button
+                  onClick={() => setIsGiftDrawerOpen(false)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f0e9df] text-[#7d6d5f] active:scale-95 transition-transform"
+                  aria-label="关闭礼物弹窗"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-3 overflow-y-auto pb-4 no-scrollbar">
+              {GIFTS.map((gift) => (
+                <button
+                  key={gift.name}
+                  onClick={() => setSelectedGiftName(gift.name)}
+                  className={`relative flex flex-col items-center gap-2 rounded-xl border bg-white p-3 shadow-sm active:scale-95 transition-transform ${
+                    selectedGiftName === gift.name ? 'border-[#FE2C55]' : 'border-[#eadfce]'
+                  }`}
+                >
+                  {selectedGiftName === gift.name && (
+                    <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#FE2C55] text-white">
+                      <Check size={10} strokeWidth={4} />
+                    </span>
+                  )}
+                  <span className="text-3xl leading-none">{gift.icon}</span>
+                  <span className="text-center text-[10px] font-black leading-tight">{gift.name}</span>
+                  <span className="text-[9px] font-black tracking-widest text-[#FE2C55]">{gift.price}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="border-t border-[#eee4d8] pt-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#9b8a79]">已选择</p>
+                  <p className="mt-1 truncate text-sm font-black">
+                    {selectedGift?.icon} {selectedGift?.name}
+                    <span className="ml-2 text-[#FE2C55]">{giftTotalCost.toLocaleString()}</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 rounded-full border border-[#eadfce] bg-white p-1 shadow-sm">
+                  <button
+                    onClick={() => setGiftQuantity((quantity) => Math.max(1, quantity - 1))}
+                    className="h-8 w-8 rounded-full text-lg font-black text-[#8f7f6d] active:scale-95 transition-transform"
+                    aria-label="减少数量"
+                  >
+                    -
+                  </button>
+                  <span className="min-w-8 text-center text-sm font-black">x{giftQuantity}</span>
+                  <button
+                    onClick={() => setGiftQuantity((quantity) => Math.min(99, quantity + 1))}
+                    className="h-8 w-8 rounded-full text-lg font-black active:scale-95 transition-transform"
+                    aria-label="增加数量"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <div className="flex gap-1.5">
+                  {giftQuantityOptions.map((quantity) => (
+                    <button
+                      key={quantity}
+                      onClick={() => setGiftQuantity(quantity)}
+                      className={`h-8 min-w-10 rounded-full border px-3 text-[11px] font-black active:scale-95 transition-all ${
+                        giftQuantity === quantity
+                          ? 'border-[#2f261d] bg-[#2f261d] text-white'
+                          : 'border-[#eadfce] bg-white text-[#8f7f6d]'
+                      }`}
+                    >
+                      x{quantity}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={sendSelectedGift}
+                  className="ml-auto h-10 min-w-[112px] rounded-full bg-[#FE2C55] px-5 text-sm font-black text-white shadow-[0_12px_26px_rgba(254,44,85,0.22)] active:scale-95 transition-transform"
+                >
+                  赠送
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   if (item.kind !== 'image') {
     return (
       <div className="relative flex h-full flex-col overflow-hidden bg-black pt-8 text-white">
@@ -6295,9 +6459,19 @@ const ContentDetailScreen = ({
 	              <ArrowLeft size={24} />
 	            </button>
 	            <div className="h-10 w-10" />
-	            <button onClick={() => setIsShareDrawerOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/22 text-white backdrop-blur-md active:scale-95 transition-transform" aria-label="分享">
-	              <CornerUpRight size={24} />
-	            </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsGiftDrawerOpen(true)}
+                    className="flex h-10 items-center gap-1.5 rounded-full bg-black/28 px-3 text-white backdrop-blur-md active:scale-95 transition-transform"
+                    aria-label="赠送礼物"
+                  >
+                    <Gift size={18} />
+                    <span className="text-[12px] font-black leading-none">{totalGiftDiamonds.toLocaleString()}</span>
+                  </button>
+  	              <button onClick={() => setIsShareDrawerOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/22 text-white backdrop-blur-md active:scale-95 transition-transform" aria-label="分享">
+  	                <CornerUpRight size={24} />
+  	              </button>
+                </div>
 	          </div>}
 
 	          {!isPureMode && <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-64 bg-gradient-to-t from-black via-black/48 to-transparent" />}
@@ -6406,6 +6580,12 @@ const ContentDetailScreen = ({
 	        </footer>
           {shareDrawer}
           {commentDrawer}
+          {giftDrawer}
+          <GiftDonorDetailModal
+            isOpen={isGiftDonorDetailOpen}
+            onClose={() => setIsGiftDonorDetailOpen(false)}
+            gifts={displayGiftRecords}
+          />
       </div>
     );
   }
@@ -6524,7 +6704,7 @@ const ContentDetailScreen = ({
             className={`flex h-10 w-10 items-center justify-center rounded-full ${isSaved ? 'text-[#b4834a]' : 'text-[#7d6d5f]'}`}
             aria-label={isSaved ? '取消收藏' : '收藏'}
           >
-            <Bookmark size={20} className={isSaved ? 'fill-current' : ''} />
+            <Star size={20} className={isSaved ? 'fill-current' : ''} />
           </button>
           <button onClick={sendComment} className="flex h-10 w-10 items-center justify-center rounded-full text-[#7d6d5f]">
             <MessageCircle size={20} />

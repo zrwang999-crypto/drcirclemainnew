@@ -246,12 +246,12 @@ export const GIFTS = [
 ];
 
 export const SHARE_FRIENDS = [
-  { id: '1', name: '小明', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend1' },
-  { id: '2', name: 'Lisa', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend2' },
-  { id: '3', name: '阿强', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend3' },
-  { id: '4', name: 'Emma', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend4' },
-  { id: '5', name: '老李', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend5' },
-  { id: '6', name: '小红', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend6' },
+  { id: '1', name: '小明', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend1', cpType: '真爱' },
+  { id: '2', name: 'Lisa', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend2', cpType: '闺蜜' },
+  { id: '3', name: '阿强', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend3', cpType: '兄弟' },
+  { id: '4', name: 'Emma', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend4', cpType: null },
+  { id: '5', name: '老李', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend5', cpType: null },
+  { id: '6', name: '小红', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Friend6', cpType: null },
 ];
 
 export const MOCK_GIFT_RECORDS: GiftRecord[] = [
