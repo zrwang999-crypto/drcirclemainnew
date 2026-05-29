@@ -173,6 +173,7 @@ type HomeFeedItem = {
   author: string;
   kind: HomeFeedItemKind;
   heightClass: string;
+  imageCount?: number;
 };
 const suggestedCreators = [
   { name: '阿飞 Kathy', bio: '教育内容热门作者', followers: '12.8万粉丝', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128&h=128&fit=crop' },
@@ -333,6 +334,7 @@ const HomeScreen = ({
         author: dailyLifeUsers[mediaIndex],
         kind: variant === 0 ? 'collab' : topicIndex % 3 === 0 ? 'cp' : topicIndex % 2 === 0 ? 'video' : 'image',
         heightClass: 'aspect-[4/5]',
+        imageCount: variant !== 0 && topicIndex % 3 !== 0 && topicIndex % 2 !== 0 ? 3 + (topicIndex % 3) : undefined,
       } satisfies HomeFeedItem;
     })
   );
@@ -4105,16 +4107,6 @@ const TextComposerScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) =
                 placeholder="这一刻想说点什么..."
                 className="h-80 w-full resize-none bg-transparent text-[18px] font-black leading-8 text-[#4f3d2d] outline-none placeholder:text-[#c2b2a1]"
               />
-              <div className="flex items-center justify-between border-t border-[#eee4d8] pt-4">
-                <div className="flex gap-2">
-                  {[Smile, Hash, MapPin].map((Icon, index) => (
-                    <button key={index} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f1e9] text-[#8f7f6d] active:scale-95 transition-transform">
-                      <Icon size={16} />
-                    </button>
-                  ))}
-                </div>
-                <span className="text-[10px] font-black text-[#b6a695]">{body.length}/220</span>
-              </div>
             </div>
 
             <button
@@ -4198,14 +4190,14 @@ const TextComposerScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) =
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => setIsLocationDrawerOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-[14px] bg-white px-3 text-[12px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
+              <button onClick={() => setIsLocationDrawerOpen(true)} className="flex h-14 items-center justify-center gap-2 rounded-[14px] bg-white px-3 text-[14px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
                 <MapPin size={15} /> <span className="truncate">{selectedLocation || '添加地点'}</span>
               </button>
-              <button onClick={() => setIsTopicDrawerOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-[14px] bg-white text-[12px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
+              <button onClick={() => setIsTopicDrawerOpen(true)} className="flex h-14 items-center justify-center gap-2 rounded-[14px] bg-white text-[14px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
                 <Hash size={15} /> 话题
               </button>
             </div>
-            <button onClick={() => setIsVisibilityDrawerOpen(true)} className="flex h-12 items-center justify-between rounded-[14px] bg-white px-4 text-[12px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
+            <button onClick={() => setIsVisibilityDrawerOpen(true)} className="flex h-14 items-center justify-between rounded-[14px] bg-white px-4 text-[14px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
               <span className="flex items-center gap-2"><Lock size={15} /> 查看权限</span>
               <span className="flex items-center gap-1">{allowList.size ? `${allowList.size}人` : denyList.size ? `${denyList.size}人` : visibilityLabel}<ChevronRight size={15} /></span>
             </button>
@@ -6234,7 +6226,7 @@ const ContentDetailScreen = ({
                   <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-9 w-9 shrink-0 rounded-full bg-white" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-[12px] font-black text-[#8f8173]">{name}</p>
+                      <p className="text-[12px] font-black text-[#8f8173]">{name} <span className="font-bold text-[#b7a899]">IP：{getUserIpLocation(name)}</span></p>
                       <button className="flex h-8 w-8 items-center justify-center text-[#b7a899] active:scale-95 transition-transform">
                         <Heart size={14} />
                       </button>
@@ -6434,8 +6426,20 @@ const ContentDetailScreen = ({
 
       <main className="flex-1 overflow-y-auto no-scrollbar pb-28">
         <section className="bg-black">
-	          <div className="flex min-h-[420px] items-center justify-center bg-black">
+	          <div className="relative flex min-h-[420px] items-center justify-center bg-black">
 	            <img src={dailyLifeFrames[item.mediaIndex]} alt="" className="max-h-[620px] w-full object-contain" />
+              {item.kind === 'image' && (item.imageCount || 0) > 1 && (
+                <>
+                  <span className="absolute right-4 top-4 rounded-full bg-black/58 px-3 py-1 text-[12px] font-black text-white shadow-sm backdrop-blur-md">
+                    1/{item.imageCount}
+                  </span>
+                  <div className="absolute inset-x-0 bottom-4 flex justify-center gap-1.5">
+                    {Array.from({ length: item.imageCount || 0 }).map((_, dotIndex) => (
+                      <span key={dotIndex} className={`h-1.5 rounded-full ${dotIndex === 0 ? 'w-4 bg-white' : 'w-1.5 bg-white/55'}`} />
+                    ))}
+                  </div>
+                </>
+              )}
 	          </div>
         </section>
 
@@ -6489,7 +6493,7 @@ const ContentDetailScreen = ({
               <div key={name} className="flex gap-3">
                 <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-8 w-8 shrink-0 rounded-full bg-white" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-black text-[#9b8a79]">{name}</p>
+                  <p className="text-[11px] font-black text-[#9b8a79]">{name} <span className="font-bold text-[#b7a899]">IP：{getUserIpLocation(name)}</span></p>
                   <p className="mt-1 text-[13px] font-bold leading-relaxed text-[#3f352d]">{text}</p>
                   <p className="mt-1 text-[10px] font-bold text-[#b7a899]">刚刚 · 回复</p>
                 </div>
