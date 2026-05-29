@@ -49,7 +49,8 @@ import {
   Mic,
   Smile,
   ClipboardCheck,
-  Info
+  Info,
+  CalendarHeart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TOPICS, CURRENT_USER, GIFTS, SHOP_ITEMS, SHARE_FRIENDS, MOCK_GIFT_RECORDS } from './constants';
@@ -2305,6 +2306,25 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
                 <div className="ml-auto min-w-[88px] px-3 py-1.5 text-right">
                   <p className="text-[16px] font-black text-[#2f261d] leading-none">{diamondBalance.toLocaleString()}</p>
                 </div>
+              </div>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setScreen('couple-space');
+              }}
+              className="w-full rounded-[18px] bg-gradient-to-r from-[#fff1f4] via-white to-[#eef8f1] px-4 py-3.5 text-left shadow-sm active:scale-95 transition-transform"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#FE2C55] shadow-sm">
+                  <CalendarHeart size={19} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-black tracking-wide text-[#b4834a]">情侣空间</p>
+                  <p className="mt-0.5 truncate text-[17px] font-black text-[#2f261d]">共建我们的关系地图</p>
+                </div>
+                <ChevronRight size={18} className="text-[#b0a08e]" />
               </div>
             </button>
 
@@ -5940,6 +5960,15 @@ interface EditableProfile {
   ipLocation: string;
 }
 
+interface CoupleDetail {
+  title: string;
+  eyebrow: string;
+  desc: string;
+  tag: string;
+  items: string[];
+  action: string;
+}
+
 // --- Feedback Screen ---
 
 const FeedbackScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
@@ -5992,6 +6021,242 @@ const FeedbackScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
     </div>
   );
 };
+
+const CoupleSpaceScreen = ({ setScreen, showToast, setCoupleDetail }: { setScreen: (s: Screen) => void, showToast: (m: string) => void, setCoupleDetail: (detail: CoupleDetail) => void }) => {
+  const [activeTab, setActiveTab] = useState<'private' | 'public'>('private');
+  const modules = [
+    { title: '今日约会日程', desc: '从见面、吃饭到睡前复盘，把约会变成一次高质量连接。', meta: '今晚 19:30', icon: CalendarHeart, screen: 'couple-date-schedule' as Screen, tone: 'from-[#fff1f4] to-white' },
+    { title: '今年一起旅行的地方', desc: '把想去的城市、预算、假期和纪念日排成共同期待。', meta: '6 个目的地', icon: MapPin, screen: 'couple-travel-plan' as Screen, tone: 'from-[#eef8f1] to-white' },
+    { title: '沟通桥梁', desc: '每天一个低压力问题，帮你们更准确理解彼此。', meta: '4/7 天', icon: MessageSquare, screen: 'couple-bridge' as Screen, tone: 'from-[#eef3fb] to-white' },
+    { title: '婚前共同地图', desc: '金钱、父母、城市、孩子、冲突修复，都沉淀成共识。', meta: '12 项议题', icon: Home, screen: 'couple-marriage-map' as Screen, tone: 'from-[#fff7eb] to-white' },
+  ];
+  const privateItems = [
+    { title: '今晚 20 分钟真心话', desc: '最近一次感到被爱，是因为什么？先各自回答，再交换回应。', tag: '1/2' },
+    { title: '情绪翻译器', desc: '把“我没事”翻译成真实需求，只描述感受和期待。', tag: '待回应' },
+    { title: '道歉与修复记录', desc: '记录一次冲突从发生到和好的过程，找到可复用的修复方式。', tag: '新' },
+  ];
+  const publicItems = [
+    { title: '我们的第 214 天', desc: '一起完成 6 次城市共创，公开展示共同创造的瞬间。', tag: '公开' },
+    { title: '共同目标：春天见父母', desc: '还差 2 个准备事项：时间确认、礼物清单。', tag: '里程碑' },
+    { title: '本周关系温度', desc: '沟通 4 次，争吵修复 1 次，关系温度比上周提升 8%。', tag: '可见' },
+  ];
+  const currentItems = activeTab === 'private' ? privateItems : publicItems;
+
+  return (
+    <div className="flex h-full flex-col bg-[radial-gradient(circle_at_top,#fff7f8_0%,#f8f1e8_44%,#efe6da_100%)] text-[#2f261d]">
+      <header className="flex items-center justify-between px-5 pb-4 pt-12">
+        <button onClick={() => setScreen('me')} className={lightIconButton} aria-label="返回">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#b4834a]">Couple Space</p>
+          <h2 className="text-lg font-black">情侣空间</h2>
+        </div>
+        <button onClick={() => showToast('已邀请对方一起完善情侣空间')} className={lightIconButton} aria-label="邀请">
+          <UserPlus size={19} />
+        </button>
+      </header>
+
+      <main className="flex-1 overflow-y-auto px-5 pb-10 no-scrollbar">
+        <section className="rounded-[32px] bg-[#2f261d] p-5 text-white shadow-[0_24px_50px_rgba(65,42,28,0.18)]">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/45">Bridge to marriage</p>
+              <h1 className="mt-2 text-2xl font-black leading-tight">把说不出口的事，变成可以一起走的路</h1>
+            </div>
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-white/10">
+              <Heart size={28} className="text-[#ff9ab0]" fill="currentColor" />
+            </div>
+          </div>
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            {[['214天', '绑定时长'], ['76%', '了解进度'], ['12项', '婚前议题']].map(([value, label]) => (
+              <div key={label} className="rounded-2xl bg-white/8 p-3">
+                <p className="text-lg font-black">{value}</p>
+                <p className="mt-0.5 text-[10px] font-bold text-white/45">{label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-4 grid grid-cols-2 gap-2 rounded-[24px] bg-white/70 p-1.5">
+          {[{ id: 'private', label: '私密空间', icon: Lock }, { id: 'public', label: '公开空间', icon: Globe }].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as 'private' | 'public')}
+              className={`flex h-12 items-center justify-center gap-2 rounded-[18px] text-sm font-black transition-all ${activeTab === tab.id ? 'bg-white text-[#2f261d] shadow-sm' : 'text-[#8f7f6d]'}`}
+            >
+              <tab.icon size={16} />
+              {tab.label}
+            </button>
+          ))}
+        </section>
+
+        <section className="mt-4 space-y-3">
+          <h3 className="px-1 text-base font-black">特别玩法</h3>
+          {modules.map((item) => (
+            <button key={item.title} onClick={() => setScreen(item.screen)} className={`w-full rounded-[24px] bg-gradient-to-r ${item.tone} p-4 text-left shadow-sm active:scale-[0.99] transition-transform`}>
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#2f261d] shadow-sm">
+                  <item.icon size={20} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-sm font-black">{item.title}</h4>
+                    <span className="shrink-0 rounded-full bg-white/80 px-2.5 py-1 text-[10px] font-black text-[#8f7f6d]">{item.meta}</span>
+                  </div>
+                  <p className="mt-1 text-xs font-bold leading-relaxed text-[#8f7f6d]">{item.desc}</p>
+                </div>
+                <ChevronRight size={17} className="text-[#b0a08e]" />
+              </div>
+            </button>
+          ))}
+        </section>
+
+        <section className="mt-4 space-y-3">
+          {currentItems.map((item) => (
+            <button
+              key={item.title}
+              onClick={() => {
+                setCoupleDetail({
+                  title: item.title,
+                  eyebrow: activeTab === 'private' ? 'Private room' : 'Public room',
+                  desc: item.desc,
+                  tag: item.tag,
+                  items: activeTab === 'private'
+                    ? ['先各自写下答案', '交换时只复述对方意思', '最后沉淀一个可执行约定']
+                    : ['确认哪些内容可以公开', '选择展示给朋友的版本', '发布前双方都可撤回'],
+                  action: activeTab === 'private' ? '开始填写回应' : '预览公开展示',
+                });
+                setScreen('couple-detail');
+              }}
+              className="w-full rounded-[24px] bg-white/82 p-4 text-left shadow-sm active:scale-[0.99] transition-transform"
+            >
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#fff1f4] text-[#FE2C55]">
+                  {activeTab === 'private' ? <Lock size={17} /> : <Globe size={17} />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-black">{item.title}</h3>
+                    <span className="shrink-0 rounded-full bg-[#f6ede3] px-2.5 py-1 text-[10px] font-black text-[#8f7f6d]">{item.tag}</span>
+                  </div>
+                  <p className="mt-1.5 text-xs font-bold leading-relaxed text-[#8f7f6d]">{item.desc}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </section>
+      </main>
+    </div>
+  );
+};
+
+const CoupleModuleScreen = ({ setScreen, type, setCoupleDetail }: { setScreen: (s: Screen) => void, type: 'date' | 'travel' | 'bridge' | 'marriage', setCoupleDetail: (detail: CoupleDetail) => void }) => {
+  const configs = {
+    date: { eyebrow: 'Today date', title: '今日约会日程', desc: '把约会拆成可执行的小节点，让双方都知道今天如何靠近彼此。', icon: CalendarHeart, hero: '今晚 19:30', items: [['18:40', '下班前确认心情', '各自用 1 个词描述今天的状态'], ['19:30', '一起吃饭', '手机静音 40 分钟，聊今天最累的一刻'], ['23:20', '睡前复盘', '各说一句今天被照顾到的地方']], action: '生成今晚约会提醒' },
+    travel: { eyebrow: 'Travel wishlist', title: '今年一起旅行的地方', desc: '把目的地、预算、假期和纪念日放在同一张期待清单里。', icon: MapPin, hero: '6 个目的地', items: [['春天', '杭州', '周末短途，预算 1800'], ['五一', '厦门', '海边散步、一起做旅行账本'], ['纪念日', '京都', '长期愿望，先攒机票基金']], action: '新增想去的地方' },
+    bridge: { eyebrow: 'Communication bridge', title: '沟通桥梁', desc: '每天一个问题，不审判、不抢答，只帮你们听懂对方真正的需求。', icon: MessageSquare, hero: '4/7 天', items: [['表达感谢', '今天对方做的哪件小事让你安心？', '已完成'], ['说出担心', '最近你最怕我们忽略的问题是什么？', '待回应'], ['修复约定', '下次争吵暂停时，我们用什么暗号？', '未开始']], action: '开始今日沟通' },
+    marriage: { eyebrow: 'Marriage map', title: '婚前共同地图', desc: '把走向婚姻前必须聊清楚的事，变成双方都能回看的共识。', icon: Home, hero: '12 项议题', items: [['金钱观', '收入、储蓄、债务、共同账户', '已达成'], ['父母边界', '探望频率、经济支持、节日安排', '讨论中'], ['未来城市', '定居城市、买房节奏、职业机会', '待补充']], action: '继续完善共识' },
+  }[type];
+  const Icon = configs.icon;
+
+  return (
+    <div className="flex h-full flex-col bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_48%,#efe6da_100%)] text-[#2f261d]">
+      <header className="flex items-center justify-between px-5 pb-4 pt-12">
+        <button onClick={() => setScreen('couple-space')} className={lightIconButton} aria-label="返回">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#b4834a]">{configs.eyebrow}</p>
+          <h2 className="text-lg font-black">{configs.title}</h2>
+        </div>
+        <div className="w-10" />
+      </header>
+      <main className="flex-1 overflow-y-auto px-5 pb-10 no-scrollbar">
+        <section className="rounded-[32px] bg-[#2f261d] p-5 text-white shadow-[0_24px_50px_rgba(65,42,28,0.18)]">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white/10">
+              <Icon size={28} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/45">{configs.eyebrow}</p>
+              <h1 className="mt-1 text-2xl font-black">{configs.hero}</h1>
+              <p className="mt-1 text-xs font-bold leading-relaxed text-white/58">{configs.desc}</p>
+            </div>
+          </div>
+        </section>
+        <section className="mt-4 space-y-3">
+          {configs.items.map((item, index) => (
+            <div key={`${item[0]}-${index}`} className="rounded-[24px] bg-white/82 p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#fff1f4] text-xs font-black text-[#FE2C55]">{index + 1}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-black">{item[0]}</h3>
+                    <span className="shrink-0 rounded-full bg-[#f6ede3] px-2.5 py-1 text-[10px] font-black text-[#8f7f6d]">{item[2]}</span>
+                  </div>
+                  <p className="mt-1.5 text-xs font-bold leading-relaxed text-[#8f7f6d]">{item[1]}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </section>
+        <button
+          onClick={() => {
+            setCoupleDetail({
+              title: configs.action,
+              eyebrow: configs.eyebrow,
+              desc: configs.desc,
+              tag: configs.hero,
+              items: configs.items.map((item) => `${item[0]}：${item[1]}`),
+              action: '保存并通知对方',
+            });
+            setScreen('couple-detail');
+          }}
+          className="mt-5 h-14 w-full rounded-[22px] bg-[#FE2C55] text-sm font-black text-white shadow-[0_16px_32px_rgba(254,44,85,0.22)] active:scale-95 transition-transform"
+        >
+          {configs.action}
+        </button>
+      </main>
+    </div>
+  );
+};
+
+const CoupleDetailScreen = ({ setScreen, detail, showToast }: { setScreen: (s: Screen) => void, detail: CoupleDetail, showToast: (m: string) => void }) => (
+  <div className="flex h-full flex-col bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_48%,#efe6da_100%)] text-[#2f261d]">
+    <header className="flex items-center justify-between px-5 pb-4 pt-12">
+      <button onClick={() => setScreen('couple-space')} className={lightIconButton} aria-label="返回">
+        <ArrowLeft size={20} />
+      </button>
+      <div className="text-center">
+        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#b4834a]">{detail.eyebrow}</p>
+        <h2 className="text-lg font-black">详情</h2>
+      </div>
+      <div className="w-10" />
+    </header>
+    <main className="flex-1 overflow-y-auto px-5 pb-10 no-scrollbar">
+      <section className="rounded-[32px] bg-[#2f261d] p-5 text-white">
+        <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black text-white/60">{detail.tag}</span>
+        <h1 className="mt-4 text-2xl font-black leading-tight">{detail.title}</h1>
+        <p className="mt-2 text-sm font-bold leading-relaxed text-white/58">{detail.desc}</p>
+      </section>
+      <section className="mt-4 rounded-[28px] bg-white/82 p-5">
+        <h3 className="text-base font-black">下一步怎么做</h3>
+        <div className="mt-4 space-y-3">
+          {detail.items.map((item, index) => (
+            <div key={item} className="flex items-start gap-3 rounded-2xl bg-[#f8f1e8] p-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-xs font-black text-[#FE2C55]">{index + 1}</div>
+              <p className="min-w-0 flex-1 text-xs font-bold leading-relaxed text-[#7d6f61]">{item}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+      <button onClick={() => showToast('已保存，等待对方回应')} className="mt-5 h-14 w-full rounded-[22px] bg-[#FE2C55] text-sm font-black text-white shadow-[0_16px_32px_rgba(254,44,85,0.22)] active:scale-95 transition-transform">
+        {detail.action}
+      </button>
+    </main>
+  </div>
+);
 
 const ContentDetailScreen = ({
   item,
@@ -6739,6 +7004,14 @@ export default function App() {
   const [diamondBalance, setDiamondBalance] = useState(1260);
   const [energyBalance] = useState(8420);
   const [userVlogs, setUserVlogs] = useState<UserVlog[]>([]);
+  const [coupleDetail, setCoupleDetail] = useState<CoupleDetail>({
+    title: '今晚 20 分钟真心话',
+    eyebrow: 'Private room',
+    desc: '各自回答一个问题，再把答案沉淀成关系备忘。',
+    tag: '1/2',
+    items: ['先各自写下答案', '交换时只复述对方意思', '最后沉淀一个可执行约定'],
+    action: '开始填写回应',
+  });
   const [profile, setProfile] = useState<EditableProfile>({
     name: CURRENT_USER.name,
     userId: 'Dear6317B6SG',
@@ -7166,6 +7439,18 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
         return <ReportSuccessScreen setScreen={sS} targetName={reportTargetName} />;
       case 'personal-profile':
         return <PersonalProfileScreen setScreen={sS} profile={profile} setProfile={setProfile} showToast={showToast} />;
+      case 'couple-space':
+        return <CoupleSpaceScreen setScreen={sS} showToast={showToast} setCoupleDetail={setCoupleDetail} />;
+      case 'couple-date-schedule':
+        return <CoupleModuleScreen setScreen={sS} type="date" setCoupleDetail={setCoupleDetail} />;
+      case 'couple-travel-plan':
+        return <CoupleModuleScreen setScreen={sS} type="travel" setCoupleDetail={setCoupleDetail} />;
+      case 'couple-bridge':
+        return <CoupleModuleScreen setScreen={sS} type="bridge" setCoupleDetail={setCoupleDetail} />;
+      case 'couple-marriage-map':
+        return <CoupleModuleScreen setScreen={sS} type="marriage" setCoupleDetail={setCoupleDetail} />;
+      case 'couple-detail':
+        return <CoupleDetailScreen setScreen={sS} detail={coupleDetail} showToast={showToast} />;
       case 'gift':
         return <GiftScreen setScreen={sS} prevScreen={prevScreen} showToast={showToast} />;
       case 'energy-detail':
