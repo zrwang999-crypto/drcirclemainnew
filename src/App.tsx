@@ -35,6 +35,7 @@ import {
   UserPlus,
   Video,
   Lock,
+  Unlock,
   Globe,
   Users2,
   MoreHorizontal,
@@ -149,6 +150,20 @@ const dailyLifeCaptions = [
   '新鞋第一次出门',
 ];
 const dailyLifeUsers = ['林野', 'Mia', '周屿', '南川', 'Echo', '阿泽', '小北', '苏苏', '张震', 'Dear', 'Ann', 'Lucas'];
+const dailyLifeLocations = [
+  '深圳万象天地',
+  'HAUS NOWHERE',
+  '金牌陶陶居',
+  '华润大厦',
+  '地铁高新园站',
+  '深业上城',
+  '便利店门口',
+  '南山咖啡街',
+  '海岸城',
+  '人才公园',
+  '万象前海',
+  '深圳湾公园',
+];
 type HomeFeedItemKind = 'collab' | 'cp' | 'video' | 'image';
 type HomeFeedItem = {
   id: string;
@@ -577,6 +592,12 @@ const HomeScreen = ({
                     {item.kind === 'video' && (
                       <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/58 text-white shadow-sm backdrop-blur-md">
                         <Play size={13} className="ml-0.5 fill-current" strokeWidth={3} />
+                      </span>
+                    )}
+                    {(item.kind === 'video' || item.kind === 'image') && (
+                      <span className="absolute bottom-2 left-2 flex max-w-[78%] items-center gap-1 rounded-full bg-black/58 px-2.5 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur-md">
+                        <MapPin size={11} />
+                        <span className="truncate">{dailyLifeLocations[item.mediaIndex % dailyLifeLocations.length]}</span>
                       </span>
                     )}
 	                  <div className="absolute inset-0 bg-gradient-to-t from-black/42 via-transparent to-black/5" />
@@ -3506,6 +3527,310 @@ const CreateSuccessScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) 
   );
 };
 
+const hotTopicOptions = [
+  { tag: '#日常瞬间', heat: '128.4万浏览', desc: '记录今天发生的小事' },
+  { tag: '#城市生活', heat: '96.8万浏览', desc: '街角、通勤、晚风和灯' },
+  { tag: '#DR圈', heat: '72.1万浏览', desc: '正在被朋友们共创的内容' },
+  { tag: '#今天吃什么', heat: '61.3万浏览', desc: '早餐、咖啡、深夜食堂' },
+  { tag: '#深圳周末', heat: '45.7万浏览', desc: '附近正在发生的新鲜事' },
+  { tag: '#下班后的三十分钟', heat: '38.9万浏览', desc: '把生活还给自己的片刻' },
+];
+
+const HotTopicDrawer = ({
+  isOpen,
+  onClose,
+  onSelect,
+}: {
+  isOpen: boolean,
+  onClose: () => void,
+  onSelect: (tag: string) => void,
+}) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 z-[140] flex flex-col justify-end bg-black/35 backdrop-blur-[2px]"
+      >
+        <motion.div
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 30, stiffness: 260 }}
+          onClick={(event) => event.stopPropagation()}
+          className="max-h-[72%] overflow-hidden rounded-t-[26px] bg-white text-[#2f261d] shadow-[0_-18px_50px_rgba(47,38,29,0.18)]"
+        >
+          <div className="sticky top-0 z-10 border-b border-[#eee4d8] bg-white px-5 pb-3 pt-4">
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#e3d7ca]" />
+            <div className="flex items-center justify-between">
+              <h3 className="text-[18px] font-black">热门话题</h3>
+              <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f1e9] text-[#8f7f6d] active:scale-95 transition-transform" aria-label="关闭">
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+          <div className="max-h-[460px] overflow-y-auto px-5 pb-8 no-scrollbar">
+            {hotTopicOptions.map((item, index) => (
+              <button
+                key={item.tag}
+                onClick={() => onSelect(item.tag)}
+                className="flex w-full items-center gap-3 border-b border-[#f1e8dc] py-4 text-left active:bg-[#fbf6ef]"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff0f3] text-[13px] font-black text-[#FE2C55]">
+                  {index + 1}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[15px] font-black">{item.tag}</span>
+                  <span className="mt-0.5 block truncate text-[11px] font-bold text-[#9b8a79]">{item.desc}</span>
+                </span>
+                <span className="text-[11px] font-black text-[#c0b09d]">{item.heat}</span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
+const locationOptions = [
+  { name: '深圳万象天地', type: '商场', address: '南山区粤海街道大冲社区深南大道 9668 号', distance: '135m' },
+  { name: 'HAUS NOWHERE(深圳)', type: '商场', address: '南山区深南大道 9668 号深圳万象天地', distance: '294m' },
+  { name: '金牌陶陶居(万象天地店)', type: '美食', address: '南山区华润万象天地 C 座 SL186', distance: '38m' },
+  { name: '华为旗舰店·深圳万象天地', type: '数码产品', address: '南山区粤海街道深南大道 9668 号', distance: '106m' },
+  { name: '庆春朴门(万象天地店)', type: '素食', address: '南山区华润万象天地北区里巷 3 层', distance: '210m' },
+  { name: '隐厨·中国菜馆(深圳万象天地店)', type: '湘菜', address: '南山区科润路 9668 号', distance: '204m' },
+  { name: '优衣库(深圳万象天地店)', type: '服装', address: '南山区粤海街道深南大道 9668 号', distance: '85m' },
+];
+
+const LocationDrawer = ({
+  isOpen,
+  onClose,
+  selected,
+  onSelect,
+}: {
+  isOpen: boolean,
+  onClose: () => void,
+  selected: string,
+  onSelect: (name: string) => void,
+}) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 z-[140] flex flex-col justify-end bg-black/35 backdrop-blur-[2px]"
+      >
+        <motion.div
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 30, stiffness: 260 }}
+          onClick={(event) => event.stopPropagation()}
+          className="max-h-[78%] overflow-hidden rounded-t-[26px] bg-white text-[#2f261d] shadow-[0_-18px_50px_rgba(47,38,29,0.18)]"
+        >
+          <div className="sticky top-0 z-10 border-b border-[#eee4d8] bg-white px-5 pb-3 pt-4">
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#e3d7ca]" />
+            <div className="flex items-center justify-between">
+              <h3 className="text-[18px] font-black">添加地点</h3>
+              <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f1e9] text-[#8f7f6d] active:scale-95 transition-transform" aria-label="关闭">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="mt-5 flex h-11 items-center overflow-hidden rounded-full bg-[#f6f1ea] text-[14px] font-bold text-[#2f261d]">
+              <span className="flex h-full items-center gap-1 border-r border-[#e2d8cc] px-4">深圳 <ChevronDown size={14} /></span>
+              <span className="px-4 text-[#b6a695]">搜索地点</span>
+            </div>
+          </div>
+          <div className="max-h-[500px] overflow-y-auto px-5 pb-24 no-scrollbar">
+            {locationOptions.map((item) => (
+              <button
+                key={item.name}
+                onClick={() => onSelect(item.name)}
+                className="flex w-full items-center gap-3 border-b border-[#f1e8dc] py-4 text-left active:bg-[#fbf6ef]"
+              >
+                <span className={`h-6 w-6 shrink-0 rounded-full border-2 ${selected === item.name ? 'border-[#FE2C55] bg-[#FE2C55]' : 'border-[#d8ccbf]'}`} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[16px] font-black">{item.name}</span>
+                  <span className="mt-1 block truncate text-[12px] font-bold text-[#9b8a79]">{item.type} | {item.address}</span>
+                </span>
+                <span className="text-[12px] font-black text-[#b6a695]">{item.distance}</span>
+              </button>
+            ))}
+          </div>
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-white via-white to-white/0 px-16 pb-8 pt-8">
+            <button
+              onClick={onClose}
+              className="h-14 w-full rounded-full bg-[#FE2C55] text-[15px] font-black text-white shadow-[0_16px_30px_rgba(254,44,85,0.22)] active:scale-95 transition-transform"
+            >
+              完成
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
+const visibilityOptions = [
+  { key: 'public', label: '公开可见', icon: Unlock },
+  { key: 'friends', label: '仅互关好友可见', icon: Users2 },
+  { key: 'private', label: '仅自己可见', icon: Lock },
+] as const;
+type VisibilityMode = typeof visibilityOptions[number]['key'];
+type VisibilityCustomMode = 'allow' | 'deny';
+const visibilityPeopleGroups = {
+  friends: ['林野', 'Mia', '周屿', '南川'],
+  followers: ['Echo', '阿泽', '小北', '苏苏'],
+  following: ['张震', 'Dear', 'Ann', 'Lucas'],
+};
+
+const VisibilityDrawer = ({
+  isOpen,
+  onClose,
+  visibility,
+  setVisibility,
+  allowList,
+  denyList,
+  setAllowList,
+  setDenyList,
+}: {
+  isOpen: boolean,
+  onClose: () => void,
+  visibility: VisibilityMode,
+  setVisibility: (mode: VisibilityMode) => void,
+  allowList: Set<string>,
+  denyList: Set<string>,
+  setAllowList: React.Dispatch<React.SetStateAction<Set<string>>>,
+  setDenyList: React.Dispatch<React.SetStateAction<Set<string>>>,
+}) => {
+  const [customMode, setCustomMode] = useState<VisibilityCustomMode | null>(null);
+  const [group, setGroup] = useState<'friends' | 'followers' | 'following'>('friends');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setCustomMode(null);
+      setGroup('friends');
+    }
+  }, [isOpen]);
+
+  const activeList = customMode === 'allow' ? allowList : denyList;
+  const setActiveList = customMode === 'allow' ? setAllowList : setDenyList;
+
+  const togglePerson = (name: string) => {
+    setActiveList(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 z-[145] flex flex-col justify-end bg-black/35 backdrop-blur-[2px]"
+        >
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 260 }}
+            onClick={(event) => event.stopPropagation()}
+            className="max-h-[78%] overflow-hidden rounded-t-[26px] bg-[#f7f7f7] text-[#2f261d] shadow-[0_-18px_50px_rgba(47,38,29,0.18)]"
+          >
+            <div className="px-4 pb-6 pt-4">
+              <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-[#cfcfcf]" />
+              {customMode ? (
+                <>
+                  <div className="mb-4 flex items-center justify-between">
+                    <button onClick={() => setCustomMode(null)} className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#8f7f6d] shadow-sm active:scale-95 transition-transform" aria-label="返回">
+                      <ArrowLeft size={18} />
+                    </button>
+                    <h3 className="text-[17px] font-black">{customMode === 'allow' ? '只给谁看' : '不给谁看'}</h3>
+                    <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#8f7f6d] shadow-sm active:scale-95 transition-transform" aria-label="关闭">
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <div className="mb-3 grid grid-cols-3 gap-2 rounded-[18px] bg-white p-2 shadow-sm">
+                    {[
+                      ['friends', '好友'],
+                      ['followers', '粉丝'],
+                      ['following', '关注'],
+                    ].map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => setGroup(key as typeof group)}
+                        className={`h-10 rounded-[14px] text-[12px] font-black ${group === key ? 'bg-[#2f261d] text-white' : 'bg-[#f6f1ea] text-[#8f7f6d]'}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="max-h-[380px] overflow-y-auto rounded-[18px] bg-white px-4 shadow-sm no-scrollbar">
+                    {visibilityPeopleGroups[group].map((name) => (
+                      <button key={name} onClick={() => togglePerson(name)} className="flex w-full items-center gap-3 border-b border-[#f1e8dc] py-4 text-left last:border-b-0">
+                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-10 w-10 rounded-full bg-[#f6ede3]" />
+                        <span className="flex-1 text-[15px] font-black">{name}</span>
+                        <span className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${activeList.has(name) ? 'border-[#FE2C55] bg-[#FE2C55] text-white' : 'border-[#d8ccbf]'}`}>
+                          {activeList.has(name) && <Check size={14} strokeWidth={4} />}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={onClose} className="mt-4 h-[52px] w-full rounded-full bg-[#FE2C55] text-[14px] font-black text-white shadow-[0_16px_30px_rgba(254,44,85,0.22)] active:scale-95 transition-transform">
+                    完成
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="overflow-hidden rounded-[18px] bg-white shadow-sm">
+                    {visibilityOptions.map((item) => (
+                      <button
+                        key={item.key}
+                        onClick={() => setVisibility(item.key)}
+                        className="flex h-[74px] w-full items-center gap-5 border-b border-[#efefef] px-5 text-left last:border-b-0 active:bg-[#fbf6ef]"
+                      >
+                        <item.icon size={24} className="text-[#2f261d]" />
+                        <span className="flex-1 text-[20px] font-black">{item.label}</span>
+                        {visibility === item.key && <Check size={24} className="text-[#FE2C55]" strokeWidth={3} />}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 overflow-hidden rounded-[18px] bg-white shadow-sm">
+                    <button onClick={() => setCustomMode('allow')} className="flex h-[74px] w-full items-center gap-5 border-b border-[#efefef] px-5 text-left active:bg-[#fbf6ef]">
+                      <Users2 size={24} className="text-[#2f261d]" />
+                      <span className="flex-1 text-[20px] font-black">只给谁看</span>
+                      <span className="text-[12px] font-black text-[#b6a695]">{allowList.size ? `${allowList.size}人` : ''}</span>
+                      <ChevronRight size={22} className="text-[#9b8a79]" />
+                    </button>
+                    <button onClick={() => setCustomMode('deny')} className="flex h-[74px] w-full items-center gap-5 px-5 text-left active:bg-[#fbf6ef]">
+                      <Users2 size={24} className="text-[#2f261d]" />
+                      <span className="flex-1 text-[20px] font-black">不给谁看</span>
+                      <span className="text-[12px] font-black text-[#b6a695]">{denyList.size ? `${denyList.size}人` : ''}</span>
+                      <ChevronRight size={22} className="text-[#9b8a79]" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const AlbumComposer = ({
   setScreen,
   showToast,
@@ -3520,82 +3845,406 @@ const AlbumComposer = ({
   prevScreen: Screen,
 }) => {
   const [selectedPreview, setSelectedPreview] = useState<string | null>(null);
+  const [selectedPreviews, setSelectedPreviews] = useState<string[]>([]);
   const [caption, setCaption] = useState('');
+  const [step, setStep] = useState<'album' | 'edit'>('album');
+  const [isTopicDrawerOpen, setIsTopicDrawerOpen] = useState(false);
+  const [isLocationDrawerOpen, setIsLocationDrawerOpen] = useState(false);
+  const [isVisibilityDrawerOpen, setIsVisibilityDrawerOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [visibility, setVisibility] = useState<VisibilityMode>('public');
+  const [allowList, setAllowList] = useState<Set<string>>(new Set());
+  const [denyList, setDenyList] = useState<Set<string>>(new Set());
+  const albumSamples = dailyLifeFrames.slice(0, 12);
+  const visibilityLabel = visibility === 'public' ? '公开可见' : visibility === 'friends' ? '互关好友可见' : '仅自己可见';
 
   const handlePick = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (loadEvent) => {
-      setSelectedPreview(String(loadEvent.target?.result || ''));
-      showToast('已从相册选择素材');
+      const preview = String(loadEvent.target?.result || '');
+      setSelectedPreview(preview);
+      setSelectedPreviews(prev => prev.includes(preview) ? prev : [...prev, preview].slice(0, 9));
+      showToast('已从相册选择');
     };
     reader.readAsDataURL(file);
   };
 
-  return (
-    <main className="relative flex-1 overflow-y-auto px-6 pb-10 pt-32 no-scrollbar">
-      <button
-        onClick={() => setScreen(source === 'join' ? 'join' : prevScreen || 'home')}
-        className="absolute left-6 top-12 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/8 text-white backdrop-blur-md active:scale-95 transition-transform"
-        aria-label="关闭"
-      >
-        <X size={22} />
-      </button>
-      <div className="mx-auto flex max-w-[360px] flex-col gap-5">
-        <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 shadow-2xl">
-          <label className="relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[20px] border border-dashed border-white/18 bg-white/[0.03] active:scale-[0.99] transition-transform">
-            {selectedPreview ? (
-              <img src={selectedPreview} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            ) : (
-              <div className="flex flex-col items-center gap-4 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-black">
-                  <ImageIcon size={28} />
-                </div>
-                <div>
-                  <p className="text-lg font-black text-white">从相册选择</p>
-                  <p className="mt-1 text-[11px] font-bold text-white/38">取第一帧作为共创封面</p>
-                </div>
-              </div>
-            )}
-            <input type="file" accept="image/*,video/*" className="hidden" onChange={handlePick} />
-            {selectedPreview && (
-              <div className="absolute left-3 top-3 rounded-full bg-black/52 px-3 py-1 text-[10px] font-black text-white backdrop-blur-md">
-                第一帧封面
-              </div>
-            )}
-          </label>
-        </div>
+  const selectSample = (image: string) => {
+    setSelectedPreview(image);
+    setSelectedPreviews(prev => (
+      prev.includes(image)
+        ? prev.filter(item => item !== image)
+        : [...prev, image].slice(0, 9)
+    ));
+  };
 
-        <div className="rounded-[20px] border border-white/8 bg-white/[0.04] p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <label className="text-[10px] font-black uppercase tracking-[0.22em] text-white/38">写文字</label>
-            <span className="text-[10px] font-black text-white/18">{caption.length}/80</span>
+  const goBack = () => {
+    if (step === 'edit') {
+      setStep('album');
+      return;
+    }
+    setScreen(source === 'join' ? 'join' : prevScreen || 'home');
+  };
+
+  return (
+    <main className="relative flex-1 overflow-y-auto bg-[#f9f5ef] px-5 pb-10 pt-28 text-[#2f261d] no-scrollbar">
+      <button
+        onClick={goBack}
+        className="absolute left-5 top-12 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-[#eadfce] bg-white/90 text-[#2f261d] shadow-sm active:scale-95 transition-transform"
+        aria-label="返回"
+      >
+        {step === 'album' ? <X size={20} /> : <ArrowLeft size={20} />}
+      </button>
+      <div className="absolute inset-x-0 top-12 z-10 flex justify-center pointer-events-none">
+        <div className="rounded-full bg-white/80 px-4 py-2 text-[12px] font-black shadow-sm">
+          {step === 'album' ? '最近项目' : '发布动态'}
+        </div>
+      </div>
+
+      {step === 'album' ? (
+        <div className="mx-auto flex max-w-[360px] flex-col gap-3 pb-24">
+          <div className="grid grid-cols-3 gap-1">
+            {albumSamples.map((image, index) => (
+              <button
+                key={image}
+                onClick={() => selectSample(image)}
+                className="relative aspect-square overflow-hidden bg-[#eadfce] active:scale-[0.98] transition-transform"
+              >
+                <img src={image} alt="" className="h-full w-full object-cover" />
+                {selectedPreviews.includes(image) && (
+                  <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#FE2C55] text-[10px] font-black text-white shadow-sm">
+                    {selectedPreviews.indexOf(image) + 1}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
-          <textarea
-            value={caption}
-            onChange={(event) => setCaption(event.target.value.slice(0, 80))}
-            placeholder={topic ? `回应：${topic.prompt}` : '写下这次共创想表达的内容'}
-            className="h-28 w-full resize-none rounded-xl border border-white/8 bg-black/24 px-4 py-3 text-sm font-bold leading-relaxed text-white outline-none placeholder:text-white/18 focus:border-white/20"
+
+          <div className="absolute inset-x-0 bottom-0 z-20 border-t border-[#eadfce] bg-[#f9f5ef]/92 px-5 pb-8 pt-4 backdrop-blur-xl">
+            <button
+              onClick={() => {
+                if (selectedPreviews.length === 0) {
+                  showToast('请选择一张照片');
+                  return;
+                }
+                setStep('edit');
+              }}
+              className={`mx-auto flex h-12 w-full max-w-[360px] items-center justify-center rounded-full text-[13px] font-black shadow-sm active:scale-95 transition-all ${
+                selectedPreviews.length > 0
+                  ? 'bg-[#FE2C55] text-white shadow-[0_12px_24px_rgba(254,44,85,0.2)]'
+                  : 'bg-white/82 text-[#c0b09d]'
+              }`}
+            >
+              下一步
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="mx-auto flex max-w-[360px] flex-col gap-4">
+          <div className="rounded-[18px] border border-[#eadfce] bg-white p-4 shadow-sm">
+            <div className="flex gap-3 overflow-x-auto no-scrollbar">
+              {selectedPreviews.map((preview, index) => (
+                <button
+                  key={preview}
+                  onClick={() => setSelectedPreview(preview)}
+                  className={`relative h-[92px] w-[92px] shrink-0 overflow-hidden rounded-[18px] border-2 bg-[#f7f1e9] active:scale-95 transition-transform ${
+                    selectedPreview === preview ? 'border-[#FE2C55]' : 'border-transparent'
+                  }`}
+                >
+                  <img src={preview} alt="" className="h-full w-full object-cover" />
+                  <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#FE2C55] text-[10px] font-black text-white shadow-sm">
+                    {index + 1}
+                  </span>
+                </button>
+              ))}
+              <button
+                onClick={() => setStep('album')}
+                className="flex h-[92px] w-[92px] shrink-0 items-center justify-center rounded-[18px] border border-[#eadfce] bg-[#f8f4ed] text-[#c0b09d] active:scale-95 transition-transform"
+                aria-label="继续添加"
+              >
+                <Plus size={34} strokeWidth={1.8} />
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-[18px] border border-[#eadfce] bg-white p-4 shadow-sm">
+            <textarea
+              value={caption}
+              onChange={(event) => setCaption(event.target.value.slice(0, 180))}
+              placeholder={topic ? `回应：${topic.prompt}` : '分享你的想法、地点、心情...'}
+              className="h-40 w-full resize-none bg-transparent text-[15px] font-bold leading-7 text-[#4f3d2d] outline-none placeholder:text-[#c2b2a1]"
+            />
+            <div className="mt-3 flex flex-wrap gap-2">
+              {['#日常瞬间', '#城市生活', topic ? `#${topic.prompt}` : '#DR圈'].map(tag => (
+                <button key={tag} onClick={() => setCaption(prev => `${prev}${prev ? ' ' : ''}${tag}`)} className="rounded-full bg-[#f7f1e9] px-3 py-1.5 text-[11px] font-black text-[#8f7f6d] active:scale-95 transition-transform">
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => setIsLocationDrawerOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-[14px] bg-white px-3 text-[12px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
+              <MapPin size={15} /> <span className="truncate">{selectedLocation || '添加地点'}</span>
+            </button>
+            <button onClick={() => setIsTopicDrawerOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-[14px] bg-white text-[12px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
+              <Hash size={15} /> 话题
+            </button>
+          </div>
+          <button onClick={() => setIsVisibilityDrawerOpen(true)} className="flex h-12 items-center justify-between rounded-[14px] bg-white px-4 text-[12px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
+            <span className="flex items-center gap-2"><Lock size={15} /> 查看权限</span>
+            <span className="flex items-center gap-1">{allowList.size ? `${allowList.size}人` : denyList.size ? `${denyList.size}人` : visibilityLabel}<ChevronRight size={15} /></span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (selectedPreviews.length === 0) {
+                showToast('请先从相册选择素材');
+                setStep('album');
+                return;
+              }
+              if (!caption.trim()) {
+                showToast('请写一句笔记内容');
+                return;
+              }
+              showToast('发布成功');
+              setScreen('home');
+            }}
+            className="h-14 rounded-full bg-[#FE2C55] text-[13px] font-black text-white shadow-[0_18px_34px_rgba(254,44,85,0.24)] active:scale-95 transition-transform"
+          >
+            发布
+          </button>
+          <HotTopicDrawer
+            isOpen={isTopicDrawerOpen}
+            onClose={() => setIsTopicDrawerOpen(false)}
+            onSelect={(tag) => {
+              setCaption(prev => `${prev}${prev ? ' ' : ''}${tag}`);
+              setIsTopicDrawerOpen(false);
+            }}
+          />
+          <LocationDrawer
+            isOpen={isLocationDrawerOpen}
+            onClose={() => setIsLocationDrawerOpen(false)}
+            selected={selectedLocation}
+            onSelect={(name) => setSelectedLocation(name)}
+          />
+          <VisibilityDrawer
+            isOpen={isVisibilityDrawerOpen}
+            onClose={() => setIsVisibilityDrawerOpen(false)}
+            visibility={visibility}
+            setVisibility={setVisibility}
+            allowList={allowList}
+            denyList={denyList}
+            setAllowList={setAllowList}
+            setDenyList={setDenyList}
           />
         </div>
+      )}
+    </main>
+  );
+};
 
-        <button
-          onClick={() => {
-            if (!selectedPreview) {
-              showToast('请先从相册选择素材');
-              return;
-            }
-            if (!caption.trim()) {
-              showToast('请写一句共创文字');
-              return;
-            }
-            setScreen('video-edit');
-          }}
-          className="h-14 rounded-[18px] bg-white text-[12px] font-black uppercase tracking-widest text-black shadow-2xl active:scale-95 transition-transform"
-        >
-          {source === 'create' ? '发布共创' : '完成参与共创'}
-        </button>
+const TextComposerScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) => void, showToast: (m: string) => void }) => {
+  const [body, setBody] = useState('');
+  const [publishText, setPublishText] = useState('');
+  const [step, setStep] = useState<'write' | 'background' | 'publish'>('write');
+  const [selectedBoard, setSelectedBoard] = useState(0);
+  const [isTopicDrawerOpen, setIsTopicDrawerOpen] = useState(false);
+  const [isLocationDrawerOpen, setIsLocationDrawerOpen] = useState(false);
+  const [isVisibilityDrawerOpen, setIsVisibilityDrawerOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [visibility, setVisibility] = useState<VisibilityMode>('public');
+  const [allowList, setAllowList] = useState<Set<string>>(new Set());
+  const [denyList, setDenyList] = useState<Set<string>>(new Set());
+  const boards = [
+    'bg-[linear-gradient(135deg,#fff7ed_0%,#fecdd3_52%,#fb7185_100%)] text-[#3a1f1f]',
+    'bg-[linear-gradient(135deg,#ecfeff_0%,#a7f3d0_48%,#22c55e_100%)] text-[#123226]',
+    'bg-[linear-gradient(135deg,#f8fafc_0%,#c7d2fe_52%,#6366f1_100%)] text-[#161a3a]',
+    'bg-[linear-gradient(135deg,#fffbeb_0%,#fde68a_46%,#f97316_100%)] text-[#3a2412]',
+    'bg-[#111827] text-white',
+    'bg-[linear-gradient(135deg,#faf5ff_0%,#e9d5ff_46%,#a855f7_100%)] text-[#2b173a]',
+  ];
+
+  const composedText = body.trim();
+  const visibilityLabel = visibility === 'public' ? '公开可见' : visibility === 'friends' ? '互关好友可见' : '仅自己可见';
+
+  return (
+    <main className="relative flex-1 overflow-y-auto bg-[#f9f5ef] px-5 pb-10 pt-28 text-[#2f261d] no-scrollbar">
+      <button
+        onClick={() => {
+          if (step === 'publish') {
+            setStep('background');
+            return;
+          }
+          if (step === 'background') {
+            setStep('write');
+            return;
+          }
+          setScreen('home');
+        }}
+        className="absolute left-5 top-12 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-[#eadfce] bg-white/90 text-[#2f261d] shadow-sm active:scale-95 transition-transform"
+        aria-label={step === 'write' ? '关闭' : '返回'}
+      >
+        {step === 'write' ? <X size={20} /> : <ArrowLeft size={20} />}
+      </button>
+      <div className="absolute inset-x-0 top-12 z-10 flex justify-center pointer-events-none">
+        <div className="rounded-full bg-white/80 px-4 py-2 text-[12px] font-black shadow-sm">
+          {step === 'write' ? '写文字' : step === 'background' ? '选择背景板' : '发布动态'}
+        </div>
+      </div>
+
+      <div className="mx-auto flex max-w-[360px] flex-col gap-4">
+        {step === 'write' ? (
+          <>
+            <div className="rounded-[22px] border border-[#eadfce] bg-white p-5 shadow-sm">
+              <textarea
+                value={body}
+                onChange={(event) => setBody(event.target.value.slice(0, 220))}
+                placeholder="这一刻想说点什么..."
+                className="h-80 w-full resize-none bg-transparent text-[18px] font-black leading-8 text-[#4f3d2d] outline-none placeholder:text-[#c2b2a1]"
+              />
+              <div className="flex items-center justify-between border-t border-[#eee4d8] pt-4">
+                <div className="flex gap-2">
+                  {[Smile, Hash, MapPin].map((Icon, index) => (
+                    <button key={index} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f1e9] text-[#8f7f6d] active:scale-95 transition-transform">
+                      <Icon size={16} />
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] font-black text-[#b6a695]">{body.length}/220</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                if (!body.trim()) {
+                  showToast('请先写点内容');
+                  return;
+                }
+                setStep('background');
+              }}
+              className="h-14 rounded-full bg-[#FE2C55] text-[13px] font-black text-white shadow-[0_18px_34px_rgba(254,44,85,0.24)] active:scale-95 transition-transform"
+            >
+              下一步
+            </button>
+          </>
+        ) : step === 'background' ? (
+          <>
+            <div className={`flex aspect-[4/5] flex-col items-center justify-center rounded-[24px] p-8 text-center shadow-sm ${boards[selectedBoard]}`}>
+              <p className="whitespace-pre-line text-[24px] font-black leading-snug drop-shadow-sm">
+                {composedText}
+              </p>
+            </div>
+
+            <div className="rounded-[18px] bg-white/82 p-4 shadow-sm">
+              <p className="mb-3 text-[12px] font-black">背景板</p>
+              <div className="grid grid-cols-6 gap-2">
+                {boards.map((board, index) => (
+                  <button
+                    key={board}
+                    onClick={() => setSelectedBoard(index)}
+                    className={`aspect-square rounded-[12px] border-2 ${board} ${selectedBoard === index ? 'border-[#FE2C55]' : 'border-white'}`}
+                    aria-label={`背景板 ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setStep('publish')}
+              className="h-14 rounded-full bg-[#FE2C55] text-[13px] font-black text-white shadow-[0_18px_34px_rgba(254,44,85,0.24)] active:scale-95 transition-transform"
+            >
+              下一步
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="rounded-[22px] border border-[#eadfce] bg-white p-4 shadow-sm">
+              <div className="flex gap-3">
+                <div className={`relative flex h-[96px] w-[96px] shrink-0 items-center justify-center overflow-hidden rounded-[18px] border-2 border-[#FE2C55] p-3 text-center ${boards[selectedBoard]}`}>
+                  <p className="line-clamp-3 whitespace-pre-line text-[15px] font-black leading-tight">
+                    {composedText}
+                  </p>
+                  <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#FE2C55] text-[12px] font-black text-white shadow-sm">
+                    1
+                  </span>
+                </div>
+                <button
+                  onClick={() => setStep('background')}
+                  className="flex h-[96px] w-[96px] shrink-0 items-center justify-center rounded-[18px] border border-[#eadfce] bg-[#f8f4ed] text-[#c0b09d] active:scale-95 transition-transform"
+                  aria-label="添加"
+                >
+                  <Plus size={34} strokeWidth={1.8} />
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-[22px] border border-[#eadfce] bg-white p-5 shadow-sm">
+              <textarea
+                value={publishText}
+                onChange={(event) => setPublishText(event.target.value.slice(0, 180))}
+                placeholder="分享你的想法、地点、心情..."
+                className="h-52 w-full resize-none bg-transparent text-[16px] font-bold leading-7 text-[#4f3d2d] outline-none placeholder:text-[#c2b2a1]"
+              />
+              <div className="flex flex-wrap gap-2">
+                {['#日常瞬间', '#城市生活', '#DR圈'].map(tag => (
+                  <button key={tag} onClick={() => setPublishText(prev => `${prev}${prev ? ' ' : ''}${tag}`)} className="rounded-full bg-[#f7f1e9] px-3 py-1.5 text-[11px] font-black text-[#8f7f6d] active:scale-95 transition-transform">
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setIsLocationDrawerOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-[14px] bg-white px-3 text-[12px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
+                <MapPin size={15} /> <span className="truncate">{selectedLocation || '添加地点'}</span>
+              </button>
+              <button onClick={() => setIsTopicDrawerOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-[14px] bg-white text-[12px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
+                <Hash size={15} /> 话题
+              </button>
+            </div>
+            <button onClick={() => setIsVisibilityDrawerOpen(true)} className="flex h-12 items-center justify-between rounded-[14px] bg-white px-4 text-[12px] font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">
+              <span className="flex items-center gap-2"><Lock size={15} /> 查看权限</span>
+              <span className="flex items-center gap-1">{allowList.size ? `${allowList.size}人` : denyList.size ? `${denyList.size}人` : visibilityLabel}<ChevronRight size={15} /></span>
+            </button>
+
+            <button
+              onClick={() => {
+                showToast('文字笔记已发布');
+                setScreen('home');
+              }}
+              className="h-14 rounded-full bg-[#FE2C55] text-[13px] font-black text-white shadow-[0_18px_34px_rgba(254,44,85,0.24)] active:scale-95 transition-transform"
+            >
+              发布
+            </button>
+            <HotTopicDrawer
+              isOpen={isTopicDrawerOpen}
+              onClose={() => setIsTopicDrawerOpen(false)}
+              onSelect={(tag) => {
+                setPublishText(prev => `${prev}${prev ? ' ' : ''}${tag}`);
+                setIsTopicDrawerOpen(false);
+              }}
+            />
+            <LocationDrawer
+              isOpen={isLocationDrawerOpen}
+              onClose={() => setIsLocationDrawerOpen(false)}
+              selected={selectedLocation}
+              onSelect={(name) => setSelectedLocation(name)}
+            />
+            <VisibilityDrawer
+              isOpen={isVisibilityDrawerOpen}
+              onClose={() => setIsVisibilityDrawerOpen(false)}
+              visibility={visibility}
+              setVisibility={setVisibility}
+              allowList={allowList}
+              denyList={denyList}
+              setAllowList={setAllowList}
+              setDenyList={setDenyList}
+            />
+          </>
+        )}
       </div>
     </main>
   );
@@ -3773,7 +4422,7 @@ const JoinSuccessScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) =>
           完成并返回
         </button>
         <button onClick={() => setIsInviteModalOpen(true)} className="w-full h-14 bg-white/10 backdrop-blur-xl rounded-full font-black uppercase text-xs active:scale-95 transition-transform border border-white/10 text-white/60">
-          邀请好友助力
+          邀请好友拍摄
         </button>
       </div>
 
@@ -6200,6 +6849,8 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
         );
       case 'create-circle':
         return <CreateCircleScreen setScreen={sS} setSelectedTopic={setSelectedTopic} initialTopicInfo={circleInitialTopicInfo} />;
+      case 'text-composer':
+        return <TextComposerScreen setScreen={sS} showToast={showToast} />;
       case 'album-composer':
         return <AlbumComposer setScreen={sS} showToast={showToast} source={albumComposerSource} topic={selectedTopic || undefined} prevScreen={prevScreen} />;
       case 'create-and-shoot':
@@ -6414,7 +7065,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 240 }}
               onClick={(event) => event.stopPropagation()}
-              className="overflow-hidden rounded-t-[28px] bg-white text-center text-[#2f261d] shadow-[0_-18px_44px_rgba(47,38,29,0.16)]"
+              className="overflow-hidden rounded-t-[18px] bg-white text-center text-[#2f261d] shadow-[0_-18px_44px_rgba(47,38,29,0.16)]"
             >
               <button
                 onClick={() => {
@@ -6422,24 +7073,23 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
                   setIsCreateMenuOpen(false);
                   handleSetScreen('album-composer');
                 }}
-                className="flex h-[76px] w-full items-center justify-center border-b border-[#eee4d8] text-[20px] font-bold active:bg-[#f7f3ec]"
+                className="flex h-[76px] w-full items-center justify-center border-b border-[#eee4d8] text-[21px] font-medium active:bg-[#f7f3ec]"
               >
                 从相册选择
               </button>
               <button
                 onClick={() => {
-                  setCircleInitialTopicInfo(undefined);
                   setIsCreateMenuOpen(false);
-                  handleSetScreen('create-circle');
+                  handleSetScreen('text-composer');
                 }}
-                className="flex h-[76px] w-full items-center justify-center border-b border-[#eee4d8] text-[20px] font-bold active:bg-[#f7f3ec]"
+                className="flex h-[76px] w-full items-center justify-center text-[21px] font-medium active:bg-[#f7f3ec]"
               >
                 写文字
               </button>
-              <div className="h-2 bg-[#f7f3ec]" />
+              <div className="h-2 bg-[#f3f3f3]" />
               <button
                 onClick={() => setIsCreateMenuOpen(false)}
-                className="flex h-[70px] w-full items-center justify-center text-[20px] font-bold active:bg-[#f7f3ec]"
+                className="flex h-[70px] w-full items-center justify-center text-[21px] font-medium active:bg-[#f7f3ec]"
               >
                 取消
               </button>
