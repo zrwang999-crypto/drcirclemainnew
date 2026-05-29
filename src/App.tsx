@@ -42,7 +42,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Hash,
-  Copy,
   MessageSquare,
   Pencil,
   Image as ImageIcon,
@@ -4775,21 +4774,6 @@ const CircleScreen = ({
                   <span className="text-[9px] font-black text-white/40 group-active:text-white uppercase tracking-tighter">举报作品</span>
                 </button>
                 <button
-                  key="drawer2-copy-topic"
-                  className="flex flex-col items-center gap-2 group"
-                  onClick={() => {
-                    setIsShareDrawerOpen(false);
-                    setCircleInitialTopicInfo(sharingTopic);
-                    setScreen('create-circle');
-                    showToast('话题配置已复制，您可以修改后发布');
-                  }}
-                >
-                  <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white/60 active:scale-95 transition-transform">
-                    <Copy size={20} />
-                  </div>
-                  <span className="text-[9px] font-black text-white/40 group-active:text-white uppercase tracking-tighter">复制话题并创建</span>
-                </button>
-                <button
                   key="drawer2-heat-topic"
                   className="flex flex-col items-center gap-2 group"
                   onClick={() => {
@@ -5532,18 +5516,6 @@ const ContentDetailScreen = ({
                     setReportTargetName(item.title);
                     closeShareDrawer();
                     setScreen('report-user');
-                  },
-                },
-                {
-                  key: 'copy',
-                  icon: Copy,
-                  label: '复制话题',
-                  tone: 'neutral',
-                  action: () => {
-                    setCircleInitialTopicInfo(item.topic);
-                    closeShareDrawer();
-                    setScreen('create-circle');
-                    showToast('话题配置已复制，您可以修改后发布');
                   },
                 },
               ].map((actionItem) => {
