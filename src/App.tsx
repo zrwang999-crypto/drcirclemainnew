@@ -6272,6 +6272,7 @@ const ContentDetailScreen = ({
   setCircleInitialTopicInfo,
   spotlightTopic,
   isSpotlighted,
+  diamondBalance,
 }: {
   item: HomeFeedItem,
   setScreen: (s: Screen) => void,
@@ -6286,6 +6287,7 @@ const ContentDetailScreen = ({
   setCircleInitialTopicInfo: (topic: Partial<Topic> | undefined) => void,
   spotlightTopic: (id: string) => void,
   isSpotlighted: boolean,
+  diamondBalance: number,
 }) => {
   const [commentText, setCommentText] = useState('');
   const [isPureMode, setIsPureMode] = useState(false);
@@ -6587,7 +6589,10 @@ const ContentDetailScreen = ({
             <div className="mb-5 flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-xl font-black">选择礼物</h3>
-                <p className="mt-1 text-[11px] font-black text-[#9b8a79]">已收到 {totalGiftDiamonds.toLocaleString()} 钻石</p>
+                <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-black text-[#9b8a79]">
+                  作品总收益：{totalGiftDiamonds.toLocaleString()}
+                  <Gem size={12} className="text-[#d6b27e] fill-[#d6b27e]/20" />
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -6631,6 +6636,13 @@ const ContentDetailScreen = ({
             </div>
 
             <div className="border-t border-[#eee4d8] pt-3">
+              <div className="mb-3 flex items-center justify-between rounded-2xl border border-[#eadfce] bg-white/78 px-3 py-2 shadow-sm">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#9b8a79]">我的钻石</span>
+                <span className="inline-flex items-center gap-1.5 text-sm font-black text-[#2f261d]">
+                  <Gem size={14} className="text-[#d6b27e] fill-[#d6b27e]/20" />
+                  {diamondBalance.toLocaleString()}
+                </span>
+              </div>
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-widest text-[#9b8a79]">已选择</p>
@@ -7244,6 +7256,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
             setCircleInitialTopicInfo={setCircleInitialTopicInfo}
             spotlightTopic={spotlightTopic}
             isSpotlighted={spotlightTopicIds.has(selectedContentItem.topic.id)}
+            diamondBalance={diamondBalance}
           />
         ) : (
           <HomeScreen
