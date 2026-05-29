@@ -5,6 +5,7 @@ import {
   Users,
   MessageCircle,
   User as UserIcon,
+  Home,
   Flame,
   ChevronRight,
   ChevronLeft,
@@ -92,8 +93,8 @@ const SpotlightMarquee = ({ spotlightTopics, onSelect }: { spotlightTopics: Topi
 const lightPageRoot = 'flex flex-col h-full bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_42%,#f2ebe1_100%)] text-[#2f261d]';
 const lightPageRootPadded = `${lightPageRoot} pt-8`;
 const lightHeaderShell = 'p-6 flex items-center justify-between sticky top-0 bg-[#f9f5ef]/90 backdrop-blur-xl z-20 border-b border-[#e8dfd2]';
-const lightIconButton = 'w-10 h-10 rounded-2xl flex items-center justify-center border border-[#e9dfd3] bg-white/80 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform';
-const lightSurfaceCard = 'rounded-[32px] border border-[#ece3d7] bg-white/82 shadow-[0_18px_40px_rgba(103,81,58,0.06)] backdrop-blur-xl';
+const lightIconButton = 'w-10 h-10 rounded-xl flex items-center justify-center border border-[#e9dfd3] bg-white/80 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform';
+const lightSurfaceCard = 'rounded-[24px] border border-[#ece3d7] bg-white/82 shadow-[0_18px_40px_rgba(103,81,58,0.06)] backdrop-blur-xl';
 const lightInputField = 'bg-white/82 border border-[#eadfce] text-[#2f261d] placeholder:text-[#baa897]';
 const userIpLocations: Record<string, string> = {
   [CURRENT_USER.name]: CURRENT_USER.ipLocation || '广东',
@@ -176,7 +177,7 @@ const BottomNav = ({ active, setScreen, onPlusClick }: {
   onPlusClick: () => void,
 }) => {
   const navItems: { id: Screen, label: string, icon: typeof UserIcon }[] = [
-    { id: 'home', label: '今日', icon: Flame },
+    { id: 'home', label: '首页', icon: Home },
     { id: 'circle', label: 'DR圈', icon: Users },
   ];
 
@@ -187,7 +188,7 @@ const BottomNav = ({ active, setScreen, onPlusClick }: {
   const isLightNav = true;
 
   const getNavButtonClass = (id: Screen) =>
-    `flex flex-col items-center justify-center space-y-1 w-12 h-12 rounded-2xl transition-all duration-300 ${
+    `flex flex-col items-center justify-center space-y-1 w-12 h-12 rounded-xl transition-all duration-300 ${
       active === id
         ? isLightNav
           ? 'text-[#2f261d]'
@@ -238,7 +239,7 @@ const BottomNav = ({ active, setScreen, onPlusClick }: {
 
       <button
         onClick={onPlusClick}
-        className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm active:scale-90 transition-all z-50 ${
+        className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm active:scale-90 transition-all z-50 ${
           isLightNav
             ? 'bg-[#FE2C55] text-white shadow-[0_10px_20px_rgba(254,44,85,0.22)]'
             : 'border-dark bg-white text-dark'
@@ -385,7 +386,7 @@ const HomeScreen = ({
       <main className="flex-1 overflow-y-auto no-scrollbar px-3 pb-32 pt-1">
         {homeTab === '推荐' && (
           <section className="mb-4">
-            <div className="relative h-44 overflow-hidden rounded-[28px] bg-black text-white shadow-[0_18px_38px_rgba(47,38,29,0.16)]">
+            <div className="relative h-44 overflow-hidden rounded-[20px] bg-black text-white shadow-[0_18px_38px_rgba(47,38,29,0.16)]">
               <AnimatePresence initial={false} mode="popLayout">
                 <motion.button
                   key={activeFeaturedTopic.id}
@@ -445,7 +446,7 @@ const HomeScreen = ({
 
         {homeTab === '关注' && (
           <section className="mb-4 text-[#2f261d]">
-            <div className="overflow-hidden rounded-[30px] border border-[#eadfce] bg-white shadow-[0_14px_32px_rgba(103,81,58,0.08)]">
+            <div className="overflow-hidden rounded-[22px] border border-[#eadfce] bg-white shadow-[0_14px_32px_rgba(103,81,58,0.08)]">
               <div className="border-b border-[#f1eee9] px-6 pb-11 pt-11 text-center">
                 <h2 className="text-[26px] font-black tracking-tight">还没有关注的人</h2>
                 <p className="mt-4 text-[16px] font-bold text-[#a39a91]">关注更多人，在这里查看 TA 的最新动态</p>
@@ -527,7 +528,7 @@ const HomeScreen = ({
                 onClick={() => {
                   onOpenContent(item);
                 }}
-                className="group overflow-hidden rounded-[24px] bg-white text-left shadow-[0_10px_26px_rgba(103,81,58,0.08)] border border-[#eadfce] active:scale-[0.98] transition-transform"
+                className="group overflow-hidden rounded-[18px] bg-white text-left shadow-[0_10px_26px_rgba(103,81,58,0.08)] border border-[#eadfce] active:scale-[0.98] transition-transform"
               >
 	                <div className={`relative ${item.heightClass} flex items-center justify-center overflow-hidden bg-[#eadfce]`}>
                     {item.kind === 'collab' || item.kind === 'cp' ? (
@@ -639,7 +640,7 @@ const HomeScreen = ({
               exit={{ y: 28, opacity: 0, scale: 0.98 }}
               transition={{ type: 'spring', damping: 24, stiffness: 220 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[360px] rounded-[32px] bg-[#fffaf4] px-5 pt-5 pb-6 text-[#2f261d] shadow-[0_24px_70px_rgba(78,56,35,0.24)]"
+              className="w-full max-w-[360px] rounded-[24px] bg-[#fffaf4] px-5 pt-5 pb-6 text-[#2f261d] shadow-[0_24px_70px_rgba(78,56,35,0.24)]"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -662,7 +663,7 @@ const HomeScreen = ({
                   dismissGrowthPrompt();
                   setScreen('topic-detail');
                 }}
-                className="mt-5 w-full rounded-[24px] bg-white px-4 py-4 text-left shadow-sm active:scale-[0.99] transition-transform"
+                className="mt-5 w-full rounded-[18px] bg-white px-4 py-4 text-left shadow-sm active:scale-[0.99] transition-transform"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -690,7 +691,7 @@ const HomeScreen = ({
                 ].map((task, taskIndex) => (
                   <div
                     key={task.title}
-                    className={`rounded-[20px] border px-3 py-3 text-left shadow-sm ${
+                    className={`rounded-[16px] border px-3 py-3 text-left shadow-sm ${
                       task.primary ? 'border-[#ffbed0] bg-[#fff6f8]' : 'border-[#eadfce] bg-white'
                     }`}
                   >
@@ -751,7 +752,7 @@ const HeatingConfirmationModal = ({
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-sm bg-[#1a1a1a] rounded-[32px] border border-white/10 overflow-hidden shadow-2xl"
+            className="relative w-full max-w-sm bg-[#1a1a1a] rounded-[24px] border border-white/10 overflow-hidden shadow-2xl"
           >
             <div className="p-8 text-center space-y-6">
               <div className="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center mx-auto border border-gold/20">
@@ -764,7 +765,7 @@ const HeatingConfirmationModal = ({
                 </p>
               </div>
 
-              <div className="bg-white/5 rounded-2xl p-4 text-left space-y-3">
+              <div className="bg-white/5 rounded-xl p-4 text-left space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-white/40">消耗钻石</span>
                   <span className="text-gold font-bold">100 💎</span>
@@ -778,7 +779,7 @@ const HeatingConfirmationModal = ({
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 h-14 bg-white/5 text-white/60 rounded-2xl font-bold text-sm active:scale-95 transition-transform"
+                  className="flex-1 h-14 bg-white/5 text-white/60 rounded-xl font-bold text-sm active:scale-95 transition-transform"
                 >
                   取消
                 </button>
@@ -787,7 +788,7 @@ const HeatingConfirmationModal = ({
                     onConfirm();
                     onClose();
                   }}
-                  className="flex-1 h-14 bg-gold text-dark rounded-2xl font-black text-sm active:scale-95 transition-transform"
+                  className="flex-1 h-14 bg-gold text-dark rounded-xl font-black text-sm active:scale-95 transition-transform"
                 >
                   确认加热
                 </button>
@@ -869,7 +870,7 @@ const FriendSelectionModal = ({
                 <button
                   key={friend.name}
                   onClick={() => handleToggle(friend.name)}
-                  className={`w-full flex items-center gap-4 p-4 rounded-3xl border transition-all ${
+                  className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
                     selectedFriends.has(friend.name)
                     ? 'bg-gold/10 border-gold shadow-[0_0_20px_rgba(255,184,0,0.1)]'
                     : 'bg-white/5 border-white/5'
@@ -895,7 +896,7 @@ const FriendSelectionModal = ({
                   onInvite(Array.from(selectedFriends));
                   onClose();
                 }}
-                className={`w-full h-14 rounded-2xl font-black transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                className={`w-full h-14 rounded-xl font-black transition-all active:scale-95 flex items-center justify-center gap-2 ${
                   selectedFriends.size > 0
                   ? 'bg-gold text-dark'
                   : 'bg-white/10 text-white/20'
@@ -984,10 +985,10 @@ const VisibilitySelectorDrawer = ({
                   <div
                     key={item.id}
                     onClick={() => setVisibility(item.id)}
-                    className={`p-5 rounded-3xl border transition-all flex items-center justify-between ${visibility === item.id ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5'}`}
+                    className={`p-5 rounded-2xl border transition-all flex items-center justify-between ${visibility === item.id ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5'}`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-2xl border flex items-center justify-center transition-all ${visibility === item.id ? 'bg-gold text-dark border-gold' : 'bg-white/5 text-white/30 border-white/5'}`}>
+                      <div className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${visibility === item.id ? 'bg-gold text-dark border-gold' : 'bg-white/5 text-white/30 border-white/5'}`}>
                         {item.icon}
                       </div>
                       <div>
@@ -1016,7 +1017,7 @@ const VisibilitySelectorDrawer = ({
                         <div
                           key={friend.id}
                           onClick={() => toggleFriend(friend.id)}
-                          className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${selectedFriendIds.has(friend.id) ? 'bg-white/10 border-white/10' : 'bg-white/5 border-white/5'}`}
+                          className={`flex items-center justify-between p-4 rounded-xl border transition-all ${selectedFriendIds.has(friend.id) ? 'bg-white/10 border-white/10' : 'bg-white/5 border-white/5'}`}
                         >
                           <div className="flex items-center gap-4">
                             <img src={friend.avatar} alt="" className="w-10 h-10 rounded-full object-cover border border-white/10" />
@@ -1081,7 +1082,7 @@ const GiftDonorDetailModal = ({
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-sm bg-[#1a1a1a] rounded-[32px] border border-white/10 overflow-hidden shadow-2xl"
+            className="relative w-full max-w-sm bg-[#1a1a1a] rounded-[24px] border border-white/10 overflow-hidden shadow-2xl"
           >
             <div className="p-6">
               <h3 className="text-lg font-bold text-white mb-4">赠礼用户详情</h3>
@@ -1099,7 +1100,7 @@ const GiftDonorDetailModal = ({
                 </div>
               <button
                 onClick={onClose}
-                className="w-full mt-6 h-12 bg-white/5 text-white/60 rounded-2xl font-bold text-sm active:scale-95 transition-transform"
+                className="w-full mt-6 h-12 bg-white/5 text-white/60 rounded-xl font-bold text-sm active:scale-95 transition-transform"
               >
                 关闭
               </button>
@@ -1229,7 +1230,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                         showToast(`已向 ${selectedShareUserIds.size} 位好友发送邀请`);
                         setIsShareDrawerOpen(false);
                       }}
-                      className="w-full h-14 bg-red-primary text-white rounded-2xl font-black uppercase text-xs shadow-[0_10px_30px_rgba(255,36,66,0.3)] active:scale-95 transition-transform"
+                      className="w-full h-14 bg-red-primary text-white rounded-xl font-black uppercase text-xs shadow-[0_10px_30px_rgba(255,36,66,0.3)] active:scale-95 transition-transform"
                     >
                       发送给 {selectedShareUserIds.size} 位好友
                     </button>
@@ -1239,20 +1240,14 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
 
               <div className="h-px bg-white/5 w-full mx-auto max-w-[80%] my-2" />
 
-              {/* Other Sharing Channels */}
-              <div className="flex gap-6 overflow-x-auto no-scrollbar px-6 pb-2">
-                {[
-                  { key: 'drawer1-heat-topic', icon: Flame, label: isSpotlighted ? '已加热' : '加热话题', active: isSpotlighted, action: () => { setIsShareDrawerOpen(false); setIsHeatingModalOpen(true); } },
-                  { key: 'drawer1-copy-topic', icon: Copy, label: '复制话题并创建', action: () => { setIsShareDrawerOpen(false); setCircleInitialTopicInfo(topic); setScreen('create-circle'); showToast('话题配置已复制，您可以修改后发布'); } },
-                  { key: 'drawer1-report', icon: AlertTriangle, label: '举报话题', action: () => { setReportType('video'); setReportTargetName(topic.title); setIsShareDrawerOpen(false); setScreen('report-user'); } },
-                ].map((item) => (
+	              {/* Other Sharing Channels */}
+	              <div className="flex gap-6 overflow-x-auto no-scrollbar px-6 pb-2">
+	                {[
+	                  { key: 'drawer1-report', icon: AlertTriangle, label: '举报话题', action: () => { setReportType('video'); setReportTargetName(topic.title); setIsShareDrawerOpen(false); setScreen('report-user'); } },
+	                ].map((item) => (
                   <button key={item.key} className="flex flex-col items-center gap-2 group shrink-0" onClick={item.action}>
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center active:scale-95 transition-transform ${
-                      item.active
-                        ? 'bg-[#07C160]/10 border border-[#07C160]/20 text-[#07C160]'
-                        : 'bg-white/5 border border-white/10 text-white/60'
-                    }`}>
-                      <item.icon size={20} className={item.key === 'drawer1-heat-topic' && isSpotlighted ? 'fill-current' : ''} />
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center active:scale-95 transition-transform bg-white/5 border border-white/10 text-white/60">
+	                      <item.icon size={20} />
                     </div>
                     <span className="text-[9px] font-black text-white/40 group-active:text-white uppercase tracking-tighter text-center max-w-[58px] leading-tight">
                       {item.label}
@@ -1273,7 +1268,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
           <div className="flex min-h-full flex-col justify-center">
           <motion.div
             layoutId={`topic-card-${topic.id}`}
-            className="relative z-10 overflow-hidden rounded-[34px] border border-[#eadfce] bg-white shadow-[0_20px_44px_rgba(103,81,58,0.14)]"
+            className="relative z-10 overflow-hidden rounded-[24px] border border-[#eadfce] bg-white shadow-[0_20px_44px_rgba(103,81,58,0.14)]"
           >
             <div className="relative h-[360px] overflow-hidden bg-black">
               <img src={topic.image || dailyLifeFrames[0]} alt="" className="h-full w-full object-cover" />
@@ -1423,7 +1418,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {userTopicClips.map((clip) => (
-                    <div key={clip.id} className="aspect-[4/3] rounded-[24px] bg-white border border-[#eadfce] relative overflow-hidden group">
+                    <div key={clip.id} className="aspect-[4/3] rounded-[18px] bg-white border border-[#eadfce] relative overflow-hidden group">
                       <div className="absolute inset-0 flex items-center justify-center">
                         <Camera size={24} className="text-[#d8cdbc]" />
                       </div>
@@ -1472,7 +1467,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.9, opacity: 0 }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full max-w-sm bg-[#121212] rounded-[32px] p-8 border border-white/10 shadow-2xl space-y-6"
+                    className="w-full max-w-sm bg-[#121212] rounded-[24px] p-8 border border-white/10 shadow-2xl space-y-6"
                   >
                     <div className="w-16 h-16 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 mx-auto">
                       <Trash2 size={32} />
@@ -1484,7 +1479,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                     <div className="grid grid-cols-2 gap-4">
                       <button
                         onClick={() => setIsDeletingClip(false)}
-                        className="h-12 rounded-2xl bg-white/5 text-white/60 font-bold active:scale-95 transition-transform"
+                        className="h-12 rounded-xl bg-white/5 text-white/60 font-bold active:scale-95 transition-transform"
                       >
                         取消
                       </button>
@@ -1496,7 +1491,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                           }
                           setIsDeletingClip(false);
                         }}
-                        className="h-12 rounded-2xl bg-rose-500 text-white font-bold shadow-lg shadow-rose-500/20 active:scale-95 transition-transform"
+                        className="h-12 rounded-xl bg-rose-500 text-white font-bold shadow-lg shadow-rose-500/20 active:scale-95 transition-transform"
                       >
                         确认删除
                       </button>
@@ -1543,7 +1538,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                           setSelectedUserName(`共创者 ${i + 1}`);
                           setScreen('user-profile');
                         }}
-                        className="flex items-center gap-4 bg-white border border-[#eadfce] p-4 rounded-3xl active:scale-[0.98] transition-transform cursor-pointer"
+                        className="flex items-center gap-4 bg-white border border-[#eadfce] p-4 rounded-2xl active:scale-[0.98] transition-transform cursor-pointer"
                       >
                         <img
                           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topic.id + i}`}
@@ -1561,7 +1556,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                     {Array.from({ length: remainingCount }).map((_, i) => (
                       <div
                         key={`empty-${i}`}
-                        className="flex items-center gap-4 bg-white/50 border border-dashed border-[#d8cdbc] p-4 rounded-3xl"
+                        className="flex items-center gap-4 bg-white/50 border border-dashed border-[#d8cdbc] p-4 rounded-2xl"
                       >
                         <div className="w-12 h-12 rounded-full border-2 border-dashed border-[#d8cdbc] flex items-center justify-center">
                           <UserIcon size={20} className="text-[#c0b09d]" />
@@ -1577,7 +1572,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                   <div className="p-6 bg-white/80 backdrop-blur-xl border-t border-[#eadfce]">
                     <button
                       onClick={() => setIsInviteModalOpen(true)}
-                      className="w-full h-14 bg-[#2f261d] text-white font-black rounded-2xl shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-2"
+                      className="w-full h-14 bg-[#2f261d] text-white font-black rounded-xl shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-2"
                     >
                       <UserPlus size={18} />
                       邀请好友
@@ -1617,7 +1612,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
   return (
     <div className="flex flex-col h-full bg-dark pt-8">
       <header className="p-6 flex items-center justify-between sticky top-0 bg-dark/80 backdrop-blur-xl z-20 border-b border-white/[0.03]">
-        <button onClick={() => setScreen(prevScreen || 'home')} className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center">
+        <button onClick={() => setScreen(prevScreen || 'home')} className="w-10 h-10 glass-pill rounded-xl flex items-center justify-center">
           <X size={14} className="text-white" />
         </button>
           <div className="flex-1 flex items-center justify-between px-4">
@@ -1635,7 +1630,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
           </div>
         </div>
         {topic.status === 'completed' ? (
-          <button onClick={() => setIsShareDrawerOpen(true)} className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center">
+          <button onClick={() => setIsShareDrawerOpen(true)} className="w-10 h-10 glass-pill rounded-xl flex items-center justify-center">
             <CornerUpRight size={20} className="text-white" />
           </button>
         ) : (
@@ -1644,7 +1639,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                 e.stopPropagation();
                 setIsHeatingModalOpen(true);
             }}
-            className={`h-10 px-4 rounded-2xl flex items-center gap-1.5 transition-all text-xs font-black uppercase border shadow-lg ${
+            className={`h-10 px-4 rounded-xl flex items-center gap-1.5 transition-all text-xs font-black uppercase border shadow-lg ${
               isSpotlighted ? 'bg-gold text-dark border-gold' : 'glass-pill text-gold border-gold/30 hover:bg-gold/10 active:scale-95'
             }`}
           >
@@ -1681,7 +1676,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
         <section className="px-6 space-y-8 -mt-2 pb-32">
           {topic.status === 'completed' && (
             <div className="space-y-6 pt-2">
-              <div className="relative group cursor-pointer overflow-hidden rounded-[40px] border border-white/5 bg-black shadow-2xl" onClick={() => showToast('即将开始播放完整共创作品...')}>
+              <div className="relative group cursor-pointer overflow-hidden rounded-[28px] border border-white/5 bg-black shadow-2xl" onClick={() => showToast('即将开始播放完整共创作品...')}>
                 <div className="grid grid-cols-2 gap-0.5">
                   {Array.from({ length: Math.min(topic.targetCount, 4) }).map((_, i) => (
                     <div
@@ -1721,16 +1716,16 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-white/[0.03] p-5 rounded-[32px] border border-white/5 backdrop-blur-xl">
+              <div className="flex items-center justify-between bg-white/[0.03] p-5 rounded-[24px] border border-white/5 backdrop-blur-xl">
                  <div className="flex flex-col gap-2">
-                   <div className="flex items-center gap-2 bg-white/5 w-fit px-3 py-1.5 rounded-xl border border-white/5">
+                   <div className="flex items-center gap-2 bg-white/5 w-fit px-3 py-1.5 rounded-lg border border-white/5">
                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
                      <p className="text-[11px] font-black text-white tracking-[0.1em] uppercase">作品已就绪</p>
                    </div>
                  </div>
                  <button
                   onClick={() => setScreen('gift')}
-                  className="flex items-center gap-2 bg-white text-dark px-5 py-3 rounded-[20px] font-black text-[11px] uppercase shadow-xl active:scale-95 transition-all hover:bg-gold hover:text-dark"
+                  className="flex items-center gap-2 bg-white text-dark px-5 py-3 rounded-[16px] font-black text-[11px] uppercase shadow-xl active:scale-95 transition-all hover:bg-gold hover:text-dark"
                 >
                   <Gift size={14} />
                   赏爆它
@@ -1741,7 +1736,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
 
           {topic.status === 'completed' && (
             <div className="flex items-center p-4 bg-card bento-card border border-white/5 shadow-2xl relative overflow-hidden">
-              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 overflow-hidden shrink-0">
                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topic.creator}`} alt="" className="w-full h-full object-cover" />
               </div>
               <div className="ml-4 flex-1">
@@ -1754,7 +1749,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
 
           {topic.status !== 'completed' ? (
             <div className="space-y-4">
-              <div className={`relative overflow-hidden rounded-[44px] border border-white/15 px-6 pt-6 pb-5 shadow-2xl min-h-[520px] flex flex-col justify-between bg-gradient-to-br ${
+              <div className={`relative overflow-hidden rounded-[32px] border border-white/15 px-6 pt-6 pb-5 shadow-2xl min-h-[520px] flex flex-col justify-between bg-gradient-to-br ${
                 topic.tone === 'blue' ? 'from-indigo-600 via-indigo-950' :
                 topic.tone === 'amber' ? 'from-amber-600 via-amber-950' : 'from-emerald-600 via-emerald-950'
               } to-black`}>
@@ -1774,7 +1769,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                       待成圈
                     </span>
                   </div>
-                  <div className="shrink-0 rounded-2xl bg-black/25 border border-white/10 px-3 py-2 text-right backdrop-blur-md">
+                  <div className="shrink-0 rounded-xl bg-black/25 border border-white/10 px-3 py-2 text-right backdrop-blur-md">
                     <p className="text-[8px] font-black text-white/35 tracking-widest">剩余</p>
                     <p className="text-sm font-black text-red-primary mt-0.5">{topic.deadline}</p>
                   </div>
@@ -1795,7 +1790,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                   </div>
 
                   <div className="space-y-4">
-                    <div className="rounded-[28px] bg-white/10 border border-white/10 p-4 backdrop-blur-md">
+                    <div className="rounded-[20px] bg-white/10 border border-white/10 p-4 backdrop-blur-md">
                       <div className="flex items-end justify-between gap-4">
                         <div className="min-w-0">
                           <p className="text-[10px] font-black text-white/45 tracking-widest uppercase">还差 {remainingCount} 人解锁</p>
@@ -1852,7 +1847,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="rounded-[28px] bg-card border border-white/5 p-4 space-y-4 shadow-xl"
+                    className="rounded-[20px] bg-card border border-white/5 p-4 space-y-4 shadow-xl"
                   >
                 <div className="flex items-center justify-between">
                   <div>
@@ -1871,7 +1866,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                           setSelectedUserName(`共创者 ${i + 1}`);
                           setScreen('user-profile');
                         }}
-                        className="aspect-square rounded-[22px] bg-white/5 border border-white/10 overflow-hidden active:scale-90 transition-transform relative shadow-lg"
+                        className="aspect-square rounded-[16px] bg-white/5 border border-white/10 overflow-hidden active:scale-90 transition-transform relative shadow-lg"
                       >
                         <img src={dailyLifeFrames[i % dailyLifeFrames.length]} alt="" className="absolute inset-0 h-full w-full object-cover" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
@@ -1885,7 +1880,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
                           e.stopPropagation();
                           setIsInviteModalOpen(true);
                         }}
-                        className="aspect-square rounded-[22px] border border-white/10 bg-white/[0.025] overflow-hidden active:scale-90 transition-transform relative shadow-lg"
+                        className="aspect-square rounded-[16px] border border-white/10 bg-white/[0.025] overflow-hidden active:scale-90 transition-transform relative shadow-lg"
                       >
                         <img src={dailyLifeFrames[i % dailyLifeFrames.length]} alt="" className="absolute inset-0 h-full w-full object-cover opacity-80" />
                         <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px]" />
@@ -1902,7 +1897,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
               </AnimatePresence>
             </div>
           ) : (
-            <div className="bg-black/5 rounded-[32px] p-6 space-y-6 border border-white/[0.03] shadow-xl">
+            <div className="bg-black/5 rounded-[24px] p-6 space-y-6 border border-white/[0.03] shadow-xl">
               <div className="flex justify-between items-center px-1">
                   <h4 className="font-bold flex items-center gap-2 text-white text-sm">
                     <MessageCircle size={16} /> 话题评论 <span className="text-white/20 ml-1 text-xs">{topic.likes}+</span>
@@ -1927,7 +1922,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
               </div>
               <div className="mt-4 flex gap-2">
                  <input
-                   className="flex-1 h-11 bg-white/5 border border-white/10 rounded-[20px] px-5 text-xs font-bold focus:border-white/30 outline-none transition-all placeholder:text-white/10"
+                   className="flex-1 h-11 bg-white/5 border border-white/10 rounded-[16px] px-5 text-xs font-bold focus:border-white/30 outline-none transition-all placeholder:text-white/10"
                    placeholder="留下你的共创注脚..."
                  />
               </div>
@@ -1945,7 +1940,7 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
         <div className="flex gap-2">
           <button
             onClick={() => toggleFavorite(topic.id)}
-            className={`flex-1 h-14 rounded-[24px] font-black text-xs uppercase transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2 ${
+            className={`flex-1 h-14 rounded-[18px] font-black text-xs uppercase transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2 ${
               isFavorite ? 'bg-gold text-dark shadow-gold/20' : 'bg-white/5 text-white/40 border border-white/5'
             }`}
           >
@@ -1957,11 +1952,11 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
             <>
               <button
                 onClick={() => setScreen('join')}
-                className={`flex-[1.5] h-14 bg-red-primary text-white font-black rounded-[24px] shadow-[0_10px_25px_-5px_rgba(255,36,66,0.5)] active:scale-95 transition-all text-xs uppercase flex items-center justify-center gap-2`}
+                className={`flex-[1.5] h-14 bg-red-primary text-white font-black rounded-[18px] shadow-[0_10px_25px_-5px_rgba(255,36,66,0.5)] active:scale-95 transition-all text-xs uppercase flex items-center justify-center gap-2`}
               >
                 参与共创
               </button>
-              <button onClick={() => showToast('进入拍摄后完成你的共创片段')} className="flex-1 h-14 bg-white/5 text-white/40 font-black rounded-[24px] text-xs uppercase border border-white/5 active:scale-95 flex items-center justify-center">
+              <button onClick={() => showToast('进入拍摄后完成你的共创片段')} className="flex-1 h-14 bg-white/5 text-white/40 font-black rounded-[18px] text-xs uppercase border border-white/5 active:scale-95 flex items-center justify-center">
                 拍摄
               </button>
             </>
@@ -1969,11 +1964,11 @@ const TopicDetail = ({ topic, setScreen, prevScreen, toggleFavorite, isFavorite,
             <>
               <button
                 onClick={() => setScreen('gift')}
-                className="flex-[1.5] h-14 bg-gold text-dark font-black rounded-[24px] shadow-[0_10px_25px_-5px_rgba(214,178,126,0.5)] active:scale-95 transition-all text-xs uppercase flex items-center justify-center gap-2"
+                className="flex-[1.5] h-14 bg-gold text-dark font-black rounded-[18px] shadow-[0_10px_25px_-5px_rgba(214,178,126,0.5)] active:scale-95 transition-all text-xs uppercase flex items-center justify-center gap-2"
               >
                 赠送作品
               </button>
-              <button onClick={() => setIsShareDrawerOpen(true)} className="flex-[1] h-14 bg-white/5 text-white/40 font-black rounded-[24px] text-xs uppercase border border-white/5 active:scale-95 flex items-center justify-center">
+              <button onClick={() => setIsShareDrawerOpen(true)} className="flex-[1] h-14 bg-white/5 text-white/40 font-black rounded-[18px] text-xs uppercase border border-white/5 active:scale-95 flex items-center justify-center">
                 分享
               </button>
             </>
@@ -2063,7 +2058,7 @@ const NetworkListScreen = ({
               placeholder="搜索用户..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full h-12 rounded-2xl pl-12 pr-4 text-sm font-medium outline-none focus:border-[#FE2C55]/20 transition-all ${lightInputField}`}
+              className={`w-full h-12 rounded-xl pl-12 pr-4 text-sm font-medium outline-none focus:border-[#FE2C55]/20 transition-all ${lightInputField}`}
             />
           </div>
 
@@ -2074,14 +2069,14 @@ const NetworkListScreen = ({
                 className={`flex items-center gap-4 p-4 active:bg-[#faf4ec] transition-all group ${lightSurfaceCard}`}
                 onClick={() => setScreen('user-profile')}
               >
-                <img src={user.avatar} alt="" className="w-12 h-12 rounded-2xl border border-[#eadfce] object-cover" />
+                <img src={user.avatar} alt="" className="w-12 h-12 rounded-xl border border-[#eadfce] object-cover" />
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-[#2f261d] text-sm truncate">{user.name}</h4>
                   <p className="text-[10px] text-[#8f7f6d] mt-1 truncate tracking-wide">{user.bio}</p>
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); }}
-                  className={`px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                     user.isFollowing ? 'bg-[#f6ede3] text-[#8f7f6d] border border-[#eadfce]' : 'bg-[#FE2C55] text-white shadow-[0_10px_24px_rgba(254,44,85,0.18)]'
                   }`}
                 >
@@ -2185,7 +2180,7 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
       <header className="p-6 flex items-center justify-between sticky top-0 bg-[#f9f5ef]/90 backdrop-blur-xl z-20">
         <div className="w-10 h-10" />
         <h2 className="font-bold text-[#2f261d] text-lg tracking-tight">我的</h2>
-        <button onClick={() => setScreen('settings')} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
+        <button onClick={() => setScreen('settings')} className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
           <Settings size={20} />
         </button>
       </header>
@@ -2255,10 +2250,10 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
                 e.stopPropagation();
                 setScreen('recharge');
               }}
-              className="w-full rounded-[18px] bg-gradient-to-r from-[#eef3fb] via-white to-[#eef8f1] px-4 py-3 text-left shadow-sm active:scale-95 transition-transform"
+              className="w-full rounded-[14px] bg-gradient-to-r from-[#eef3fb] via-white to-[#eef8f1] px-4 py-3 text-left shadow-sm active:scale-95 transition-transform"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-[#2f261d] shadow-sm shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#2f261d] shadow-sm shrink-0">
                   <Gem size={17} />
                 </div>
                 <div className="min-w-0">
@@ -2281,10 +2276,10 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
                     e.stopPropagation();
                     item.action();
                   }}
-                  className={`rounded-[18px] bg-gradient-to-br ${item.tone} px-3.5 py-3 text-left shadow-sm active:scale-95 transition-transform min-h-[72px]`}
+                  className={`rounded-[14px] bg-gradient-to-br ${item.tone} px-3.5 py-3 text-left shadow-sm active:scale-95 transition-transform min-h-[72px]`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-2xl bg-white flex items-center justify-center text-[#2f261d] shadow-sm shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-[#2f261d] shadow-sm shrink-0">
                       <item.icon size={16} />
                     </div>
                     <div className="min-w-0">
@@ -2300,7 +2295,7 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
 
         <button
           onClick={() => setIsGrowthDialogOpen(true)}
-          className="mt-4 w-full rounded-[28px] bg-white/90 px-4 py-3 text-left shadow-[0_10px_28px_rgba(103,81,58,0.10)] active:scale-[0.99] transition-transform"
+          className="mt-4 w-full rounded-[20px] bg-white/90 px-4 py-3 text-left shadow-[0_10px_28px_rgba(103,81,58,0.10)] active:scale-[0.99] transition-transform"
         >
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#2f261d] text-white">
@@ -2357,7 +2352,7 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
                 onClick={() => {
                   openWork(work.topic);
                 }}
-                className="relative aspect-[3/4.4] overflow-hidden rounded-[22px] bg-[#f6ede3] group active:scale-[0.98] transition-transform"
+                className="relative aspect-[3/4.4] overflow-hidden rounded-[16px] bg-[#f6ede3] group active:scale-[0.98] transition-transform"
               >
                 <img
                   src={work.image}
@@ -2409,7 +2404,7 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
               exit={{ y: 28, opacity: 0, scale: 0.98 }}
               transition={{ type: 'spring', damping: 24, stiffness: 220 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[360px] rounded-[32px] bg-[#fffaf4] px-5 pt-5 pb-6 text-[#2f261d] shadow-[0_24px_70px_rgba(78,56,35,0.24)]"
+              className="w-full max-w-[360px] rounded-[24px] bg-[#fffaf4] px-5 pt-5 pb-6 text-[#2f261d] shadow-[0_24px_70px_rgba(78,56,35,0.24)]"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -2428,7 +2423,7 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
 
               <button
                 onClick={() => setIsGrowthDialogOpen(false)}
-                className="mt-5 w-full rounded-[24px] bg-white px-4 py-4 text-left shadow-sm active:scale-[0.99] transition-transform"
+                className="mt-5 w-full rounded-[18px] bg-white px-4 py-4 text-left shadow-sm active:scale-[0.99] transition-transform"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -2453,7 +2448,7 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
                 ].map((task, taskIndex) => (
                   <div
                     key={task.title}
-                    className={`rounded-[20px] border px-3 py-3 text-left shadow-sm ${
+                    className={`rounded-[16px] border px-3 py-3 text-left shadow-sm ${
                       task.primary ? 'border-[#ffbed0] bg-[#fff6f8]' : 'border-[#eadfce] bg-white'
                     }`}
                   >
@@ -2582,7 +2577,7 @@ const FriendsScreen = ({ setScreen, setSelectedUserName, initialTab = 'friends' 
           }}
           className="flex items-center px-6 py-4 active:bg-white/[0.02] transition-all cursor-pointer"
         >
-          <img src={user.avatar} alt="" className="w-12 h-12 rounded-2xl bg-white/10 border border-white/5 object-cover" />
+          <img src={user.avatar} alt="" className="w-12 h-12 rounded-xl bg-white/10 border border-white/5 object-cover" />
           <div className="ml-4 flex-1">
               <p className="text-[17px] font-bold text-white">{user.name}</p>
               <p className="text-xs text-white/30 truncate mt-0.5">{user.bio}</p>
@@ -2593,7 +2588,7 @@ const FriendsScreen = ({ setScreen, setSelectedUserName, initialTab = 'friends' 
                 setSelectedUserName(user.name);
                 setScreen('dm');
               }}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-[10px] font-black uppercase border border-white/5 rounded-xl transition-all"
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-[10px] font-black uppercase border border-white/5 rounded-lg transition-all"
           >
             私信
           </button>
@@ -2612,7 +2607,7 @@ const FriendsScreen = ({ setScreen, setSelectedUserName, initialTab = 'friends' 
       return (
         <>
           <div className="px-6 mb-6">
-            <div className="p-6 bg-gradient-to-br from-[#eef8f1] to-[#fffaf5] rounded-[32px] border border-[#d8eadf] space-y-3 shadow-[0_18px_40px_rgba(103,81,58,0.06)]">
+            <div className="p-6 bg-gradient-to-br from-[#eef8f1] to-[#fffaf5] rounded-[24px] border border-[#d8eadf] space-y-3 shadow-[0_18px_40px_rgba(103,81,58,0.06)]">
               <p className="text-xs font-black uppercase text-emerald-500 tracking-widest">好友定义</p>
               <h3 className="text-xl font-bold leading-tight text-[#2f261d]">互相关注的人，就是好友。</h3>
               <p className="text-[#8f7f6d] text-xs leading-relaxed">好友可直接发起私信，也可以在共创召集中作为第一顺位被邀请。</p>
@@ -2688,7 +2683,7 @@ const SettingsScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
             onClick={() => setScreen(item.screen as any)}
             className={`p-4 flex items-center gap-4 active:bg-[#faf4ec] transition-colors cursor-pointer ${lightSurfaceCard}`}
           >
-             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-[#8f7f6d] bg-[#f6ede3] border border-[#eadfce]">
+             <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[#8f7f6d] bg-[#f6ede3] border border-[#eadfce]">
                 <item.icon size={20} />
              </div>
              <div className="flex-1">
@@ -2700,7 +2695,7 @@ const SettingsScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
         ))}
 
         <div className="pt-8">
-           <button onClick={() => setScreen('login')} className="w-full h-14 rounded-2xl text-rose-500 font-bold text-sm active:scale-95 transition-transform uppercase tracking-widest border border-rose-200 bg-white/82 shadow-sm">
+           <button onClick={() => setScreen('login')} className="w-full h-14 rounded-xl text-rose-500 font-bold text-sm active:scale-95 transition-transform uppercase tracking-widest border border-rose-200 bg-white/82 shadow-sm">
               退出当前账号
            </button>
         </div>
@@ -2728,8 +2723,8 @@ const BlacklistScreen = ({ setScreen, blockedUserNames, unblockUser }: {
         {blockedUserNames.length > 0 ? (
           <div className="space-y-3">
             {blockedUserNames.map((name) => (
-              <div key={name} className={`flex items-center gap-3 p-4 rounded-[24px] ${lightSurfaceCard}`}>
-                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-12 w-12 rounded-2xl bg-[#f6ede3] object-cover" />
+              <div key={name} className={`flex items-center gap-3 p-4 rounded-[18px] ${lightSurfaceCard}`}>
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="" className="h-12 w-12 rounded-xl bg-[#f6ede3] object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="font-black text-[#2f261d]">{name}</p>
                   <p className="mt-0.5 text-[10px] font-black uppercase tracking-widest text-[#a79584]">已限制互动与私信</p>
@@ -2745,7 +2740,7 @@ const BlacklistScreen = ({ setScreen, blockedUserNames, unblockUser }: {
           </div>
         ) : (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[24px] bg-white/72 text-[#c0b09d] shadow-sm">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[18px] bg-white/72 text-[#c0b09d] shadow-sm">
               <Lock size={26} />
             </div>
             <p className="font-black text-[#2f261d]">暂无黑名单账号</p>
@@ -2797,7 +2792,7 @@ const ReportUserScreen = ({ setScreen, targetName, reportType, showToast }: {
   return (
     <div className="flex h-full flex-col bg-[#f3f6fc] pt-8 text-[#161616]">
       <header className="flex items-center justify-between px-5 py-4">
-        <button onClick={() => setScreen(isVideoReport ? 'home' : 'user-profile')} className="flex h-10 w-10 items-center justify-center rounded-2xl text-[#161616] active:scale-95 transition-transform">
+        <button onClick={() => setScreen(isVideoReport ? 'home' : 'user-profile')} className="flex h-10 w-10 items-center justify-center rounded-xl text-[#161616] active:scale-95 transition-transform">
           <ArrowLeft size={24} strokeWidth={2.5} />
         </button>
         <h2 className="text-lg font-black">{isVideoReport ? '话题举报' : '账号举报'}</h2>
@@ -2806,7 +2801,7 @@ const ReportUserScreen = ({ setScreen, targetName, reportType, showToast }: {
 
       <main className="flex-1 overflow-y-auto no-scrollbar px-4 pb-4">
         <div className="mb-4 px-2 text-xs font-bold text-[#7d8795]">举报对象：{targetName}</div>
-        <div className="overflow-hidden rounded-[20px] bg-white shadow-sm">
+        <div className="overflow-hidden rounded-[16px] bg-white shadow-sm">
           {reasons.map((item, index) => (
             <button
               key={item}
@@ -2833,7 +2828,7 @@ const ReportUserScreen = ({ setScreen, targetName, reportType, showToast }: {
             showToast('举报已提交');
             setScreen('report-success');
           }}
-          className="h-14 w-full rounded-2xl bg-[#2f261d] text-lg font-black text-white shadow-[0_14px_28px_rgba(47,38,29,0.16)] transition-transform active:scale-95 disabled:bg-[#d8cbbb] disabled:text-white/80 disabled:shadow-none"
+          className="h-14 w-full rounded-xl bg-[#2f261d] text-lg font-black text-white shadow-[0_14px_28px_rgba(47,38,29,0.16)] transition-transform active:scale-95 disabled:bg-[#d8cbbb] disabled:text-white/80 disabled:shadow-none"
         >
           下一步
         </button>
@@ -2860,7 +2855,7 @@ const ReportSuccessScreen = ({ setScreen, targetName }: {
       <div className="px-6 pb-10">
         <button
           onClick={() => setScreen('home')}
-          className="h-14 w-full rounded-2xl bg-[#2f261d] text-sm font-black text-white shadow-[0_14px_28px_rgba(47,38,29,0.14)] active:scale-95 transition-transform"
+          className="h-14 w-full rounded-xl bg-[#2f261d] text-sm font-black text-white shadow-[0_14px_28px_rgba(47,38,29,0.14)] active:scale-95 transition-transform"
         >
           完成
         </button>
@@ -2882,7 +2877,7 @@ const AccountProfileScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
 
       <main className="flex-1 overflow-y-auto no-scrollbar px-6 py-4">
         <div className="flex flex-col items-center mt-6 mb-8">
-          <div className="w-24 h-24 rounded-[32px] bg-white/82 flex items-center justify-center border-4 border-white relative shadow-lg">
+          <div className="w-24 h-24 rounded-[24px] bg-white/82 flex items-center justify-center border-4 border-white relative shadow-lg">
             <UserIcon size={40} className="text-[#c8b8a7]" />
             <button className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[#FE2C55] flex items-center justify-center border-2 border-white active:scale-95 transition-transform shadow-lg">
               <Camera size={14} className="text-white" />
@@ -2893,7 +2888,7 @@ const AccountProfileScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
         <div className="space-y-4">
           <div className="space-y-1">
             <label className="text-[10px] font-black text-[#b0a08e] uppercase tracking-widest pl-4">昵称</label>
-            <div className={`w-full px-4 py-4 rounded-3xl text-[#2f261d] font-bold flex justify-between items-center ${lightSurfaceCard}`}>
+            <div className={`w-full px-4 py-4 rounded-2xl text-[#2f261d] font-bold flex justify-between items-center ${lightSurfaceCard}`}>
               <span>{CURRENT_USER.name}</span>
               <ChevronRight size={16} className="text-[#c0b09d]" />
             </div>
@@ -2901,7 +2896,7 @@ const AccountProfileScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
 
           <div className="space-y-1">
             <label className="text-[10px] font-black text-[#b0a08e] uppercase tracking-widest pl-4">简介</label>
-            <div className={`w-full px-4 py-4 rounded-3xl text-[#2f261d] font-bold flex justify-between items-center ${lightSurfaceCard}`}>
+            <div className={`w-full px-4 py-4 rounded-2xl text-[#2f261d] font-bold flex justify-between items-center ${lightSurfaceCard}`}>
               <span className="text-[#8f7f6d] text-sm truncate">添加简介，让大家更好认识你</span>
               <ChevronRight size={16} className="text-[#c0b09d]" />
             </div>
@@ -2909,7 +2904,7 @@ const AccountProfileScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
 
           <div className="space-y-1">
             <label className="text-[10px] font-black text-[#b0a08e] uppercase tracking-widest pl-4">性别</label>
-            <div className={`w-full px-4 py-4 rounded-3xl text-[#2f261d] font-bold flex justify-between items-center ${lightSurfaceCard}`}>
+            <div className={`w-full px-4 py-4 rounded-2xl text-[#2f261d] font-bold flex justify-between items-center ${lightSurfaceCard}`}>
               <span className="text-[#8f7f6d] text-sm">不公开</span>
               <ChevronRight size={16} className="text-[#c0b09d]" />
             </div>
@@ -2964,7 +2959,7 @@ const NotificationSettingsScreen = ({ setScreen }: { setScreen: (s: Screen) => v
 
       <main className="flex-1 overflow-y-auto no-scrollbar px-6 py-4">
         <div className="space-y-4">
-          <div className={`flex items-center justify-between p-5 rounded-3xl ${lightSurfaceCard}`}>
+          <div className={`flex items-center justify-between p-5 rounded-2xl ${lightSurfaceCard}`}>
             <div>
               <p className="text-base font-bold text-[#2f261d] mb-0.5">消息通知</p>
               <p className="text-[10px] text-[#8f7f6d]">接收私信、群聊等即时消息</p>
@@ -2974,7 +2969,7 @@ const NotificationSettingsScreen = ({ setScreen }: { setScreen: (s: Screen) => v
             </div>
           </div>
 
-          <div className={`flex items-center justify-between p-5 rounded-3xl ${lightSurfaceCard}`}>
+          <div className={`flex items-center justify-between p-5 rounded-2xl ${lightSurfaceCard}`}>
             <div>
               <p className="text-base font-bold text-[#2f261d] mb-0.5">互动通知</p>
               <p className="text-[10px] text-[#8f7f6d]">有点赞、评论、关注时提醒我</p>
@@ -2984,7 +2979,7 @@ const NotificationSettingsScreen = ({ setScreen }: { setScreen: (s: Screen) => v
             </div>
           </div>
 
-          <div className={`flex items-center justify-between p-5 rounded-3xl ${lightSurfaceCard}`}>
+          <div className={`flex items-center justify-between p-5 rounded-2xl ${lightSurfaceCard}`}>
             <div>
               <p className="text-base font-bold text-[#2f261d] mb-0.5">系统公告</p>
               <p className="text-[10px] text-[#8f7f6d]">接收应用更新与重要活动通知</p>
@@ -3042,7 +3037,7 @@ const TopicCollectionScreen = ({ setScreen, topicsList, setSelectedTopic, topicI
                   }}
                   className={`break-inside-avoid p-4 space-y-3 shadow-lg cursor-pointer ${lightSurfaceCard}`}
                 >
-                   <div className={`aspect-[3/4] rounded-2xl bg-gradient-to-br relative overflow-hidden ${
+                   <div className={`aspect-[3/4] rounded-xl bg-gradient-to-br relative overflow-hidden ${
                      topic.tone === 'amber' ? 'from-[#fff2df] to-[#f6ede3]' :
                      topic.tone === 'green' ? 'from-[#eef8f1] to-[#f6ede3]' : 'from-[#eef3fb] to-[#f6ede3]'
                    }`}>
@@ -3094,7 +3089,7 @@ const TopicCollectionScreen = ({ setScreen, topicsList, setSelectedTopic, topicI
       </main>
 
       <footer className="p-6 pt-0 bg-dark/80 backdrop-blur-md border-t border-white/[0.03]">
-         <button onClick={() => setScreen('home')} className="w-full h-14 bg-white text-dark rounded-[24px] font-black uppercase text-xs shadow-2xl active:scale-95 transition-transform flex items-center justify-center">
+         <button onClick={() => setScreen('home')} className="w-full h-14 bg-white text-dark rounded-[18px] font-black uppercase text-xs shadow-2xl active:scale-95 transition-transform flex items-center justify-center">
             去发现更多
          </button>
       </footer>
@@ -3190,7 +3185,7 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
   return (
     <div className="flex flex-col h-full bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_42%,#f2ebe1_100%)] text-[#2f261d]">
       <header className="p-6 flex items-center justify-between z-20 sticky top-0 bg-[#f9f5ef]/90 backdrop-blur-xl border-b border-[#e8dfd2]">
-        <button onClick={() => setScreen('me')} className="w-10 h-10 rounded-2xl flex items-center justify-center border border-[#e9dfd3] bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
+        <button onClick={() => setScreen('me')} className="w-10 h-10 rounded-xl flex items-center justify-center border border-[#e9dfd3] bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
           <ArrowLeft size={20} />
         </button>
         <h2 className="font-bold text-[#2f261d] text-lg tracking-tight">全部作品</h2>
@@ -3233,7 +3228,7 @@ const MyWorksScreen = ({ setScreen, topics, setSelectedTopic, userVlogs, setCirc
                         setScreen('topic-detail');
                       }
                     }}
-                    className="aspect-[3/4.1] rounded-[24px] bg-[#f6ede3] border border-[#eadfce] relative overflow-hidden group cursor-pointer shadow-[0_14px_28px_rgba(103,81,58,0.08)] active:scale-[0.98] transition-transform"
+                    className="aspect-[3/4.1] rounded-[18px] bg-[#f6ede3] border border-[#eadfce] relative overflow-hidden group cursor-pointer shadow-[0_14px_28px_rgba(103,81,58,0.08)] active:scale-[0.98] transition-transform"
                   >
                   {topic.image ? (
                     <img
@@ -3343,13 +3338,13 @@ const CreateCircleScreen = ({ setScreen, setSelectedTopic, initialTopicInfo }: {
       <main className="flex-1 p-6 space-y-8 overflow-y-auto no-scrollbar pb-10">
         <div className="space-y-4">
           <input
-            className={`w-full h-14 rounded-2xl px-5 font-bold outline-none focus:border-[#FE2C55]/25 ${lightInputField}`}
+            className={`w-full h-14 rounded-xl px-5 font-bold outline-none focus:border-[#FE2C55]/25 ${lightInputField}`}
             placeholder="你需要大家做什么"
             value={topicTitle}
             onChange={(e) => setTopicTitle(e.target.value)}
           />
           <textarea
-            className={`w-full rounded-2xl p-5 font-medium outline-none focus:border-[#FE2C55]/25 text-sm min-h-[120px] resize-none ${lightInputField}`}
+            className={`w-full rounded-xl p-5 font-medium outline-none focus:border-[#FE2C55]/25 text-sm min-h-[120px] resize-none ${lightInputField}`}
             placeholder="添加话题描述，让更多人加入共创..."
             value={topicDescription}
             onChange={(e) => setTopicDescription(e.target.value)}
@@ -3363,7 +3358,7 @@ const CreateCircleScreen = ({ setScreen, setSelectedTopic, initialTopicInfo }: {
               <button
                 key={num}
                 onClick={() => setParticipants(num)}
-                className={`h-12 rounded-2xl font-black text-xs transition-all ${participants === num ? 'bg-[#FE2C55] text-white shadow-[0_12px_24px_rgba(254,44,85,0.18)]' : 'bg-white/82 text-[#8f7f6d] border border-[#eadfce]'}`}
+                className={`h-12 rounded-xl font-black text-xs transition-all ${participants === num ? 'bg-[#FE2C55] text-white shadow-[0_12px_24px_rgba(254,44,85,0.18)]' : 'bg-white/82 text-[#8f7f6d] border border-[#eadfce]'}`}
               >
                 {num} 人
               </button>
@@ -3373,7 +3368,7 @@ const CreateCircleScreen = ({ setScreen, setSelectedTopic, initialTopicInfo }: {
 
         <div className="space-y-4">
           <label className="text-[10px] font-black uppercase text-[#b19f8d] tracking-widest ml-1">作品时间限制 (3-10秒)</label>
-          <div className="flex items-center gap-4 p-4 rounded-2xl border border-[#eadfce] bg-white/82 shadow-sm">
+          <div className="flex items-center gap-4 p-4 rounded-xl border border-[#eadfce] bg-white/82 shadow-sm">
              <span className="text-sm font-bold text-[#2f261d] w-8">{duration}s</span>
              <input
                type="range"
@@ -3404,7 +3399,7 @@ const CreateCircleScreen = ({ setScreen, setSelectedTopic, initialTopicInfo }: {
             className={`p-6 flex items-center justify-between active:bg-[#fbf6ef] transition-all group ${lightSurfaceCard}`}
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#f6ede3] flex items-center justify-center text-[#8f7f6d] group-active:text-[#FE2C55] transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-[#f6ede3] flex items-center justify-center text-[#8f7f6d] group-active:text-[#FE2C55] transition-colors">
                 {visibility === 'public' && <Globe size={20} />}
                 {visibility === 'friends' && <Users2 size={20} />}
                 {visibility === 'private' && <Lock size={20} />}
@@ -3480,7 +3475,7 @@ const CreateSuccessScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) 
   return (
     <div className="flex flex-col h-full bg-dark items-center justify-center p-10 text-center space-y-8">
       <div className="relative">
-         <div className="w-32 h-32 bg-emerald-500 rounded-[40px] flex items-center justify-center shadow-[0_0_80px_rgba(16,185,129,0.2)]">
+         <div className="w-32 h-32 bg-emerald-500 rounded-[28px] flex items-center justify-center shadow-[0_0_80px_rgba(16,185,129,0.2)]">
             <Check size={64} className="text-white" strokeWidth={3} />
          </div>
       </div>
@@ -3517,11 +3512,13 @@ const AlbumComposer = ({
   showToast,
   source,
   topic,
+  prevScreen,
 }: {
   setScreen: (s: Screen) => void,
   showToast: (m: string) => void,
   source: 'create' | 'join',
   topic?: Topic,
+  prevScreen: Screen,
 }) => {
   const [selectedPreview, setSelectedPreview] = useState<string | null>(null);
   const [caption, setCaption] = useState('');
@@ -3538,15 +3535,22 @@ const AlbumComposer = ({
   };
 
   return (
-    <main className="flex-1 overflow-y-auto px-6 pb-10 pt-32 no-scrollbar">
+    <main className="relative flex-1 overflow-y-auto px-6 pb-10 pt-32 no-scrollbar">
+      <button
+        onClick={() => setScreen(source === 'join' ? 'join' : prevScreen || 'home')}
+        className="absolute left-6 top-12 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/8 text-white backdrop-blur-md active:scale-95 transition-transform"
+        aria-label="关闭"
+      >
+        <X size={22} />
+      </button>
       <div className="mx-auto flex max-w-[360px] flex-col gap-5">
-        <div className="rounded-[34px] border border-white/10 bg-white/[0.04] p-4 shadow-2xl">
-          <label className="relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[28px] border border-dashed border-white/18 bg-white/[0.03] active:scale-[0.99] transition-transform">
+        <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 shadow-2xl">
+          <label className="relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[20px] border border-dashed border-white/18 bg-white/[0.03] active:scale-[0.99] transition-transform">
             {selectedPreview ? (
               <img src={selectedPreview} alt="" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
               <div className="flex flex-col items-center gap-4 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-black">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-black">
                   <ImageIcon size={28} />
                 </div>
                 <div>
@@ -3564,7 +3568,7 @@ const AlbumComposer = ({
           </label>
         </div>
 
-        <div className="rounded-[28px] border border-white/8 bg-white/[0.04] p-4">
+        <div className="rounded-[20px] border border-white/8 bg-white/[0.04] p-4">
           <div className="mb-3 flex items-center justify-between">
             <label className="text-[10px] font-black uppercase tracking-[0.22em] text-white/38">写文字</label>
             <span className="text-[10px] font-black text-white/18">{caption.length}/80</span>
@@ -3573,7 +3577,7 @@ const AlbumComposer = ({
             value={caption}
             onChange={(event) => setCaption(event.target.value.slice(0, 80))}
             placeholder={topic ? `回应：${topic.prompt}` : '写下这次共创想表达的内容'}
-            className="h-28 w-full resize-none rounded-2xl border border-white/8 bg-black/24 px-4 py-3 text-sm font-bold leading-relaxed text-white outline-none placeholder:text-white/18 focus:border-white/20"
+            className="h-28 w-full resize-none rounded-xl border border-white/8 bg-black/24 px-4 py-3 text-sm font-bold leading-relaxed text-white outline-none placeholder:text-white/18 focus:border-white/20"
           />
         </div>
 
@@ -3589,7 +3593,7 @@ const AlbumComposer = ({
             }
             setScreen('video-edit');
           }}
-          className="h-14 rounded-[24px] bg-white text-[12px] font-black uppercase tracking-widest text-black shadow-2xl active:scale-95 transition-transform"
+          className="h-14 rounded-[18px] bg-white text-[12px] font-black uppercase tracking-widest text-black shadow-2xl active:scale-95 transition-transform"
         >
           {source === 'create' ? '发布共创' : '完成参与共创'}
         </button>
@@ -3605,7 +3609,7 @@ const CreateAndShootScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
           <div className="w-full h-full flex flex-col items-center justify-center">
              <Camera size={64} className="text-white/5" />
              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="w-[85%] aspect-[3/4.5] border border-white/5 rounded-[48px] relative">
+                <div className="w-[85%] aspect-[3/4.5] border border-white/5 rounded-[34px] relative">
                    <div className="absolute top-1/2 left-0 right-0 h-[0.5px] bg-white/5"></div>
                    <div className="absolute top-0 bottom-0 left-1/2 w-[0.5px] bg-white/5"></div>
                 </div>
@@ -3616,7 +3620,7 @@ const CreateAndShootScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
        <div className="absolute inset-x-0 top-0 p-6 pt-12 flex items-center justify-between z-30">
           <button
             onClick={() => setScreen('topic-detail')}
-            className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center"
+            className="w-10 h-10 glass-pill rounded-xl flex items-center justify-center"
           >
             <ArrowLeft size={20} />
           </button>
@@ -3668,7 +3672,7 @@ const JoinScreen = ({ topic, setScreen, showToast }: { topic: Topic, setScreen: 
        <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-6 pt-10">
           <button
             onClick={() => setScreen('topic-detail')}
-            className="flex h-14 w-14 items-center justify-center rounded-[24px] border border-white/12 bg-white/10 text-white backdrop-blur-md active:scale-95 transition-transform"
+            className="flex h-14 w-14 items-center justify-center rounded-[18px] border border-white/12 bg-white/10 text-white backdrop-blur-md active:scale-95 transition-transform"
             aria-label="返回话题详情"
           >
             <X size={28} />
@@ -3677,10 +3681,10 @@ const JoinScreen = ({ topic, setScreen, showToast }: { topic: Topic, setScreen: 
        </div>
 
        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-36 pt-28">
-          <div className="relative w-full aspect-[4/5.1] rounded-[48px] border border-white/10 bg-white/[0.018] shadow-[inset_0_0_46px_rgba(255,255,255,0.03)]">
+          <div className="relative w-full aspect-[4/5.1] rounded-[34px] border border-white/10 bg-white/[0.018] shadow-[inset_0_0_46px_rgba(255,255,255,0.03)]">
              <div className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-white/[0.07]" />
              <div className="absolute left-10 right-10 top-1/2 h-px -translate-y-1/2 bg-white/[0.07]" />
-             <div className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[28px] border border-white/8 bg-black/10">
+             <div className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[20px] border border-white/8 bg-black/10">
                <Camera size={44} className="text-white/[0.12]" />
              </div>
              <div className="absolute -right-4 top-1/2 flex min-h-[112px] -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-full border border-white/10 bg-black/55 px-3 py-5 shadow-xl backdrop-blur-md">
@@ -3721,7 +3725,7 @@ const JoinScreen = ({ topic, setScreen, showToast }: { topic: Topic, setScreen: 
              initial={{ opacity: 0, y: 16 }}
              animate={{ opacity: 1, y: 0 }}
              exit={{ opacity: 0, y: -8 }}
-             className="absolute left-1/2 top-[150px] z-40 w-[270px] -translate-x-1/2 rounded-2xl border border-white/14 bg-white/10 px-4 py-3 text-center shadow-2xl backdrop-blur-xl"
+             className="absolute left-1/2 top-[150px] z-40 w-[270px] -translate-x-1/2 rounded-xl border border-white/14 bg-white/10 px-4 py-3 text-center shadow-2xl backdrop-blur-xl"
            >
              <p className="text-sm font-black text-white">请横屏拍摄</p>
              <p className="mt-1 text-[10px] font-bold text-white/60">横向画面更适合合成 DR圈共创视频</p>
@@ -3742,7 +3746,7 @@ const JoinSuccessScreen = ({ setScreen, showToast }: { setScreen: (s: Screen) =>
            <motion.div
              initial={{ scale: 0 }}
              animate={{ scale: 1 }}
-             className="w-32 h-32 bg-white rounded-[40px] flex items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.2)]"
+             className="w-32 h-32 bg-white rounded-[28px] flex items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.2)]"
            >
              <ShieldCheck size={64} className="text-white" strokeWidth={2.5} />
            </motion.div>
@@ -3994,7 +3998,7 @@ const CircleScreen = ({
             return (
               <div
                 key={`light-circle-stack-${topic.id}-${stackIndex}`}
-                className="absolute inset-x-4 top-5 h-[560px] rounded-[34px] border border-[#eadfce] bg-white shadow-[0_12px_30px_rgba(103,81,58,0.08)]"
+                className="absolute inset-x-4 top-5 h-[560px] rounded-[24px] border border-[#eadfce] bg-white shadow-[0_12px_30px_rgba(103,81,58,0.08)]"
                 style={{
                   opacity: 0.58 - stackIndex * 0.18,
                   transform: `translateY(${18 + stackIndex * 16}px) scale(${0.96 - stackIndex * 0.035})`,
@@ -4023,7 +4027,7 @@ const CircleScreen = ({
               setSelectedTopic(currentCircleTopic);
               setScreen('topic-detail');
             }}
-            className="relative z-20 h-[590px] overflow-hidden rounded-[34px] border border-[#eadfce] bg-white shadow-[0_20px_44px_rgba(103,81,58,0.14)] active:scale-[0.99] transition-transform"
+            className="relative z-20 h-[590px] overflow-hidden rounded-[24px] border border-[#eadfce] bg-white shadow-[0_20px_44px_rgba(103,81,58,0.14)] active:scale-[0.99] transition-transform"
           >
             <div className="relative h-[360px] overflow-hidden bg-black">
               {currentCircleTopic.status === 'completed' ? (
@@ -4095,7 +4099,7 @@ const CircleScreen = ({
                 {currentCircleTopic.description}
               </p>
 
-              <div className="rounded-[22px] bg-[#f7f3ec] p-3">
+              <div className="rounded-[16px] bg-[#f7f3ec] p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-[10px] font-black text-[#9b8a79]">共创进度</span>
                   <span className="text-[11px] font-black text-[#b4834a]">
@@ -4165,7 +4169,7 @@ const CircleScreen = ({
                   setCircleInitialTopicId(undefined);
                   setScreen(prevScreen || 'me');
                 }}
-                className="w-10 h-10 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white pointer-events-auto active:scale-90 transition-transform"
+                className="w-10 h-10 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white pointer-events-auto active:scale-90 transition-transform"
               >
                 <ArrowLeft size={20} />
               </button>
@@ -4529,9 +4533,9 @@ const CircleScreen = ({
                 <input
                   type="text"
                   placeholder="留下你的共创注脚..."
-                  className="flex-1 h-12 bg-white/5 border border-white/10 rounded-2xl px-5 text-sm font-bold focus:border-white/20 outline-none placeholder:text-white/10"
+                  className="flex-1 h-12 bg-white/5 border border-white/10 rounded-xl px-5 text-sm font-bold focus:border-white/20 outline-none placeholder:text-white/10"
                 />
-                <button className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-dark">
+                <button className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-dark">
                   <ChevronRight size={20} />
                 </button>
               </div>
@@ -4584,7 +4588,7 @@ const CircleScreen = ({
                     onClick={() => {
                       setSelectedGiftName(gift.name);
                     }}
-                    className={`relative bg-white border rounded-2xl p-3 flex flex-col items-center gap-2 active:scale-95 transition-transform shadow-sm ${
+                    className={`relative bg-white border rounded-xl p-3 flex flex-col items-center gap-2 active:scale-95 transition-transform shadow-sm ${
                       selectedGiftName === gift.name ? 'border-[#FE2C55] shadow-[0_10px_24px_rgba(254,44,85,0.14)]' : 'border-[#eadfce]'
                     }`}
                   >
@@ -4731,7 +4735,7 @@ const CircleScreen = ({
                         showToast(`已向 ${selectedShareUserIds.size} 位好友发送共创邀请`);
                         setIsShareDrawerOpen(false);
                       }}
-                      className="w-full h-14 bg-red-primary text-white rounded-2xl font-black uppercase text-xs shadow-[0_10px_30px_rgba(255,36,66,0.3)] active:scale-95 transition-transform"
+                      className="w-full h-14 bg-red-primary text-white rounded-xl font-black uppercase text-xs shadow-[0_10px_30px_rgba(255,36,66,0.3)] active:scale-95 transition-transform"
                     >
                       发送给 {selectedShareUserIds.size} 位好友
                     </button>
@@ -4744,13 +4748,13 @@ const CircleScreen = ({
               {/* Other Sharing Channels */}
               <div className="flex gap-6 overflow-x-auto no-scrollbar px-6 pb-2">
                 <button key="drawer2-gift" className="flex flex-col items-center gap-2 group" onClick={() => { setIsShareDrawerOpen(false); setIsGiftDrawerOpen(true); }}>
-                  <div className="w-12 h-12 bg-[#FE2C55]/10 border border-[#FE2C55]/20 rounded-2xl flex items-center justify-center text-[#FE2C55] active:scale-95 transition-transform">
+                  <div className="w-12 h-12 bg-[#FE2C55]/10 border border-[#FE2C55]/20 rounded-xl flex items-center justify-center text-[#FE2C55] active:scale-95 transition-transform">
                     <Gift size={24} />
                   </div>
                   <span className="text-[9px] font-black text-white/40 group-active:text-white uppercase tracking-tighter">赠送礼物</span>
                 </button>
                 <button key="drawer2-save-album" className="flex flex-col items-center gap-2 group" onClick={() => { showToast('已保存到本地相册'); setIsShareDrawerOpen(false); }}>
-                  <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-white/60 active:scale-95 transition-transform">
+                  <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white/60 active:scale-95 transition-transform">
                     <ImageIcon size={20} />
                   </div>
                   <span className="text-[9px] font-black text-white/40 group-active:text-white uppercase tracking-tighter">保存至相册</span>
@@ -4765,7 +4769,7 @@ const CircleScreen = ({
                     setScreen('report-user');
                   }}
                 >
-                  <div className="w-12 h-12 bg-red-primary/10 border border-red-primary/20 rounded-2xl flex items-center justify-center text-red-primary active:scale-95 transition-transform">
+                  <div className="w-12 h-12 bg-red-primary/10 border border-red-primary/20 rounded-xl flex items-center justify-center text-red-primary active:scale-95 transition-transform">
                     <AlertTriangle size={20} />
                   </div>
                   <span className="text-[9px] font-black text-white/40 group-active:text-white uppercase tracking-tighter">举报作品</span>
@@ -4780,7 +4784,7 @@ const CircleScreen = ({
                     showToast('话题配置已复制，您可以修改后发布');
                   }}
                 >
-                  <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-white/60 active:scale-95 transition-transform">
+                  <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white/60 active:scale-95 transition-transform">
                     <Copy size={20} />
                   </div>
                   <span className="text-[9px] font-black text-white/40 group-active:text-white uppercase tracking-tighter">复制话题并创建</span>
@@ -4793,7 +4797,7 @@ const CircleScreen = ({
                     setIsHeatingModalOpen(true);
                   }}
                 >
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all active:scale-95 ${
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-all active:scale-95 ${
                       spotlightTopicIds.has(sharingTopic.id) ? 'bg-gold/10 text-gold border-gold/30' : 'bg-white/5 text-white/40 border-white/10'
                   }`}>
                     <Flame size={20} className={spotlightTopicIds.has(sharingTopic.id) ? 'fill-current' : ''} />
@@ -4845,7 +4849,7 @@ const CircleScreen = ({
                   ] : []),
                 ].map((item, i) => (
                   <button key={i} onClick={item.action} className="flex flex-col items-center gap-3 group">
-                    <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-white/60 active:scale-95 transition-all group-hover:bg-white/10 group-hover:text-white">
+                    <div className="w-14 h-14 bg-white/5 rounded-xl flex items-center justify-center text-white/60 active:scale-95 transition-all group-hover:bg-white/10 group-hover:text-white">
                       {item.icon}
                     </div>
                     <span className="text-[10px] font-bold text-white/30 group-active:text-white transition-colors text-center">{item.label}</span>
@@ -4854,7 +4858,7 @@ const CircleScreen = ({
               </div>
 
               <div className="px-6 space-y-2 flex-shrink-0">
-                 <button onClick={() => { showToast('已保存到本地相册'); setIsMoreDrawerOpen(false); }} className="w-full flex items-center justify-between p-5 rounded-3xl bg-white/5 border border-white/5 active:bg-white/10 transition-colors">
+                 <button onClick={() => { showToast('已保存到本地相册'); setIsMoreDrawerOpen(false); }} className="w-full flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 active:bg-white/10 transition-colors">
                     <span className="text-sm font-bold text-white/80">下载作品</span>
                     <ChevronRight size={16} className="text-white/20" />
                  </button>
@@ -4966,7 +4970,7 @@ const EnergyDetailScreen = ({ setScreen, prevScreen, balance }: { setScreen: (s:
       <main className="flex-1 overflow-y-auto no-scrollbar pb-32">
         {/* Total Balance Card */}
         <section className="px-6 py-8">
-          <div className="p-8 bg-gradient-to-br from-gold/10 via-card to-card rounded-[40px] border border-gold/10 relative overflow-hidden shadow-xl">
+          <div className="p-8 bg-gradient-to-br from-gold/10 via-card to-card rounded-[28px] border border-gold/10 relative overflow-hidden shadow-xl">
             <div className="absolute top-0 right-0 w-48 h-48 bg-gold/5 blur-3xl -mr-24 -mt-24 pointer-events-none"></div>
             <div className="flex justify-between items-start relative z-10">
               <div className="space-y-2">
@@ -4976,17 +4980,17 @@ const EnergyDetailScreen = ({ setScreen, prevScreen, balance }: { setScreen: (s:
                   <Zap size={24} className="text-gold fill-gold animate-pulse" />
                 </div>
               </div>
-              <div className="w-12 h-12 bg-gold/10 rounded-2xl flex items-center justify-center text-gold border border-gold/20">
+              <div className="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center text-gold border border-gold/20">
                 <Flame size={24} fill="currentColor" />
               </div>
             </div>
 
             <div className="mt-8 grid grid-cols-2 gap-4">
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
                 <p className="text-[10px] font-black text-white/30 uppercase mb-1">今日获得</p>
                 <p className="text-xl font-bold text-green-400">+750</p>
               </div>
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
                 <p className="text-[10px] font-black text-white/30 uppercase mb-1">本周消耗</p>
                 <p className="text-xl font-bold text-rose-500">-600</p>
               </div>
@@ -5003,7 +5007,7 @@ const EnergyDetailScreen = ({ setScreen, prevScreen, balance }: { setScreen: (s:
               exit={{ height: 0, opacity: 0 }}
               className="px-6 mb-6 overflow-hidden"
             >
-              <div className="p-6 bg-soft rounded-[32px] border border-white/10 space-y-4">
+              <div className="p-6 bg-soft rounded-[24px] border border-white/10 space-y-4">
                 <div className="flex items-center gap-2 text-gold">
                   <ShieldCheck size={16} />
                   <h4 className="text-sm font-bold">关于“积分值”</h4>
@@ -5030,7 +5034,7 @@ const EnergyDetailScreen = ({ setScreen, prevScreen, balance }: { setScreen: (s:
 
         {/* Tabs */}
         <section className="px-6 mb-4">
-          <div className="flex bg-soft p-1 rounded-2xl border border-white/5">
+          <div className="flex bg-soft p-1 rounded-xl border border-white/5">
             {[
               { id: 'all', label: '全部记录' },
               { id: 'get', label: '获取' },
@@ -5039,7 +5043,7 @@ const EnergyDetailScreen = ({ setScreen, prevScreen, balance }: { setScreen: (s:
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
                   activeTab === tab.id ? 'bg-white text-dark shadow-md' : 'text-white/40 hover:text-white'
                 }`}
               >
@@ -5068,7 +5072,7 @@ const EnergyDetailScreen = ({ setScreen, prevScreen, balance }: { setScreen: (s:
               className="p-4 bg-card bento-card border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-transform shadow-lg"
             >
               <div className="flex items-center gap-4 min-w-0 flex-1">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border border-white/[0.03] shrink-0 ${
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center border border-white/[0.03] shrink-0 ${
                   tx.type === 'get' ? 'bg-green-500/10 text-green-400' : 'bg-rose-500/10 text-rose-500'
                 }`}>
                   <tx.icon size={20} strokeWidth={2.5} />
@@ -5109,10 +5113,10 @@ const EnergyDetailScreen = ({ setScreen, prevScreen, balance }: { setScreen: (s:
                  你当前的积分储备已超过全城 85% 的用户。高积分用户在发起话题时会获得优先全城推荐。
               </p>
               <div className="pt-4 flex gap-3">
-                 <button className="flex-1 h-12 bg-white text-dark rounded-xl font-black uppercase text-[10px] active:scale-95 transition-transform shadow-xl">
+                 <button className="flex-1 h-12 bg-white text-dark rounded-lg font-black uppercase text-[10px] active:scale-95 transition-transform shadow-xl">
                     查看等级特权
                  </button>
-                 <button className="flex-1 h-12 bg-dark/20 text-dark rounded-xl font-black uppercase text-[10px] border border-dark/20 active:scale-95 transition-transform">
+                 <button className="flex-1 h-12 bg-dark/20 text-dark rounded-lg font-black uppercase text-[10px] border border-dark/20 active:scale-95 transition-transform">
                     提升规则
                  </button>
               </div>
@@ -5123,7 +5127,7 @@ const EnergyDetailScreen = ({ setScreen, prevScreen, balance }: { setScreen: (s:
       <footer className="p-6 pt-0 bg-dark/80 backdrop-blur-md border-t border-white/[0.03]">
          <button
            onClick={() => setScreen('shop')}
-           className="w-full h-14 bg-white text-dark rounded-[24px] font-black uppercase text-xs shadow-2xl active:scale-95 transition-transform flex items-center justify-center gap-2"
+           className="w-full h-14 bg-white text-dark rounded-[18px] font-black uppercase text-xs shadow-2xl active:scale-95 transition-transform flex items-center justify-center gap-2"
          >
            去DR商城兑换权益 <ArrowLeft size={16} className="rotate-180" />
          </button>
@@ -5168,7 +5172,7 @@ const VideoEditScreen = ({ topic, setScreen, showToast, onPost, source = 'join' 
 
        {/* Preview Area */}
        <div className="flex-1 flex flex-col items-center justify-center p-6 pt-20 pb-4 overflow-hidden">
-          <div className="w-full max-h-[450px] aspect-[9/16] rounded-[40px] bg-[#111] shadow-2xl border border-white/10 relative overflow-hidden flex flex-col items-center justify-center transition-all duration-500">
+          <div className="w-full max-h-[450px] aspect-[9/16] rounded-[28px] bg-[#111] shadow-2xl border border-white/10 relative overflow-hidden flex flex-col items-center justify-center transition-all duration-500">
              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
 
              {/* Subtitle Overlay */}
@@ -5206,7 +5210,7 @@ const VideoEditScreen = ({ topic, setScreen, showToast, onPost, source = 'join' 
              </div>
              <div className="relative group">
                 <input
-                  className={`w-full h-12 bg-white/5 rounded-xl px-5 pr-12 font-bold outline-none border transition-all ${isEditingText ? 'border-gold bg-white/10' : 'border-white/5 focus:border-white/20'} text-sm text-white`}
+                  className={`w-full h-12 bg-white/5 rounded-lg px-5 pr-12 font-bold outline-none border transition-all ${isEditingText ? 'border-gold bg-white/10' : 'border-white/5 focus:border-white/20'} text-sm text-white`}
                   placeholder="给这段作品加句内心独白..."
                   maxLength={30}
                   value={subtitle}
@@ -5228,14 +5232,14 @@ const VideoEditScreen = ({ topic, setScreen, showToast, onPost, source = 'join' 
              <button
                onClick={() => setScreen(source === 'create' ? 'create-and-shoot' : 'join')}
                disabled={posting}
-               className="flex-1 h-14 bg-white/5 border border-white/5 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all text-white/40 flex items-center justify-center gap-2"
+               className="flex-1 h-14 bg-white/5 border border-white/5 rounded-xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all text-white/40 flex items-center justify-center gap-2"
              >
                 <RotateCw size={14} /> 重拍
              </button>
              <button
                onClick={handlePost}
                disabled={posting}
-               className="flex-[2] h-14 bg-white text-dark rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2 relative overflow-hidden"
+               className="flex-[2] h-14 bg-white text-dark rounded-xl font-black uppercase text-[10px] tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2 relative overflow-hidden"
              >
                 {posting ? (
                   <>
@@ -5298,7 +5302,7 @@ const FeedbackScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
   return (
     <div className="flex flex-col h-full bg-dark pt-8 p-6">
       <header className="flex items-center justify-between mb-8">
-        <button onClick={() => setScreen('me')} className="w-10 h-10 glass-pill rounded-2xl flex items-center justify-center border border-white/5">
+        <button onClick={() => setScreen('me')} className="w-10 h-10 glass-pill rounded-xl flex items-center justify-center border border-white/5">
           <ArrowLeft size={20} className="text-white" />
         </button>
         <h2 className="font-bold text-white text-lg">用户反馈</h2>
@@ -5307,7 +5311,7 @@ const FeedbackScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
 
       <div className="space-y-4">
         <textarea
-          className="w-full h-40 bg-white/5 rounded-2xl p-4 text-white placeholder-white/30"
+          className="w-full h-40 bg-white/5 rounded-xl p-4 text-white placeholder-white/30"
           placeholder="请输入您的问题或建议..."
           value={feedbackText}
           onChange={(e) => setFeedbackText(e.target.value)}
@@ -5315,13 +5319,13 @@ const FeedbackScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
 
         <div className="flex items-center gap-4">
            <input type="file" onChange={handleImageUpload} className="hidden" id="image-upload" />
-           <label htmlFor="image-upload" className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 border border-white/10 cursor-pointer">
-             {selectedImage ? <img src={selectedImage} className="w-full h-full object-cover rounded-2xl" alt="Preview"/> : <Plus size={24}/>}
+           <label htmlFor="image-upload" className="w-20 h-20 rounded-xl bg-white/5 flex items-center justify-center text-white/40 border border-white/10 cursor-pointer">
+             {selectedImage ? <img src={selectedImage} className="w-full h-full object-cover rounded-xl" alt="Preview"/> : <Plus size={24}/>}
            </label>
         </div>
 
         <button
-          className="w-full h-14 bg-gold text-dark font-black rounded-2xl"
+          className="w-full h-14 bg-gold text-dark font-black rounded-xl"
           onClick={() => {
             console.log('Submitting:', feedbackText, selectedImage);
             setScreen('me');
@@ -5486,7 +5490,7 @@ const ContentDetailScreen = ({
                       showToast(`已向 ${selectedShareUserIds.size} 位好友发送共创`);
                       closeShareDrawer();
                     }}
-                    className="h-12 w-full rounded-2xl bg-[#FE2C55] text-sm font-black text-white shadow-[0_12px_26px_rgba(254,44,85,0.24)] active:scale-[0.98] transition-transform"
+                    className="h-12 w-full rounded-xl bg-[#FE2C55] text-sm font-black text-white shadow-[0_12px_26px_rgba(254,44,85,0.24)] active:scale-[0.98] transition-transform"
                   >
                     发送给 {selectedShareUserIds.size} 位好友
                   </button>
@@ -5552,7 +5556,7 @@ const ContentDetailScreen = ({
                     className="group flex min-w-[76px] flex-col items-center gap-2 active:scale-95 transition-transform"
                     onClick={actionItem.action}
                   >
-                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl border ${
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-xl border ${
                       isRed
                         ? 'border-[#FE2C55]/20 bg-[#FE2C55]/10 text-[#FE2C55]'
                         : isGold
@@ -5730,7 +5734,7 @@ const ContentDetailScreen = ({
 	              </div>
 	            </div>
               {isCollabLike && areCreatorsExpanded && (
-                <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar rounded-2xl bg-black/26 p-2 backdrop-blur-md">
+                <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar rounded-xl bg-black/26 p-2 backdrop-blur-md">
                   {Array.from({ length: item.topic.joinedCount }).map((_, index) => {
                     const name = dailyLifeUsers[(item.mediaIndex + index) % dailyLifeUsers.length];
                     return (
@@ -6225,7 +6229,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
       case 'create-circle':
         return <CreateCircleScreen setScreen={sS} setSelectedTopic={setSelectedTopic} initialTopicInfo={circleInitialTopicInfo} />;
       case 'album-composer':
-        return <AlbumComposer setScreen={sS} showToast={showToast} source={albumComposerSource} topic={selectedTopic || undefined} />;
+        return <AlbumComposer setScreen={sS} showToast={showToast} source={albumComposerSource} topic={selectedTopic || undefined} prevScreen={prevScreen} />;
       case 'create-and-shoot':
         return <CreateAndShootScreen setScreen={sS} showToast={showToast} />;
       case 'create-success':
@@ -6370,7 +6374,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
           <div className="flex flex-col items-center justify-center h-full text-white/40 space-y-4">
             <Settings className="animate-spin-slow" size={48} />
             <p className="font-black uppercase tracking-widest text-sm">功能开发中... ({screen})</p>
-            <button onClick={() => sS('home')} className="px-6 py-2 glass-pill rounded-xl text-white">返回首页</button>
+            <button onClick={() => sS('home')} className="px-6 py-2 glass-pill rounded-lg text-white">返回首页</button>
           </div>
         );
     }
@@ -6378,7 +6382,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
   const isLightShell = screen === 'login' || screen === 'messages' || screen === 'me';
 
   return (
-    <div className={`max-w-[402px] mx-auto h-[874px] overflow-hidden relative shadow-[0_0_120px_rgba(0,0,0,0.15)] border-[8px] border-[#f5f5f5] rounded-[56px] font-sans my-4 ${
+    <div className={`max-w-[402px] mx-auto h-[874px] overflow-hidden relative shadow-[0_0_120px_rgba(0,0,0,0.15)] border-[8px] border-[#f5f5f5] rounded-[44px] font-sans my-4 ${
       isLightShell ? 'bg-[#f8f4ed]' : 'bg-dark'
     }`}>
       {/* Simulated Status Bar / Dynamic Island */}
@@ -6561,7 +6565,7 @@ const SmartRingScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
       </header>
 
       <main className="flex-1 p-6 space-y-6 overflow-y-auto no-scrollbar pb-12">
-        <section className="bg-gradient-to-br from-[#fff7eb] via-white to-[#f6ede3] p-8 rounded-[32px] border border-[#f0dfc0] flex items-center justify-between shadow-xl">
+        <section className="bg-gradient-to-br from-[#fff7eb] via-white to-[#f6ede3] p-8 rounded-[24px] border border-[#f0dfc0] flex items-center justify-between shadow-xl">
            <div className="space-y-2 relative z-10">
               <p className="text-xs font-black uppercase text-[#b4834a] tracking-widest">DR Ring Pro</p>
               <h3 className="text-6xl font-bold leading-none text-[#2f261d]">86</h3>
@@ -6606,8 +6610,8 @@ const SmartRingScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) => {
            </div>
         </section>
 
-        <div className="p-4 bg-white/82 rounded-[24px] border border-[#eadfce] flex gap-4 items-center shadow-sm">
-           <div className="w-10 h-10 bg-[#fff1dc] rounded-xl flex items-center justify-center text-[#b4834a]">
+        <div className="p-4 bg-white/82 rounded-[18px] border border-[#eadfce] flex gap-4 items-center shadow-sm">
+           <div className="w-10 h-10 bg-[#fff1dc] rounded-lg flex items-center justify-center text-[#b4834a]">
               <Bell size={20} />
            </div>
            <div className="flex-1">
@@ -6772,11 +6776,11 @@ const DMScreen = ({
               <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${m.sender === 'me' ? 'Dear6317B6SG' : userName}`} alt="" className="w-9 h-9 rounded-full bg-white shrink-0 object-cover" />
               <div className={`max-w-[72%] px-3.5 py-2.5 shadow-sm space-y-1.5 ${
                 m.sender === 'me'
-                ? 'bg-[#FE2C55] rounded-[18px] rounded-tr-[4px] text-white'
-                : 'bg-white rounded-[18px] rounded-tl-[4px] text-[#161616]'
+                ? 'bg-[#FE2C55] rounded-[14px] rounded-tr-[4px] text-white'
+                : 'bg-white rounded-[14px] rounded-tl-[4px] text-[#161616]'
               }`}>
                  {(m as any).image ? (
-                   <img src={(m as any).image} alt="发送的图片" className="max-w-[180px] rounded-2xl object-cover" />
+                   <img src={(m as any).image} alt="发送的图片" className="max-w-[180px] rounded-xl object-cover" />
                  ) : (m as any).voice ? (
                    <div className="flex items-center gap-2 min-w-[120px]">
                      <Mic size={15} />
@@ -6792,7 +6796,7 @@ const DMScreen = ({
            </div>
          ))}
 
-         <div className="mx-auto w-full rounded-[18px] bg-white px-4 py-3 shadow-sm flex items-center justify-between gap-3">
+         <div className="mx-auto w-full rounded-[14px] bg-white px-4 py-3 shadow-sm flex items-center justify-between gap-3">
             <div className="min-w-0">
                <p className="text-[11px] font-black text-[#FE2C55]">共创动态</p>
                <h4 className="mt-0.5 text-sm font-black text-[#161616] truncate">今天的城市声音</h4>
@@ -6806,7 +6810,7 @@ const DMScreen = ({
       </main>
 
       <div className="absolute inset-x-0 bottom-0 z-50 bg-[#f7f7f7]/96 backdrop-blur-xl px-3 pt-2 pb-6">
-         <div className="rounded-[26px] bg-white px-2 pb-2 pt-2 shadow-[0_8px_28px_rgba(0,0,0,0.08)]">
+         <div className="rounded-[20px] bg-white px-2 pb-2 pt-2 shadow-[0_8px_28px_rgba(0,0,0,0.08)]">
            <div className="flex h-11 items-center gap-2">
             {isVoiceMode ? (
               <button
@@ -6865,12 +6869,12 @@ const DMScreen = ({
            </div>
          </div>
          {isEmojiOpen && (
-           <div className="mt-2 rounded-[22px] bg-white p-3 shadow-[0_8px_28px_rgba(0,0,0,0.08)] grid grid-cols-6 gap-2">
+           <div className="mt-2 rounded-[16px] bg-white p-3 shadow-[0_8px_28px_rgba(0,0,0,0.08)] grid grid-cols-6 gap-2">
              {emojis.map((emoji) => (
                <button
                  key={emoji}
                  onClick={() => addEmoji(emoji)}
-                 className="h-10 rounded-2xl bg-[#f7f7f7] text-xl active:scale-95 transition-transform"
+                 className="h-10 rounded-xl bg-[#f7f7f7] text-xl active:scale-95 transition-transform"
                >
                  {emoji}
                </button>
@@ -6878,7 +6882,7 @@ const DMScreen = ({
            </div>
          )}
          {isGiftPanelOpen && (
-           <div className="mt-2 grid grid-cols-4 gap-2 rounded-[22px] bg-white p-3 shadow-[0_8px_28px_rgba(0,0,0,0.08)]">
+           <div className="mt-2 grid grid-cols-4 gap-2 rounded-[16px] bg-white p-3 shadow-[0_8px_28px_rgba(0,0,0,0.08)]">
              {GIFTS.slice(0, 4).map((gift) => (
                <button
                  key={gift.name}
@@ -6892,7 +6896,7 @@ const DMScreen = ({
                    setIsGiftPanelOpen(false);
                    showToast(`已送出${gift.name}`);
                  }}
-                 className="rounded-2xl bg-[#fffaf4] px-2 py-3 text-center active:scale-95 transition-transform"
+                 className="rounded-xl bg-[#fffaf4] px-2 py-3 text-center active:scale-95 transition-transform"
                >
                  <span className="block text-2xl leading-none">{gift.icon}</span>
                  <span className="mt-1 block truncate text-[9px] font-black text-[#2f261d]">{gift.name}</span>
@@ -6921,7 +6925,7 @@ const DMScreen = ({
             >
               <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[#eadfce]" />
               <div className="mb-4 flex items-center gap-3">
-                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} alt="" className="h-11 w-11 rounded-2xl bg-[#f6ede3]" />
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} alt="" className="h-11 w-11 rounded-xl bg-[#f6ede3]" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-[#2f261d]">{remarkName || userName}</p>
                   {remarkName && <p className="text-[10px] font-black uppercase tracking-widest text-[#a79584]">原名 {userName}</p>}
@@ -6936,11 +6940,11 @@ const DMScreen = ({
                 <button
                   key={item.label}
                   onClick={item.action}
-                  className={`flex w-full items-center gap-3 rounded-[20px] px-4 py-3.5 text-left active:bg-[#f6ede3] transition-colors ${
+                  className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left active:bg-[#f6ede3] transition-colors ${
                     item.danger ? 'text-rose-500' : 'text-[#2f261d]'
                   }`}
                 >
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${item.danger ? 'bg-rose-50' : 'bg-[#f6ede3]'}`}>
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${item.danger ? 'bg-rose-50' : 'bg-[#f6ede3]'}`}>
                     <item.icon size={17} />
                   </span>
                   <span className="text-sm font-black">{item.label}</span>
@@ -6964,7 +6968,7 @@ const DMScreen = ({
               initial={{ scale: 0.94, y: 12 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.96, y: 12 }}
-              className="w-full rounded-[28px] bg-[#fffaf5] p-5 shadow-2xl"
+              className="w-full rounded-[20px] bg-[#fffaf5] p-5 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-lg font-black text-[#2f261d]">设置备注</h3>
@@ -6974,11 +6978,11 @@ const DMScreen = ({
                 onChange={(e) => setRemarkDraft(e.target.value)}
                 maxLength={16}
                 placeholder="输入备注名"
-                className="mt-5 h-12 w-full rounded-2xl bg-[#f8f1e8] px-4 text-sm font-black text-[#2f261d] outline-none"
+                className="mt-5 h-12 w-full rounded-xl bg-[#f8f1e8] px-4 text-sm font-black text-[#2f261d] outline-none"
               />
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <button onClick={() => setIsRemarkOpen(false)} className="h-11 rounded-2xl bg-white text-sm font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">取消</button>
-                <button onClick={saveRemark} className="h-11 rounded-2xl bg-[#2f261d] text-sm font-black text-white active:scale-95 transition-transform">保存</button>
+                <button onClick={() => setIsRemarkOpen(false)} className="h-11 rounded-xl bg-white text-sm font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">取消</button>
+                <button onClick={saveRemark} className="h-11 rounded-xl bg-[#2f261d] text-sm font-black text-white active:scale-95 transition-transform">保存</button>
               </div>
             </motion.div>
           </motion.div>
@@ -7009,8 +7013,8 @@ const DMScreen = ({
                 拉黑后，对方将无法与你私信互动，也会进入设置中的黑名单列表。
               </p>
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <button onClick={() => setIsBlockConfirmOpen(false)} className="h-12 rounded-2xl bg-white text-sm font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">再想想</button>
-                <button onClick={handleBlock} className="h-12 rounded-2xl bg-rose-500 text-sm font-black text-white active:scale-95 transition-transform">确认拉黑</button>
+                <button onClick={() => setIsBlockConfirmOpen(false)} className="h-12 rounded-xl bg-white text-sm font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">再想想</button>
+                <button onClick={handleBlock} className="h-12 rounded-xl bg-rose-500 text-sm font-black text-white active:scale-95 transition-transform">确认拉黑</button>
               </div>
             </motion.div>
           </motion.div>
@@ -7034,7 +7038,7 @@ const ShopScreen = ({ setScreen, balance }: { setScreen: (s: Screen) => void, ba
       </header>
 
       <main className="flex-1 p-6 space-y-6 overflow-y-auto no-scrollbar pb-24">
-        <section className="p-8 bg-gradient-to-br from-white via-[#fffaf3] to-[#f6ede3] rounded-[32px] border border-[#eadfce] space-y-3 relative overflow-hidden shadow-xl">
+        <section className="p-8 bg-gradient-to-br from-white via-[#fffaf3] to-[#f6ede3] rounded-[24px] border border-[#eadfce] space-y-3 relative overflow-hidden shadow-xl">
            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100 blur-3xl -mr-16 -mt-16"></div>
            <p className="text-xs font-black uppercase text-indigo-500 tracking-widest relative z-10">我的积分余额</p>
            <h1 className="text-6xl font-bold relative z-10 text-[#2f261d]">{balance.toLocaleString()}</h1>
@@ -7046,14 +7050,14 @@ const ShopScreen = ({ setScreen, balance }: { setScreen: (s: Screen) => void, ba
         <div className="grid grid-cols-2 gap-4">
            {SHOP_ITEMS.map(item => (
               <div key={item.name} className={`p-4 space-y-4 shadow-lg group active:scale-95 transition-transform ${lightSurfaceCard}`}>
-                 <div className="aspect-square rounded-2xl bg-[#f6ede3] flex items-center justify-center group-hover:bg-indigo-50 transition-colors overflow-hidden">
+                 <div className="aspect-square rounded-xl bg-[#f6ede3] flex items-center justify-center group-hover:bg-indigo-50 transition-colors overflow-hidden">
                     <img src={`https://images.unsplash.com/photo-${item.price === '680' ? '1542291026-7eec264c27ff' : item.price === '320' ? '1610421255869-7c1bd36122d7' : item.price === '880' ? '1505740420928-5e560c06d30e' : '1523275335684-37898b6baf30'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80`} alt={item.name} className="w-full h-full object-cover mix-blend-overlay opacity-80 group-hover:opacity-100 transition-opacity" />
                  </div>
                  <div>
                     <h4 className="font-bold text-sm text-[#2f261d]">{item.name}</h4>
                     <p className="text-[#b4834a] text-lg font-bold mt-1">{item.price}<span className="text-[10px] text-[#b0a08e] ml-1 uppercase font-black">{item.unit}</span></p>
                  </div>
-                 <button className="w-full h-10 bg-white border border-[#eadfce] rounded-xl text-[10px] font-black uppercase text-[#8f7f6d] hover:text-[#2f261d] transition-all">
+                 <button className="w-full h-10 bg-white border border-[#eadfce] rounded-lg text-[10px] font-black uppercase text-[#8f7f6d] hover:text-[#2f261d] transition-all">
                     立即兑换
                  </button>
               </div>
@@ -7082,7 +7086,7 @@ const RechargeScreen = ({ setScreen, balance }: { setScreen: (s: Screen) => void
            <p className="text-xs font-black text-[#8f7f6d] tracking-widest uppercase">账户可用余额</p>
            <h1 className="text-6xl font-bold flex items-center gap-4 text-[#2f261d]">
               {balance.toLocaleString()}
-              <div className="w-10 h-10 bg-[#fff1dc] border border-[#f0dfc0] rounded-xl flex items-center justify-center rotate-45 shadow-lg"></div>
+              <div className="w-10 h-10 bg-[#fff1dc] border border-[#f0dfc0] rounded-lg flex items-center justify-center rotate-45 shadow-lg"></div>
            </h1>
         </div>
 
@@ -7093,7 +7097,7 @@ const RechargeScreen = ({ setScreen, balance }: { setScreen: (s: Screen) => void
             { amount: '328', label: '32+5 钻石', price: '32.00', bonus: true },
             { amount: '648', label: '64+12 钻石', price: '64.00', bonus: true },
           ].map(opt => (
-            <div key={opt.amount} className={`p-6 rounded-[32px] border active:scale-95 transition-all cursor-pointer shadow-lg ${opt.bonus ? 'bg-[#fff7eb] border-[#f0dfc0]' : 'bg-white/82 border-[#eadfce]'}`}>
+            <div key={opt.amount} className={`p-6 rounded-[24px] border active:scale-95 transition-all cursor-pointer shadow-lg ${opt.bonus ? 'bg-[#fff7eb] border-[#f0dfc0]' : 'bg-white/82 border-[#eadfce]'}`}>
                <p className={`text-sm font-bold ${opt.bonus ? 'text-[#b4834a]' : 'text-[#8f7f6d]'}`}>{opt.label}</p>
                <h3 className="text-3xl font-bold mt-2 text-[#2f261d]">{opt.price}</h3>
                {opt.bonus && <span className="inline-block mt-4 px-2 py-0.5 bg-gold text-dark text-[8px] font-black rounded uppercase">赠送礼包</span>}
@@ -7101,7 +7105,7 @@ const RechargeScreen = ({ setScreen, balance }: { setScreen: (s: Screen) => void
           ))}
         </div>
 
-        <div className="p-6 bg-white/82 rounded-[32px] border border-[#eadfce] space-y-4 shadow-sm">
+        <div className="p-6 bg-white/82 rounded-[24px] border border-[#eadfce] space-y-4 shadow-sm">
            <h4 className="font-bold text-sm text-[#2f261d]">充值说明</h4>
            <p className="text-xs text-[#8f7f6d] leading-relaxed italic">
              钻石是 DR圈内的通用货币，可用于礼物赠送、道具购买等。一旦充值暂不支持退款，请理性参与共创。
@@ -7136,14 +7140,14 @@ const RelationInviteScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
       </div>
 
       <header className="p-6 flex items-center justify-between relative z-20">
-        <button onClick={() => setScreen('me')} className="w-12 h-12 glass-pill rounded-2xl flex items-center justify-center border border-white/5 active:scale-90 transition-transform">
+        <button onClick={() => setScreen('me')} className="w-12 h-12 glass-pill rounded-xl flex items-center justify-center border border-white/5 active:scale-90 transition-transform">
           <ArrowLeft size={20} className="text-white" />
         </button>
         <div className="text-center">
           <h2 className="font-bold text-white tracking-widest uppercase text-xs">星轨绑定</h2>
           <div className="h-0.5 w-4 bg-gold mx-auto mt-1 rounded-full opacity-50"></div>
         </div>
-        <button className="w-12 h-12 glass-pill rounded-2xl flex items-center justify-center border border-white/5 opacity-50">
+        <button className="w-12 h-12 glass-pill rounded-xl flex items-center justify-center border border-white/5 opacity-50">
           <HelpCircle size={20} className="text-white" />
         </button>
       </header>
@@ -7200,7 +7204,7 @@ const RelationInviteScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
                 key={item.title}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedType(item.title)}
-                className={`relative min-w-[140px] aspect-[4/5] p-5 rounded-[32px] border transition-all duration-300 flex flex-col justify-between overflow-hidden group cursor-pointer ${
+                className={`relative min-w-[140px] aspect-[4/5] p-5 rounded-[24px] border transition-all duration-300 flex flex-col justify-between overflow-hidden group cursor-pointer ${
                   selectedType === item.title
                   ? 'bg-white/10 border-white/20'
                   : 'bg-white/5 border-white/5'
@@ -7221,7 +7225,7 @@ const RelationInviteScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                       selectedType === item.title
                       ? 'bg-white text-dark scale-110 shadow-[0_0_20px_rgba(255,255,255,0.3)]'
                       : 'bg-white/5 text-white/20'
@@ -7267,7 +7271,7 @@ const RelationInviteScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
                   setTimeout(() => setIsSearching(false), 800);
                 }
               }}
-              className="w-full h-16 bg-white/5 rounded-[24px] pl-14 pr-14 font-bold border border-white/5 focus:border-white/20 focus:bg-white/10 transition-all outline-none text-white tracking-widest placeholder:text-white/10"
+              className="w-full h-16 bg-white/5 rounded-[18px] pl-14 pr-14 font-bold border border-white/5 focus:border-white/20 focus:bg-white/10 transition-all outline-none text-white tracking-widest placeholder:text-white/10"
               placeholder="ENTER DR ID..."
             />
             <div className="absolute inset-y-0 right-5 flex items-center">
@@ -7288,9 +7292,9 @@ const RelationInviteScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5"
+              className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/5"
             >
-              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${targetId}`} className="w-10 h-10 rounded-xl bg-white/5" alt="Found" />
+              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${targetId}`} className="w-10 h-10 rounded-lg bg-white/5" alt="Found" />
               <div>
                 <p className="text-xs font-bold text-white">找到匹配用户: <span className="text-gold italic">@{targetId}</span></p>
                 <p className="text-[9px] font-black text-white/30 uppercase mt-0.5 tracking-wider">Signals Match - Frequency Stabilized</p>
@@ -7304,7 +7308,7 @@ const RelationInviteScreen = ({ setScreen }: { setScreen: (s: Screen) => void })
          <button
            onClick={() => setScreen('relation-sent')}
            disabled={!targetId}
-           className="w-full h-16 group relative overflow-hidden rounded-[24px] disabled:opacity-30 transition-all active:scale-95"
+           className="w-full h-16 group relative overflow-hidden rounded-[18px] disabled:opacity-30 transition-all active:scale-95"
          >
             <div className="absolute inset-0 bg-white group-hover:bg-gold transition-colors duration-500"></div>
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)]"></div>
@@ -7369,7 +7373,7 @@ const RelationSentScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) =
           initial={{ scale: 0, scaleY: 0.5 }}
           animate={{ scale: 1, scaleY: 1 }}
           transition={{ type: "spring", damping: 12 }}
-          className="w-32 h-32 bg-white rounded-[42px] flex items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.15)] relative z-10 group"
+          className="w-32 h-32 bg-white rounded-[30px] flex items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.15)] relative z-10 group"
         >
           <motion.div
             animate={{ scale: [1, 1.1, 1] }}
@@ -7381,7 +7385,7 @@ const RelationSentScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) =
           <motion.div
              animate={{ height: ['0%', '100%', '0%'], opacity: [0, 0.5, 0] }}
              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-             className="absolute inset-0 w-full rounded-[42px] bg-gold"
+             className="absolute inset-0 w-full rounded-[30px] bg-gold"
           />
         </motion.div>
       </div>
@@ -7406,7 +7410,7 @@ const RelationSentScreen = ({ setScreen }: { setScreen: (s: Screen) => void }) =
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
         onClick={() => setScreen('home')}
-        className="w-full mt-12 group h-16 bg-white/5 border border-white/10 rounded-[28px] relative overflow-hidden flex items-center justify-center active:scale-95 transition-all"
+        className="w-full mt-12 group h-16 bg-white/5 border border-white/10 rounded-[20px] relative overflow-hidden flex items-center justify-center active:scale-95 transition-all"
       >
         <div className="absolute inset-0 bg-white translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500"></div>
         <span className="relative z-10 font-black text-xs uppercase tracking-widest text-white group-hover:text-dark transition-colors">回到现实世界</span>
@@ -7551,11 +7555,11 @@ const UserProfileScreen = ({
   return (
     <div className="flex flex-col h-full bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_42%,#f2ebe1_100%)] pt-8 text-[#2f261d]">
       <header className="p-6 flex items-center justify-between sticky top-0 bg-[#f9f5ef]/90 backdrop-blur-xl z-20">
-        <button onClick={() => setScreen(prevScreen)} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
+        <button onClick={() => setScreen(prevScreen)} className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
           <ArrowLeft size={20} />
         </button>
         <h2 className="font-bold text-[#2f261d] text-lg tracking-tight">用户详情</h2>
-        <button onClick={() => setIsMoreOpen(true)} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform" aria-label="更多操作">
+        <button onClick={() => setIsMoreOpen(true)} className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform" aria-label="更多操作">
           <MoreHorizontal size={20} />
         </button>
       </header>
@@ -7606,7 +7610,7 @@ const UserProfileScreen = ({
           {profileFacts.length > 0 && (
             <div className={`grid gap-2 mt-5 ${profileFacts.length === 1 ? 'grid-cols-1' : profileFacts.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
               {profileFacts.map(item => (
-                <div key={item.label} className="rounded-[18px] bg-white/58 px-3 py-3 text-center shadow-sm">
+                <div key={item.label} className="rounded-[14px] bg-white/58 px-3 py-3 text-center shadow-sm">
                   <p className="text-[10px] font-black text-[#a79584]">{item.label}</p>
                   <p className="mt-1 text-sm font-black text-[#2f261d]">{item.value}</p>
                 </div>
@@ -7621,7 +7625,7 @@ const UserProfileScreen = ({
                 if (!isFollowed) showToast('已关注');
               }}
               disabled={isBlocked}
-              className={`flex-1 h-12 rounded-[18px] font-black text-xs transition-all flex items-center justify-center gap-2 active:scale-95 ${
+              className={`flex-1 h-12 rounded-[14px] font-black text-xs transition-all flex items-center justify-center gap-2 active:scale-95 ${
                 isBlocked
                 ? 'bg-white/46 text-[#c2b4a4] shadow-sm'
                 :
@@ -7635,7 +7639,7 @@ const UserProfileScreen = ({
             <button
               onClick={() => setScreen('dm')}
               disabled={isBlocked}
-              className="flex-1 h-12 rounded-[18px] bg-white/76 text-[#2f261d] font-black text-xs active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-sm"
+              className="flex-1 h-12 rounded-[14px] bg-white/76 text-[#2f261d] font-black text-xs active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-sm"
             >
               <MessageCircle size={14} /> 发送私信
             </button>
@@ -7643,7 +7647,7 @@ const UserProfileScreen = ({
         </section>
 
         <section className="mt-2 space-y-5">
-          <div className="rounded-[22px] bg-gradient-to-r from-[#fff1f4] via-white to-[#fffaf4] px-4 py-4 shadow-sm">
+          <div className="rounded-[16px] bg-gradient-to-r from-[#fff1f4] via-white to-[#fffaf4] px-4 py-4 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <h4 className="text-sm font-black text-[#2f261d] flex items-center gap-2">
@@ -7686,7 +7690,7 @@ const UserProfileScreen = ({
                 const topic = TOPICS[(work.id + index) % TOPICS.length];
                 const isPending = work.status !== '已成圈';
                 return (
-                  <button key={work.id} className="relative aspect-[3/4.1] overflow-hidden rounded-[24px] bg-[#f6ede3] shadow-[0_12px_24px_rgba(103,81,58,0.08)] active:scale-[0.98] transition-transform text-left">
+                  <button key={work.id} className="relative aspect-[3/4.1] overflow-hidden rounded-[18px] bg-[#f6ede3] shadow-[0_12px_24px_rgba(103,81,58,0.08)] active:scale-[0.98] transition-transform text-left">
                     <img src={topic.image} alt="" className={`absolute inset-0 h-full w-full object-cover transition-all ${isPending ? 'scale-105 blur-[6px]' : ''}`} />
                     <div className={`absolute inset-0 bg-gradient-to-t ${isPending ? 'from-black/75 via-black/30 to-black/5' : 'from-black/65 via-black/15 to-transparent'}`} />
                     <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2 py-1 text-[9px] font-black text-[#2f261d] shadow-sm">
@@ -7731,7 +7735,7 @@ const UserProfileScreen = ({
             >
               <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[#eadfce]" />
               <div className="mb-4 flex items-center gap-3">
-                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayId}`} alt="" className="h-11 w-11 rounded-2xl bg-[#f6ede3]" />
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayId}`} alt="" className="h-11 w-11 rounded-xl bg-[#f6ede3]" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-[#2f261d]">{remarkName || displayName}</p>
                   <p className="text-[10px] font-black uppercase tracking-widest text-[#a79584]">{displayId}</p>
@@ -7747,11 +7751,11 @@ const UserProfileScreen = ({
                 <button
                   key={item.label}
                   onClick={item.action}
-                  className={`flex w-full items-center gap-3 rounded-[20px] px-4 py-3.5 text-left active:bg-[#f6ede3] transition-colors ${
+                  className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left active:bg-[#f6ede3] transition-colors ${
                     item.danger ? 'text-rose-500' : 'text-[#2f261d]'
                   }`}
                 >
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${item.danger ? 'bg-rose-50' : 'bg-[#f6ede3]'}`}>
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${item.danger ? 'bg-rose-50' : 'bg-[#f6ede3]'}`}>
                     <item.icon size={17} />
                   </span>
                   <span className="text-sm font-black">{item.label}</span>
@@ -7775,7 +7779,7 @@ const UserProfileScreen = ({
               initial={{ scale: 0.94, y: 12 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.96, y: 12 }}
-              className="w-full rounded-[28px] bg-[#fffaf5] p-5 shadow-2xl"
+              className="w-full rounded-[20px] bg-[#fffaf5] p-5 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-lg font-black text-[#2f261d]">设置备注</h3>
@@ -7785,11 +7789,11 @@ const UserProfileScreen = ({
                 onChange={(e) => setRemarkDraft(e.target.value)}
                 maxLength={16}
                 placeholder="输入备注名"
-                className="mt-5 h-12 w-full rounded-2xl bg-[#f8f1e8] px-4 text-sm font-black text-[#2f261d] outline-none"
+                className="mt-5 h-12 w-full rounded-xl bg-[#f8f1e8] px-4 text-sm font-black text-[#2f261d] outline-none"
               />
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <button onClick={() => setIsRemarkOpen(false)} className="h-11 rounded-2xl bg-white text-sm font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">取消</button>
-                <button onClick={saveRemark} className="h-11 rounded-2xl bg-[#2f261d] text-sm font-black text-white active:scale-95 transition-transform">保存</button>
+                <button onClick={() => setIsRemarkOpen(false)} className="h-11 rounded-xl bg-white text-sm font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">取消</button>
+                <button onClick={saveRemark} className="h-11 rounded-xl bg-[#2f261d] text-sm font-black text-white active:scale-95 transition-transform">保存</button>
               </div>
             </motion.div>
           </motion.div>
@@ -7820,8 +7824,8 @@ const UserProfileScreen = ({
                 拉黑后，对方将无法与你私信互动，也会进入设置中的黑名单列表。
               </p>
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <button onClick={() => setIsBlockConfirmOpen(false)} className="h-12 rounded-2xl bg-white text-sm font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">再想想</button>
-                <button onClick={handleBlock} className="h-12 rounded-2xl bg-rose-500 text-sm font-black text-white active:scale-95 transition-transform">确认拉黑</button>
+                <button onClick={() => setIsBlockConfirmOpen(false)} className="h-12 rounded-xl bg-white text-sm font-black text-[#8f7f6d] shadow-sm active:scale-95 transition-transform">再想想</button>
+                <button onClick={handleBlock} className="h-12 rounded-xl bg-rose-500 text-sm font-black text-white active:scale-95 transition-transform">确认拉黑</button>
               </div>
             </motion.div>
           </motion.div>
@@ -7864,7 +7868,7 @@ const PersonalProfileScreen = ({ setScreen, profile, setProfile, showToast }: {
           <ArrowLeft size={20} />
         </button>
         <h2 className="font-bold text-[#2f261d]">个人主页</h2>
-        <button onClick={saveProfile} className="h-10 px-4 rounded-2xl bg-[#2f261d] text-white text-xs font-black active:scale-95 transition-transform">
+        <button onClick={saveProfile} className="h-10 px-4 rounded-xl bg-[#2f261d] text-white text-xs font-black active:scale-95 transition-transform">
           保存
         </button>
       </header>
@@ -7885,15 +7889,15 @@ const PersonalProfileScreen = ({ setScreen, profile, setProfile, showToast }: {
         </section>
 
         <section className="px-6 space-y-4">
-           <div className="p-5 space-y-4 rounded-[28px] bg-white/68 shadow-[0_12px_28px_rgba(103,81,58,0.05)]">
+           <div className="p-5 space-y-4 rounded-[20px] bg-white/68 shadow-[0_12px_28px_rgba(103,81,58,0.05)]">
               <h4 className="text-[11px] font-black text-[#8f7f6d]">编辑资料</h4>
               <label className="block space-y-2">
                 <span className="text-[10px] font-black text-[#a79584]">名称</span>
-                <input value={draft.name} onChange={(e) => updateDraft('name', e.target.value)} className="w-full h-12 rounded-2xl bg-[#f8f1e8] px-4 text-sm font-bold text-[#2f261d] outline-none" />
+                <input value={draft.name} onChange={(e) => updateDraft('name', e.target.value)} className="w-full h-12 rounded-xl bg-[#f8f1e8] px-4 text-sm font-bold text-[#2f261d] outline-none" />
               </label>
               <label className="block space-y-2">
                 <span className="text-[10px] font-black text-[#a79584]">UserID</span>
-                <div className="flex h-12 rounded-2xl bg-[#f8f1e8] px-4 items-center gap-1">
+                <div className="flex h-12 rounded-xl bg-[#f8f1e8] px-4 items-center gap-1">
                   <span className="text-sm font-bold text-[#8f7f6d]">@</span>
                   <input value={draft.userId} onChange={(e) => updateDraft('userId', e.target.value.replace(/^@/, ''))} className="flex-1 bg-transparent text-sm font-bold text-[#2f261d] outline-none" />
                 </div>
@@ -7901,7 +7905,7 @@ const PersonalProfileScreen = ({ setScreen, profile, setProfile, showToast }: {
               <div className="grid grid-cols-2 gap-3">
                 <label className="block space-y-2">
                   <span className="text-[10px] font-black text-[#a79584]">性别</span>
-                  <select value={draft.gender} onChange={(e) => updateDraft('gender', e.target.value)} className="w-full h-12 rounded-2xl bg-[#f8f1e8] px-4 text-sm font-bold text-[#2f261d] outline-none">
+                  <select value={draft.gender} onChange={(e) => updateDraft('gender', e.target.value)} className="w-full h-12 rounded-xl bg-[#f8f1e8] px-4 text-sm font-bold text-[#2f261d] outline-none">
                     <option value="">不填写</option>
                     <option value="男">男</option>
                     <option value="女">女</option>
@@ -7910,16 +7914,16 @@ const PersonalProfileScreen = ({ setScreen, profile, setProfile, showToast }: {
                 </label>
                 <label className="block space-y-2">
                   <span className="text-[10px] font-black text-[#a79584]">生日</span>
-                  <input type="date" value={draft.birthday} onChange={(e) => updateDraft('birthday', e.target.value)} className="w-full h-12 rounded-2xl bg-[#f8f1e8] px-3 text-sm font-bold text-[#2f261d] outline-none" />
+                  <input type="date" value={draft.birthday} onChange={(e) => updateDraft('birthday', e.target.value)} className="w-full h-12 rounded-xl bg-[#f8f1e8] px-3 text-sm font-bold text-[#2f261d] outline-none" />
                 </label>
               </div>
               <label className="block space-y-2">
                 <span className="text-[10px] font-black text-[#a79584]">个人描述</span>
-                <textarea value={draft.bio} onChange={(e) => updateDraft('bio', e.target.value)} className="w-full min-h-[92px] rounded-2xl bg-[#f8f1e8] px-4 py-3 text-sm font-bold leading-relaxed text-[#2f261d] outline-none resize-none" />
+                <textarea value={draft.bio} onChange={(e) => updateDraft('bio', e.target.value)} className="w-full min-h-[92px] rounded-xl bg-[#f8f1e8] px-4 py-3 text-sm font-bold leading-relaxed text-[#2f261d] outline-none resize-none" />
               </label>
            </div>
 
-           <div className="p-6 bg-white/82 rounded-[32px] space-y-6 border border-[#eadfce] shadow-2xl">
+           <div className="p-6 bg-white/82 rounded-[24px] space-y-6 border border-[#eadfce] shadow-2xl">
               <div className="flex justify-between items-center">
                  <h4 className="text-[10px] font-black uppercase text-[#8f7f6d] tracking-widest ml-1">已绑定关系</h4>
                  <button onClick={() => setScreen('relation-invite')} className="w-8 h-8 bg-white rounded-lg border border-[#eadfce] flex items-center justify-center text-[#8f7f6d] hover:text-[#2f261d] transition-colors">
@@ -7931,9 +7935,9 @@ const PersonalProfileScreen = ({ setScreen, profile, setProfile, showToast }: {
                    { name: '林野', type: '真爱', time: '214 天', color: 'rose' },
                    { name: 'Mia', type: '闺蜜', time: '45 天', color: 'indigo' },
                  ].map(rel => (
-                    <div key={rel.name} className="flex items-center justify-between p-4 rounded-2xl border border-[#eadfce] bg-white shadow-sm">
+                    <div key={rel.name} className="flex items-center justify-between p-4 rounded-xl border border-[#eadfce] bg-white shadow-sm">
                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#f6ede3] flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-lg bg-[#f6ede3] flex items-center justify-center">
                              <UserIcon size={16} className="text-[#c0b09d]" />
                           </div>
                           <div>
@@ -7974,7 +7978,7 @@ const RelationReviewScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
       </div>
 
       <header className="p-6 flex items-center justify-between relative z-20">
-        <button onClick={() => setScreen('messages')} className="w-12 h-12 glass-pill rounded-2xl flex items-center justify-center border border-white/5 active:scale-90 transition-transform">
+        <button onClick={() => setScreen('messages')} className="w-12 h-12 glass-pill rounded-xl flex items-center justify-center border border-white/5 active:scale-90 transition-transform">
           <ArrowLeft size={20} className="text-white" />
         </button>
         <div className="text-center">
@@ -7993,12 +7997,12 @@ const RelationReviewScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
                transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
                className="absolute inset-[-15px] border border-gold/30 rounded-full"
              />
-             <div className="w-28 h-28 rounded-[48px] bg-gradient-to-br from-gold to-yellow-600 p-1 shadow-[0_0_60px_rgba(255,215,0,0.2)] relative z-10">
-                <div className="w-full h-full rounded-[44px] bg-dark overflow-hidden flex items-center justify-center p-0.5 relative group">
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=FriendLin" className="w-full h-full object-cover rounded-[42px]" alt="Sender" />
+             <div className="w-28 h-28 rounded-[34px] bg-gradient-to-br from-gold to-yellow-600 p-1 shadow-[0_0_60px_rgba(255,215,0,0.2)] relative z-10">
+                <div className="w-full h-full rounded-[32px] bg-dark overflow-hidden flex items-center justify-center p-0.5 relative group">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=FriendLin" className="w-full h-full object-cover rounded-[30px]" alt="Sender" />
                   <div className="absolute inset-0 bg-gold/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-dark shadow-xl border-4 border-dark">
+                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center text-dark shadow-xl border-4 border-dark">
                   <Heart size={18} fill="currentColor" />
                 </div>
              </div>
@@ -8013,7 +8017,7 @@ const RelationReviewScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
         {/* Message Content */}
         <section className="relative">
            <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-gold to-transparent opacity-20"></div>
-           <div className="bg-white/5 rounded-[32px] p-8 border border-white/5 relative backdrop-blur-md overflow-hidden group">
+           <div className="bg-white/5 rounded-[24px] p-8 border border-white/5 relative backdrop-blur-md overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                 <MessageCircle size={60} />
               </div>
@@ -8025,7 +8029,7 @@ const RelationReviewScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
         </section>
 
         {/* Ritual Cost Disclosure */}
-        <div className="p-6 bg-gradient-to-r from-gold/10 to-transparent rounded-2xl space-y-4 border border-gold/10">
+        <div className="p-6 bg-gradient-to-r from-gold/10 to-transparent rounded-xl space-y-4 border border-gold/10">
            <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gold">
                 <Gem size={14} />
@@ -8044,7 +8048,7 @@ const RelationReviewScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
              showToast('恭喜！星轨轨道已对接成功。');
              setTimeout(() => setScreen('me'), 1000);
            }}
-           className="w-full h-16 bg-white rounded-[24px] font-black uppercase text-xs text-dark shadow-[0_20px_50px_rgba(255,255,255,0.2)] active:scale-95 transition-all flex items-center justify-center gap-3 relative overflow-hidden group"
+           className="w-full h-16 bg-white rounded-[18px] font-black uppercase text-xs text-dark shadow-[0_20px_50px_rgba(255,255,255,0.2)] active:scale-95 transition-all flex items-center justify-center gap-3 relative overflow-hidden group"
          >
             <div className="absolute inset-0 bg-gold translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
             <span className="relative z-10 flex items-center gap-2">
@@ -8054,7 +8058,7 @@ const RelationReviewScreen = ({ setScreen, showToast }: { setScreen: (s: Screen)
 
          <button
            onClick={() => setScreen('messages')}
-           className="w-full h-14 bg-white/5 border border-white/10 rounded-[24px] font-black uppercase text-[10px] tracking-[0.2em] text-white/40 active:scale-95 transition-all"
+           className="w-full h-14 bg-white/5 border border-white/10 rounded-[18px] font-black uppercase text-[10px] tracking-[0.2em] text-white/40 active:scale-95 transition-all"
          >
             暂时保持独立轨道
          </button>

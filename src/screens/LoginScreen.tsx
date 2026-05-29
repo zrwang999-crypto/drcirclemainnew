@@ -213,7 +213,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
   const authTitle = isThirdPartyBinding ? '绑定手机号' : '登录 / 注册';
   const pageTitle = stage === 'invite' ? '邀请码' : authTitle;
   const primaryButtonClass =
-    'w-full h-14 bg-[#FE2C55] text-white font-black rounded-2xl shadow-[0_18px_40px_rgba(254,44,85,0.22)] transition-transform active:scale-95 disabled:opacity-30 disabled:active:scale-100';
+    'w-full h-14 bg-[#FE2C55] text-white font-black rounded-xl shadow-[0_18px_40px_rgba(254,44,85,0.22)] transition-transform active:scale-95 disabled:opacity-30 disabled:active:scale-100';
 
   return (
     <section className="relative flex flex-col h-full p-8 pt-24 overflow-y-auto no-scrollbar bg-[radial-gradient(circle_at_top,#fffaf6_0%,#f7f1e7_48%,#f2eadf_100%)] text-[#2f261d]">
@@ -224,7 +224,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
               <button
                 onClick={() => setStage('phone')}
                 aria-label="修改手机号"
-                className="w-11 h-11 rounded-2xl bg-white/80 border border-[#eadfce] text-[#6f6256] flex items-center justify-center active:scale-95 transition-transform shadow-sm"
+                className="w-11 h-11 rounded-xl bg-white/80 border border-[#eadfce] text-[#6f6256] flex items-center justify-center active:scale-95 transition-transform shadow-sm"
               >
                 <ArrowLeft size={20} />
               </button>
@@ -253,13 +253,13 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
                   <div className="relative">
                     <button
                       onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                      className="h-14 bg-white/82 rounded-2xl px-4 font-bold text-[#2f261d] outline-none focus:ring-2 focus:ring-[#FE2C55]/20 transition-all border border-[#eadfce] w-24 flex items-center justify-between gap-1 shadow-sm"
+                      className="h-14 bg-white/82 rounded-xl px-4 font-bold text-[#2f261d] outline-none focus:ring-2 focus:ring-[#FE2C55]/20 transition-all border border-[#eadfce] w-24 flex items-center justify-between gap-1 shadow-sm"
                     >
                       {countryCode}
                       <ChevronDown size={16} />
                     </button>
                     {isCountryDropdownOpen && (
-                      <div className="absolute top-16 left-0 z-20 w-56 bg-[#fffaf5] border border-[#eadfce] rounded-2xl p-2 shadow-2xl max-h-60 overflow-y-auto">
+                      <div className="absolute top-16 left-0 z-20 w-56 bg-[#fffaf5] border border-[#eadfce] rounded-xl p-2 shadow-2xl max-h-60 overflow-y-auto">
                         {COUNTRY_CODES.map((c) => (
                           <button
                             key={c.code}
@@ -287,7 +287,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
                       setCodeSent(false);
                     }}
                     inputMode="tel"
-                    className="flex-1 h-14 bg-white/82 rounded-2xl px-4 font-bold text-[#2f261d] outline-none focus:ring-2 focus:ring-[#FE2C55]/20 transition-all border border-[#eadfce] shadow-sm placeholder:text-[#baa897]"
+                    className="flex-1 h-14 bg-white/82 rounded-xl px-4 font-bold text-[#2f261d] outline-none focus:ring-2 focus:ring-[#FE2C55]/20 transition-all border border-[#eadfce] shadow-sm placeholder:text-[#baa897]"
                     placeholder="请输入手机号"
                   />
                 </div>
@@ -335,7 +335,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
                   value={inviteCode}
                   onChange={(e) => handleInviteChange(e.target.value)}
                   inputMode="numeric"
-                  className="w-full h-14 bg-white/82 rounded-2xl px-4 font-bold text-[#2f261d] outline-none focus:ring-2 focus:ring-[#FE2C55]/20 transition-all border border-[#eadfce] uppercase shadow-sm placeholder:text-[#baa897]"
+                  className="w-full h-14 bg-white/82 rounded-xl px-4 font-bold text-[#2f261d] outline-none focus:ring-2 focus:ring-[#FE2C55]/20 transition-all border border-[#eadfce] uppercase shadow-sm placeholder:text-[#baa897]"
                   placeholder="请输入邀请码或DR订单号"
                 />
                 <p className="text-xs font-bold text-[#8f7f6d] leading-relaxed">
@@ -380,7 +380,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
               <button
                 onClick={() => setIsSmsBackDialogOpen(true)}
                 aria-label="返回上一步"
-                className="w-11 h-11 rounded-2xl bg-white/80 border border-[#eadfce] text-[#6f6256] flex items-center justify-center active:scale-95 transition-transform shadow-sm"
+                className="w-11 h-11 rounded-xl bg-white/80 border border-[#eadfce] text-[#6f6256] flex items-center justify-center active:scale-95 transition-transform shadow-sm"
               >
                 <ArrowLeft size={20} />
               </button>
@@ -403,7 +403,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
                       }}
                       inputMode="numeric"
                       maxLength={4}
-                      className="w-full aspect-square bg-white/82 rounded-2xl text-center text-2xl font-bold text-[#2f261d] outline-none focus:ring-2 focus:ring-[#FE2C55]/20 transition-all border border-[#eadfce] shadow-sm"
+                      className="w-full aspect-square bg-white/82 rounded-xl text-center text-2xl font-bold text-[#2f261d] outline-none focus:ring-2 focus:ring-[#FE2C55]/20 transition-all border border-[#eadfce] shadow-sm"
                     />
                   ))}
                 </div>
@@ -459,14 +459,14 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
           <button
             onClick={() => handleThirdPartyLogin('wechat')}
             disabled={checking}
-            className="w-full h-14 bg-white/86 text-[#2f261d] font-black rounded-2xl flex items-center justify-center gap-2 border border-[#eadfce] disabled:opacity-40 shadow-sm"
+            className="w-full h-14 bg-white/86 text-[#2f261d] font-black rounded-xl flex items-center justify-center gap-2 border border-[#eadfce] disabled:opacity-40 shadow-sm"
           >
             微信登录
           </button>
           <button
             onClick={() => handleThirdPartyLogin('apple')}
             disabled={checking}
-            className="w-full h-14 bg-white/86 text-[#2f261d] font-black rounded-2xl flex items-center justify-center gap-2 border border-[#eadfce] disabled:opacity-40 mt-3 shadow-sm"
+            className="w-full h-14 bg-white/86 text-[#2f261d] font-black rounded-xl flex items-center justify-center gap-2 border border-[#eadfce] disabled:opacity-40 mt-3 shadow-sm"
           >
             Apple 登录
           </button>
@@ -496,7 +496,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.96, y: 12 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm rounded-[28px] border border-[#eadfce] bg-[#fffaf5] p-6 text-left shadow-2xl"
+              className="w-full max-w-sm rounded-[20px] border border-[#eadfce] bg-[#fffaf5] p-6 text-left shadow-2xl"
             >
               <h3 className="text-[#2f261d] text-lg font-black">用户协议及隐私保护</h3>
               <p className="mt-3 text-sm leading-relaxed text-[#7d6f61]">
@@ -506,7 +506,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => setIsPolicyDialogOpen(false)}
-                  className="h-12 flex-1 rounded-2xl border border-[#eadfce] bg-white text-[#6f6256] font-black"
+                  className="h-12 flex-1 rounded-xl border border-[#eadfce] bg-white text-[#6f6256] font-black"
                 >
                   不同意
                 </button>
@@ -517,7 +517,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
                     continuePendingPolicyAction(pendingPolicyAction);
                     setPendingPolicyAction(null);
                   }}
-                  className="h-12 flex-1 rounded-2xl bg-[#FE2C55] text-white font-black shadow-[0_14px_30px_rgba(254,44,85,0.18)]"
+                  className="h-12 flex-1 rounded-xl bg-[#FE2C55] text-white font-black shadow-[0_14px_30px_rgba(254,44,85,0.18)]"
                 >
                   同意
                 </button>
@@ -541,7 +541,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.96, y: 12 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm rounded-[28px] border border-[#eadfce] bg-[#fffaf5] p-6 text-left shadow-2xl"
+              className="w-full max-w-sm rounded-[20px] border border-[#eadfce] bg-[#fffaf5] p-6 text-left shadow-2xl"
             >
               <h3 className="text-[#2f261d] text-lg font-black">确定返回并重新开始？</h3>
               <p className="mt-3 text-sm leading-relaxed text-[#7d6f61]">
@@ -550,7 +550,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => setIsSmsBackDialogOpen(false)}
-                  className="h-12 flex-1 rounded-2xl border border-[#eadfce] bg-white text-[#6f6256] font-black"
+                  className="h-12 flex-1 rounded-xl border border-[#eadfce] bg-white text-[#6f6256] font-black"
                 >
                   继续等待
                 </button>
@@ -559,7 +559,7 @@ export default function LoginScreen({ setScreen, showToast }: LoginScreenProps) 
                     setIsSmsBackDialogOpen(false);
                     setStage(isDrUserPhone ? 'phone' : 'invite');
                   }}
-                  className="h-12 flex-1 rounded-2xl bg-[#FE2C55] text-white font-black shadow-[0_14px_30px_rgba(254,44,85,0.18)]"
+                  className="h-12 flex-1 rounded-xl bg-[#FE2C55] text-white font-black shadow-[0_14px_30px_rgba(254,44,85,0.18)]"
                 >
                   返回
                 </button>
