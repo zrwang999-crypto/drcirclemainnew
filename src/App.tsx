@@ -50,7 +50,8 @@ import {
   Smile,
   ClipboardCheck,
   Info,
-  CalendarHeart
+  CalendarHeart,
+  Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TOPICS, CURRENT_USER, GIFTS, SHOP_ITEMS, SHARE_FRIENDS, MOCK_GIFT_RECORDS } from './constants';
@@ -2143,7 +2144,7 @@ const NetworkListScreen = ({
   );
 };
 
-const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCount, savedCount, worksCount, setInitialNetworkTab, setSelectedTopic, setCircleIsMyWorkMode, setCircleInitialTopicId }: {
+const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCount, savedCount, worksCount, setInitialNetworkTab, setSelectedTopic, setCircleIsMyWorkMode, setCircleInitialTopicId, onOpenContent }: {
   setScreen: (s: Screen) => void,
   profile: EditableProfile,
   diamondBalance: number,
@@ -2154,7 +2155,8 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
   setInitialNetworkTab: (t: 'friends' | 'followers' | 'following') => void,
   setSelectedTopic: (t: Topic) => void,
   setCircleIsMyWorkMode: (b: boolean) => void,
-  setCircleInitialTopicId: (id: string | undefined) => void
+  setCircleInitialTopicId: (id: string | undefined) => void,
+  onOpenContent: (item: HomeFeedItem) => void,
 }) => {
   const lightCard = '';
   const [activeGallery, setActiveGallery] = useState<'works' | 'likes' | 'saved'>('works');
@@ -2218,13 +2220,23 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
   }));
 
   const activeWorks = activeGallery === 'works' ? galleryWorks : activeGallery === 'likes' ? likedWorks : savedWorks;
+  const getWorkContentItem = (work: typeof activeWorks[number], index: number): HomeFeedItem => {
+    const mediaIndex = index % dailyLifeFrames.length;
+    return {
+      id: work.id,
+      topic: work.topic,
+      mediaIndex,
+      title: work.title,
+      author: dailyLifeUsers[mediaIndex],
+      kind: work.topic.status === 'completed' ? 'collab' : 'video',
+      heightClass: 'aspect-[4/5]',
+    };
+  };
 
   return (
-    <div className="flex flex-col h-full bg-[radial-gradient(circle_at_top,#fffaf4_0%,#f7f2ea_42%,#f2ebe1_100%)] pt-8 text-[#2f261d]">
-      <header className="p-6 flex items-center justify-between sticky top-0 bg-[#f9f5ef]/90 backdrop-blur-xl z-20">
-        <div className="w-10 h-10" />
-        <h2 className="font-bold text-[#2f261d] text-lg tracking-tight">我的</h2>
-        <button onClick={() => setScreen('settings')} className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/82 text-[#4f3d2d] shadow-sm active:scale-95 transition-transform">
+    <div className="relative flex flex-col h-full bg-[#fffaf7] pt-8 text-[#1f1a17]">
+      <header className="absolute left-0 right-0 top-8 z-30 flex justify-end gap-2 px-7 py-3 pointer-events-none">
+        <button onClick={() => setScreen('settings')} className="w-10 h-10 rounded-full flex items-center justify-center bg-white text-[#241f1b] shadow-[0_6px_18px_rgba(31,26,23,0.10)] active:scale-95 transition-transform pointer-events-auto">
           <Settings size={20} />
         </button>
       </header>
@@ -2232,143 +2244,130 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
       <main className="flex-1 overflow-y-auto no-scrollbar px-4 pb-32">
         <section
           onClick={() => setScreen('personal-profile')}
-          className={`${lightCard} mt-2 px-2 py-4 cursor-pointer group active:scale-[0.99] transition-all relative`}
+          className={`${lightCard} -mx-4 -mt-8 px-4 pt-24 pb-4 cursor-pointer group active:scale-[0.99] transition-all relative overflow-hidden`}
         >
-          <div className="absolute inset-x-12 top-0 h-20 bg-gradient-to-b from-[#f7e6c8]/50 to-transparent blur-3xl pointer-events-none"></div>
-          <div className="relative flex items-center gap-4">
+          <div className="relative flex items-start gap-4">
             <div className="relative shrink-0">
               <img
                 src={profile.avatar}
                 alt={profile.name}
-                className="w-[78px] h-[78px] rounded-full object-cover shadow-[0_10px_22px_rgba(73,55,39,0.12)]"
+                className="w-[82px] h-[82px] rounded-full object-cover ring-4 ring-white shadow-[0_10px_22px_rgba(31,26,23,0.12)]"
               />
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-1 flex items-center gap-1 rounded-full text-[11px] font-black text-[#b4834a] shadow-sm bg-[#fff6e9]">
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-1 flex items-center gap-1 rounded-full text-[11px] font-black text-[#ff2442] shadow-sm bg-white">
                 <Flame size={11} fill="currentColor" /> {CURRENT_USER.streak}
               </div>
             </div>
 
-            <div className="flex-1 min-w-0 text-left">
+            <div className="flex-1 min-w-0 pt-1 text-left">
               <div className="flex items-start justify-between gap-3">
-                <h1 className="min-w-0 text-[24px] font-black text-[#2f261d] tracking-tight leading-tight">{profile.name}</h1>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setScreen('personal-profile');
-                  }}
-                  aria-label="编辑个人资料"
-                  className="mt-0.5 w-9 h-9 rounded-full bg-white/88 text-[#4f3d2d] shadow-sm flex items-center justify-center active:scale-95 transition-transform shrink-0"
-                >
-                  <Pencil size={16} />
-                </button>
+                <h1 className="min-w-0 text-[23px] font-black text-[#1f1a17] tracking-tight leading-tight">{profile.name}</h1>
               </div>
               <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-                <p className="text-[#7d6f61]">@{profile.userId}</p>
-                <span className="text-[11px] font-bold text-[#b0a08e]">IP：{profile.ipLocation}</span>
+                <p className="text-[#7a7470]">@{profile.userId}</p>
+                <span className="text-[13px] font-bold text-[#9a928c]">IP：{profile.ipLocation}</span>
               </div>
-              <p className="mt-2.5 text-[#8f7f6d] text-sm leading-relaxed">{profile.bio}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 mt-6">
-            <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('friends'); setScreen('network-list'); }} className="text-center">
-              <p className="text-[20px] font-black text-[#2f261d]">3</p>
-              <p className="text-[10px] text-[#a79584] font-bold">好友</p>
-            </button>
-            <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('following'); setScreen('network-list'); }} className="text-center">
-              <p className="text-[20px] font-black text-[#2f261d]">{CURRENT_USER.following}</p>
-              <p className="text-[10px] text-[#a79584] font-bold">关注</p>
-            </button>
-            <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('followers'); setScreen('network-list'); }} className="text-center">
-              <p className="text-[20px] font-black text-[#2f261d]">{CURRENT_USER.followers}</p>
-              <p className="text-[10px] text-[#a79584] font-bold">粉丝</p>
-            </button>
-            <button onClick={(e) => { e.stopPropagation(); setScreen('energy-detail'); }} className="text-center">
-              <p className="text-[20px] font-black text-[#2f261d]">1.2w</p>
-              <p className="text-[10px] text-[#a79584] font-bold">获赞</p>
-            </button>
-          </div>
-
-          <div className="mt-5 space-y-2.5">
+          <div className="relative mt-5 flex items-center gap-3 px-1 py-1">
+            <div className="grid flex-1 grid-cols-4 gap-2">
+              <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('friends'); setScreen('network-list'); }} className="text-center">
+                <p className="text-[17px] font-black text-[#1f1a17] leading-none">3</p>
+                <p className="mt-1 text-[10px] text-[#8f8781] font-bold">好友</p>
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('following'); setScreen('network-list'); }} className="text-center">
+                <p className="text-[17px] font-black text-[#1f1a17] leading-none">{CURRENT_USER.following}</p>
+                <p className="mt-1 text-[10px] text-[#8f8781] font-bold">关注</p>
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); setInitialNetworkTab('followers'); setScreen('network-list'); }} className="text-center">
+                <p className="text-[17px] font-black text-[#1f1a17] leading-none">{CURRENT_USER.followers}</p>
+                <p className="mt-1 text-[10px] text-[#8f8781] font-bold">粉丝</p>
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); setScreen('energy-detail'); }} className="text-center">
+                <p className="text-[17px] font-black text-[#1f1a17] leading-none">1.2w</p>
+                <p className="mt-1 text-[10px] text-[#8f8781] font-bold">获赞</p>
+              </button>
+            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setScreen('recharge');
+                setScreen('personal-profile');
               }}
-              className="w-full rounded-[14px] bg-gradient-to-r from-[#eef3fb] via-white to-[#eef8f1] px-4 py-3 text-left shadow-sm active:scale-95 transition-transform"
+              className="h-9 shrink-0 rounded-[10px] bg-white px-3 text-[11px] font-black text-[#241f1b] shadow-[0_6px_18px_rgba(31,26,23,0.08)] active:scale-95 transition-transform"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#2f261d] shadow-sm shrink-0">
-                  <Gem size={17} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[11px] font-black text-[#8f7f6d] tracking-wide whitespace-nowrap">我的钻石</p>
-                </div>
-                <div className="ml-auto min-w-[88px] px-3 py-1.5 text-right">
-                  <p className="text-[16px] font-black text-[#2f261d] leading-none">{diamondBalance.toLocaleString()}</p>
-                </div>
-              </div>
+              编辑资料
             </button>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setScreen('personal-profile');
+            }}
+            className="relative mt-4 flex items-center gap-1.5 px-6 text-left text-[#6f6863] text-[13px] leading-relaxed active:scale-[0.99] transition-transform"
+          >
+            <span>{profile.bio}</span>
+            <Pencil size={13} className="shrink-0 text-[#8f8781]" />
+          </button>
 
+          <div className="mt-5 grid grid-cols-2 gap-2.5">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setScreen('couple-space');
               }}
-              className="w-full rounded-[18px] bg-gradient-to-r from-[#fff1f4] via-white to-[#eef8f1] px-4 py-3.5 text-left shadow-sm active:scale-95 transition-transform"
+              className="rounded-[18px] bg-white px-3.5 py-3 text-left shadow-[0_10px_28px_rgba(31,26,23,0.06)] active:scale-95 transition-transform min-h-[76px]"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#FE2C55] shadow-sm">
-                  <CalendarHeart size={19} />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fff0f3] text-[#ff2442]">
+                  <CalendarHeart size={18} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-black tracking-wide text-[#b4834a]">情侣空间</p>
-                  <p className="mt-0.5 truncate text-[17px] font-black text-[#2f261d]">共建我们的关系地图</p>
+                  <p className="text-[10px] font-black tracking-wide text-[#ff2442] leading-tight">情侣空间</p>
+                  <p className="mt-0.5 truncate text-[14px] font-black text-[#1f1a17] leading-tight">共建关系地图</p>
                 </div>
-                <ChevronRight size={18} className="text-[#b0a08e]" />
               </div>
             </button>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              {[
-                { label: '智能戒指', value: '86', icon: ShieldCheck, action: () => setScreen('smart-ring'), tone: 'from-[#fff7eb] to-white' },
-                { label: 'DR商城', value: energyBalance.toLocaleString(), icon: Star, action: () => setScreen('shop'), tone: 'from-[#fff1f4] to-white' },
-              ].map((item) => (
-                <button
-                  key={item.label}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    item.action();
-                  }}
-                  className={`rounded-[14px] bg-gradient-to-br ${item.tone} px-3.5 py-3 text-left shadow-sm active:scale-95 transition-transform min-h-[72px]`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-[#2f261d] shadow-sm shrink-0">
-                      <item.icon size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-black text-[#8f7f6d] tracking-wide leading-tight">{item.label}</p>
-                      <p className="mt-0.5 text-[17px] font-black text-[#2f261d] truncate">{item.value}</p>
-                    </div>
+            {[
+              { label: '智能戒指', value: '86', icon: ShieldCheck, action: () => setScreen('smart-ring'), tone: 'bg-[#f8f6f3]', valueClass: '' },
+              { label: '我的钻石', value: diamondBalance.toLocaleString(), icon: Gem, action: () => setScreen('recharge'), tone: 'bg-[#f5f7fb]', valueClass: '' },
+              { label: 'DR商城', value: energyBalance.toLocaleString(), icon: Star, action: () => setScreen('shop'), tone: 'bg-[#f8f6f3]', valueClass: '' },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  item.action();
+                }}
+                className="rounded-[18px] bg-white px-3.5 py-3 text-left shadow-[0_10px_28px_rgba(31,26,23,0.06)] active:scale-95 transition-transform min-h-[76px]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full ${item.tone} flex items-center justify-center text-[#1f1a17] shrink-0`}>
+                    <item.icon size={16} />
                   </div>
-                </button>
-              ))}
-            </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black text-[#6f6863] tracking-wide leading-tight">{item.label}</p>
+                    <p className="mt-0.5 text-[16px] font-black text-[#1f1a17] truncate">{item.value}</p>
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
         </section>
 
         <button
           onClick={() => setIsGrowthDialogOpen(true)}
-          className="mt-4 w-full rounded-[20px] bg-white/90 px-4 py-3 text-left shadow-[0_10px_28px_rgba(103,81,58,0.10)] active:scale-[0.99] transition-transform"
+          className="mt-1.5 w-full rounded-[16px] bg-white/90 px-3.5 py-2.5 text-left shadow-[0_8px_22px_rgba(103,81,58,0.08)] active:scale-[0.99] transition-transform"
         >
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#2f261d] text-white">
-              <ClipboardCheck size={22} strokeWidth={2.5} />
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2f261d] text-white">
+              <ClipboardCheck size={18} strokeWidth={2.5} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-base font-black leading-tight tracking-tight text-[#2f261d]">今日成长 2/3</h3>
-              <p className="mt-0.5 truncate text-[12px] font-bold text-[#8f7f6d]">参与一个待成圈话题，可点亮今日记录</p>
+              <h3 className="text-[14px] font-black leading-tight tracking-tight text-[#2f261d]">今日成长 2/3</h3>
+              <p className="mt-0.5 truncate text-[11px] font-bold text-[#8f7f6d]">参与一个待成圈话题，可点亮今日记录</p>
             </div>
-            <span className="shrink-0 rounded-full bg-[#FE2C55] px-5 py-3 text-sm font-black text-white shadow-[0_10px_22px_rgba(254,44,85,0.22)]">
+            <span className="shrink-0 rounded-full bg-[#FE2C55] px-4 py-2 text-xs font-black text-white shadow-[0_8px_18px_rgba(254,44,85,0.20)]">
               去完成
             </span>
           </div>
@@ -2395,55 +2394,89 @@ const MeScreen = ({ setScreen, profile, diamondBalance, energyBalance, likedCoun
                 </button>
               ))}
             </div>
-
-            <button
-              onClick={() => {
-                if (activeGallery === 'works') setScreen('my-works');
-                if (activeGallery === 'likes') setScreen('liked-topics');
-                if (activeGallery === 'saved') setScreen('saved-topics');
-              }}
-              className="text-[11px] font-black text-[#8f7f6d] tracking-wide"
-            >
-              全部作品
-            </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 mt-3">
+          <div className="grid grid-cols-2 gap-3 mt-3 items-start">
             {activeWorks.map((work, index) => (
               <button
                 key={work.id}
                 onClick={() => {
-                  openWork(work.topic);
+                  onOpenContent(getWorkContentItem(work, index));
                 }}
-                className="relative aspect-[3/4.4] overflow-hidden rounded-[16px] bg-[#f6ede3] group active:scale-[0.98] transition-transform"
+                className="group overflow-hidden rounded-[18px] bg-white text-left shadow-[0_10px_26px_rgba(103,81,58,0.08)] border border-[#eadfce] active:scale-[0.98] transition-transform"
               >
-                <img
-                  src={work.image}
-                  alt={work.title}
-                  className={`absolute inset-0 w-full h-full object-cover transition-all ${
-                    isPendingWork(work.topic) ? 'scale-105 blur-[6px]' : ''
-                  }`}
-                />
-                <div className={`absolute inset-0 bg-gradient-to-t ${isPendingWork(work.topic) ? 'from-black/75 via-black/30 to-black/5' : 'from-black/65 via-black/15 to-transparent'}`} />
-                <div className="absolute left-2.5 top-2.5 px-2 py-1 rounded-full bg-white/90 text-[9px] font-black text-[#2f261d]">
-                  {work.badge}
+                <div className="relative aspect-[4/5] flex items-center justify-center overflow-hidden bg-[#eadfce]">
+                  {work.topic.status === 'completed' ? (
+                    <div className="grid h-full w-full grid-cols-2 grid-rows-6 gap-px bg-black">
+                      {Array.from({ length: 12 }).map((_, frameIndex) => {
+                        const frameSeed = (index + frameIndex) % dailyLifeFrames.length;
+                        return (
+                          <div key={frameIndex} className="relative overflow-hidden bg-[#e6ddd2]">
+                            <img
+                              src={dailyLifeFrames[frameSeed]}
+                              alt=""
+                              className="h-full w-full object-cover transition-transform duration-500 group-active:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/62 via-black/12 to-black/18" />
+                            <div className="absolute inset-x-1.5 top-1/2 -translate-y-1/2">
+                              <p className="line-clamp-2 text-center text-[10px] font-black leading-tight text-white drop-shadow-[0_2px_7px_rgba(0,0,0,0.58)]">
+                                {dailyLifeCaptions[frameSeed]}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <img
+                      src={work.image}
+                      alt=""
+                      className="h-full w-full object-cover transition-transform duration-500 group-active:scale-105"
+                    />
+                  )}
+                  {work.topic.status === 'completed' && (
+                    <span className="absolute right-2 top-2 rounded-full bg-black/58 px-2.5 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur-md">
+                      共创
+                    </span>
+                  )}
+                  {work.topic.status !== 'completed' && (
+                    <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/58 text-white shadow-sm backdrop-blur-md">
+                      <Play size={13} className="ml-0.5 fill-current" strokeWidth={3} />
+                    </span>
+                  )}
+                  <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-black/58 px-2.5 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur-md">
+                    <Eye size={11} />
+                    {work.metric}
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/42 via-transparent to-black/5" />
                 </div>
-                <div className="absolute bottom-0 inset-x-0 p-3 text-left">
-                  <p className="text-[11px] font-black text-white/70 uppercase tracking-wide">
-                    {work.badge}
-                  </p>
-                  <h4 className="mt-1 text-sm font-bold text-white leading-tight line-clamp-2">
+                <div className="p-3">
+                  <h4 className="line-clamp-2 text-[13px] font-black leading-snug text-[#2f261d]">
                     {work.title}
                   </h4>
-                  <div className="mt-2 flex items-center justify-between text-white/85">
-                    <div className="flex items-center gap-1 text-[10px] font-black">
-                      <Play size={10} className="fill-white stroke-none" />
-                      <span>{work.metric}</span>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center">
+                      {Array.from({ length: Math.min(5, work.topic.joinedCount) }).map((_, avatarIndex) => {
+                        const name = dailyLifeUsers[(index + avatarIndex) % dailyLifeUsers.length];
+                        return (
+                          <img
+                            key={`${work.id}-creator-${name}-${avatarIndex}`}
+                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`}
+                            alt=""
+                            className={`h-5 w-5 shrink-0 rounded-full border border-white bg-[#f6ede3] ${avatarIndex > 0 ? '-ml-1.5' : ''}`}
+                          />
+                        );
+                      })}
+                      {work.topic.joinedCount > 5 && (
+                        <span className="-ml-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-[#f2e7db] px-1 text-[8px] font-black text-[#8f7f6d]">
+                          +{work.topic.joinedCount - 5}
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] font-black">
-                      <Heart size={10} className="fill-white/80 stroke-none" />
-                      <span>{index + 12}</span>
-                    </div>
+                    <span className="flex items-center gap-1 text-[10px] font-black text-[#b0a08e]">
+                      <Heart size={11} />
+                      {index + 12}
+                    </span>
                   </div>
                 </div>
               </button>
@@ -6447,6 +6480,36 @@ const ContentDetailScreen = ({
             <div className="flex gap-5 overflow-x-auto no-scrollbar pb-1">
               {[
                 {
+                  key: 'wechat',
+                  icon: MessageCircle,
+                  label: '微信好友',
+                  tone: 'green',
+                  action: () => {
+                    showToast('已打开微信好友分享');
+                    closeShareDrawer();
+                  },
+                },
+                {
+                  key: 'moments',
+                  icon: Users2,
+                  label: '朋友圈',
+                  tone: 'green',
+                  action: () => {
+                    showToast('已打开朋友圈分享');
+                    closeShareDrawer();
+                  },
+                },
+                {
+                  key: 'copy-link',
+                  icon: CornerUpRight,
+                  label: '分享链接',
+                  tone: 'neutral',
+                  action: () => {
+                    showToast('链接已复制');
+                    closeShareDrawer();
+                  },
+                },
+                {
                   key: 'save',
                   icon: ImageIcon,
                   label: '保存至相册',
@@ -6472,6 +6535,7 @@ const ContentDetailScreen = ({
                 const Icon = actionItem.icon;
                 const isRed = actionItem.tone === 'red';
                 const isGold = actionItem.tone === 'gold';
+                const isGreen = actionItem.tone === 'green';
                 return (
                   <button
                     key={actionItem.key}
@@ -6481,6 +6545,8 @@ const ContentDetailScreen = ({
                     <div className={`flex h-14 w-14 items-center justify-center rounded-xl border ${
                       isRed
                         ? 'border-[#FE2C55]/20 bg-[#FE2C55]/10 text-[#FE2C55]'
+                        : isGreen
+                          ? 'border-[#13c27b]/20 bg-[#13c27b]/10 text-[#10a86b]'
                         : isGold
                           ? 'border-[#d6b27e]/30 bg-[#d6b27e]/12 text-[#b4834a]'
                           : 'border-[#e2d8ca] bg-[#f5efe7] text-[#7d6d5f]'
@@ -7388,6 +7454,7 @@ const GiftScreen = ({ setScreen, prevScreen, showToast }: { setScreen: (s: Scree
             setSelectedTopic={setSelectedTopic}
             setCircleIsMyWorkMode={setCircleIsMyWorkMode}
             setCircleInitialTopicId={setCircleInitialTopicId}
+            onOpenContent={openContentDetail}
           />
         );
       case 'my-works':
