@@ -1,0 +1,19 @@
+{
+  "name": "DRcircle",
+  "short_name": "DRcircle",
+  "description": "围绕真爱圈、关系戒指、个人主页与社交互动设计的移动端关系应用原型。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "./logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

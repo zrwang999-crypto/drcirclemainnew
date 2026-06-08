@@ -1,9 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <meta name="theme-color" content="#050505" />
+    <meta
+      name="description"
+      content="DRcircle 是一款围绕真爱圈、关系戒指、个人主页与社交互动设计的移动端关系应用原型。"
+    />
+    <meta name="application-name" content="DRcircle" />
+    <meta name="apple-mobile-web-app-title" content="DRcircle" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta property="og:title" content="DR圈·让相信真爱的人聚在一起" />
+    <meta
+      property="og:description"
+      content="管理真爱圈、关系戒指和社交互动的移动端关系应用原型。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="./logo.svg" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="./logo.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./logo.svg" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <title>DR圈·让相信真爱的人聚在一起</title>
     <style>
       html,
       body,
@@ -16,11 +36,30 @@
       body {
         background: #050505;
       }
+
+      noscript {
+        min-height: 100%;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        color: #fff;
+        font: 600 16px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        text-align: center;
+      }
     </style>
     <script type="module" crossorigin src="./assets/index-CsmartRing.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-C74DPgEn.css" />
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => {});
+        });
+      }
+    </script>
+    <script defer src="./account-security-local.js?v=20260608-14"></script>
   </head>
   <body>
+    <noscript>DRcircle 需要启用 JavaScript 才能运行。</noscript>
     <div id="root"></div>
   </body>
 </html>
